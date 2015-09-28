@@ -429,17 +429,31 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_components">3.1. Components</a>
 <ul class="sectlevel3">
 <li><a href="#__component_component_classes">3.1.1. @Component / component classes</a></li>
-<li><a href="#__qualifier_qualifiers">3.1.2. @Qualifier / qualifiers</a></li>
-<li><a href="#_component_type_signature">3.1.3. Component type signature</a></li>
-<li><a href="#__inject_dependency_injection">3.1.4. @Inject / dependency injection</a></li>
-<li><a href="#__provider_directly_instantiated_components">3.1.5. @Provider / directly instantiated components</a></li>
-<li><a href="#__scope_component_scope">3.1.6. @Scope / Component scope</a>
+<li><a href="#component-qualifiers">3.1.2. @Qualifier / qualifiers</a></li>
+<li><a href="#component-typesignature">3.1.3. Type signature of component classes</a></li>
+<li><a href="#__inject_dependency_injection">3.1.4. @Inject / dependency injection</a>
 <ul class="sectlevel4">
-<li><a href="#__singleton_singleton_scope">@Singleton / singleton scope</a></li>
+<li><a href="#_field_injection">Field injection</a></li>
+<li><a href="#_constructor_injection">Constructor injection</a></li>
+<li><a href="#_indirect_component_references">Indirect component references</a></li>
+<li><a href="#_references_to_multiple_components">References to multiple components</a></li>
+<li><a href="#_generic_component_references">Generic component references</a></li>
+</ul>
+</li>
+<li><a href="#component-scope">3.1.5. @Scope / Component scope</a>
+<ul class="sectlevel4">
+<li><a href="#component-scope-singleton">@Singleton / singleton scope</a></li>
 <li><a href="#__prototype_prototype_scope">@Prototype / prototype scope</a></li>
 </ul>
 </li>
-<li><a href="#__eager_eager_components">3.1.7. @Eager / eager components</a></li>
+<li><a href="#component-lifecycle-annotations">3.1.6. @Postconstruct and @Predestroy / lifecycle callbacks</a></li>
+<li><a href="#component-eager">3.1.7. @Eager / eager components</a></li>
+<li><a href="#__provider_directly_instantiated_components">3.1.8. @Provider / directly instantiated components</a>
+<ul class="sectlevel4">
+<li><a href="#_simple_component_providers">Simple component providers</a></li>
+<li><a href="#parameterized-component-providers">Parameterized component providers</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_modules">3.2. Modules</a>
@@ -450,7 +464,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_events">3.3. Events</a></li>
-<li><a href="#_dependency_injection_for_non_components">3.4. Dependency injection for non-components</a></li>
+<li><a href="#dependency-injection-for-non-components">3.4. Dependency injection for non-components</a></li>
 </ul>
 </li>
 <li><a href="#_examples">4. Examples</a></li>
@@ -469,15 +483,15 @@ Its main features are</p>
 <div class="ulist">
 <ul>
 <li>
+<p>component instantiation and lifecycle management,</p>
+</li>
+<li>
 <p>dependency injection and</p>
 </li>
 <li>
-<p>local event dispatching</p>
+<p>module-local event dispatching.</p>
 </li>
 </ul>
-</div>
-<div class="paragraph">
-<p>between components.</p>
 </div>
 <div class="sect2">
 <h3 id="_xtend">1.1. Xtend</h3>
@@ -493,7 +507,7 @@ Xtend is a statically-typed programming language which translates to comprehensi
 </div>
 </div>
 <div class="paragraph">
-<p>Xtend has lots of useful features compared to Java, and it has fairly good Eclipse support.
+<p>Xtend has lots of useful features compared to Java, and it has fairly good IDE support.
 Its advanced <a href="http://www.eclipse.org/xtend/documentation/204_activeannotations.html">compile-time metaprogramming facilities</a> make it the perfect basis of <em>xtend-ioc</em>.<br>
 <em>xtend-ioc</em> does not support Java directly, only indirectly via Xtend.</p>
 </div>
@@ -531,7 +545,7 @@ TODO</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The <em>xtend-ioc</em> project is not released to the public yet.<br>
-Although all features and examples presented in this documentation are working, the source code does needs some cleanup&#8230;&#8203;</p>
+Although all features and examples presented in this documentation are working unit tests, the framework source code needs some cleanup&#8230;&#8203;</p>
 </div>
 </div>
 </div>
@@ -544,17 +558,17 @@ Although all features and examples presented in this documentation are working, 
 <div class="ulist">
 <ul>
 <li>
-<p>Components are Java objects managed by a module.</p>
+<p>'Components' are Java objects managed by a module.</p>
 </li>
 <li>
-<p>A module manages the lifecycle of its components and may provide external access to them.</p>
+<p>A 'module' manages the lifecycle of its components and may provide external access to them.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Let&#8217;s see an example just to taste the basics:</p>
+<p>Let&#8217;s see an example just to taste the features:</p>
 </div>
-<div class="listingblock">
+<div id="showcase-example-first" class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-xtend" data-lang="xtend">interface HelloService { <i class="conum" data-value="1"></i><b>(1)</b>
 	def String sayHello(String name)
@@ -664,8 +678,31 @@ class ChattyModuleTest {
 <h3 id="_components">3.1. Components</h3>
 <div class="sect3">
 <h4 id="__component_component_classes">3.1.1. @Component / component classes</h4>
+<div id="component-class-requirements" class="paragraph">
+<p>A Java class is a 'component class' if</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>it is annotated with <code>@Component</code> and</p>
+</li>
+<li>
+<p>it has a valid component constructor, that is</p>
+<div class="ulist">
+<ul>
+<li>
+<p>either the class has exactly one constructor annotated with <code>@Inject</code></p>
+</li>
+<li>
+<p>or none of its constructors is annotated with <code>@Inject</code> and a no-args constructor exits (even the default constructor or an explicitly defined one).</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
 <div class="paragraph">
-<p>TODO</p>
+<p>When a new instance of a 'component class' is needed then it is instantiated by using its 'component constructor'.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -674,43 +711,333 @@ class ChattyModuleTest {
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-It is considered good practice that components are small and focused in functionality.
+Components should be focused in functionality.
 </td>
 </tr>
 </table>
 </div>
 </div>
 <div class="sect3">
-<h4 id="__qualifier_qualifiers">3.1.2. @Qualifier / qualifiers</h4>
+<h4 id="component-qualifiers">3.1.2. @Qualifier / qualifiers</h4>
+<div class="paragraph">
+<p>Programming against interfaces is considered a good practice therefore components should be referenced by interfaces instead of concrete classes.
+When multiple 'component classes' implement the same interface, the component classes can be identified by labeling them with 'qualifiers'.</p>
+</div>
+<div class="paragraph">
+<p>A 'qualifier' is an annotation marked with <code>@Qualifier</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Qualifier
+annotation Label {
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s rewrite our <a href="#showcase-example-first">first example</a> using qualifiers and interface references:</p>
+</div>
+<div id="showcase-example-with-qualifiers" class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">interface HelloService {
+	def String sayHello(String name)
+}
 
+@Qualifier
+annotation English { <i class="conum" data-value="1"></i><b>(1)</b>
+}
+
+@Qualifier
+annotation Hungarian { <i class="conum" data-value="2"></i><b>(2)</b>
+}
+
+@Component
+@English <i class="conum" data-value="3"></i><b>(3)</b>
+class EnglishHelloServiceImpl implements HelloService {
+	override sayHello(String name) '''Hello «name»!'''
+}
+
+@Component
+@Hungarian <i class="conum" data-value="4"></i><b>(4)</b>
+class HungarianHelloServiceImpl implements HelloService {
+	override sayHello(String name) '''Szia «name»!'''
+}
+
+@Component
+class AnotherComponent {
+	@Inject
+	@English
+	public HelloService englishHelloService <i class="conum" data-value="5"></i><b>(5)</b>
+}
+
+@Module(
+	components=#[EnglishHelloServiceImpl, HungarianHelloServiceImpl, AnotherComponent]
+)
+interface ChattyModule {
+	@English <i class="conum" data-value="6"></i><b>(6)</b>
+	def HelloService englishHelloService()
+
+	@Hungarian <i class="conum" data-value="7"></i><b>(7)</b>
+	def HelloService hungarianHelloService()
+
+	def List&lt;? extends HelloService&gt; helloServices()
+
+	def AnotherComponent anotherComponent()
+}
+
+class ChattyModuleTest {
+	@Test
+	def void test() {
+		val module = ChattyModule.Instance.initialize
+		assertEquals("Hello Jeff!", module.englishHelloService.sayHello("Jeff"))
+		assertEquals("Szia Jeff!", module.hungarianHelloService.sayHello("Jeff"))
+		assertEquals(2, module.helloServices.size)
+		assertTrue(
+			module.englishHelloService ==
+			module.anotherComponent.englishHelloService
+		)
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Define qualifier <code>@English</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Define qualifier <code>@Hungarian</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Qualify <code>EnglishHelloServiceImpl</code> with <code>@English</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Qualify <code>HungarianHelloServiceImpl</code> with <code>@Hungarian</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td><code>AnotherComponent</code> depends on a component implementing <code>HelloService</code> and qualified with <code>@English</code> (that will be resolved as <code>EnglishHelloServiceImpl</code>).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Declare a method for accessing the component implementing <code>HelloService</code> and qualified with <code>@English</code> (that will be resolved as <code>EnglishHelloServiceImpl</code>).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Declare a method for accessing the component implementing <code>HelloService</code> and qualified with <code>@Hungarian</code> (that will be resolved as <code>HungarianHelloServiceImpl</code>).</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Of course a component may have multiple qualifiers like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Qualifier
+annotation Service {
+}
+
+@Qualifier
+annotation Production {
+}
+
+@Component
+@Service
+@Production
+class SomeComponent {}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Qualifiers may have attributes of <code>String</code>, enum and primitive types:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Qualifier
+annotation Service {
+}
+
+@Qualifier
+annotation Profile {
+  String value
+}
+
+@Component
+@Service
+@Profile("production")
+class SomeComponent {}</code></pre>
+</div>
+</div>
 </div>
 <div class="sect3">
-<h4 id="_component_type_signature">3.1.3. Component type signature</h4>
-
+<h4 id="component-typesignature">3.1.3. Type signature of component classes</h4>
+<div class="paragraph">
+<p>Components can be identified by their <em>type signature</em> <code>(cT, cQ)</code> that is composed of</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>cT</code>: the Java type of the component class and</p>
+</li>
+<li>
+<p><code>cQ</code>: the set of qualifiers the component class is annotated with.</p>
+</li>
+</ul>
+</div>
+<div id="component-reference-resolution" class="paragraph">
+<p>A component with <code>(cT, cQ)</code> type signature satisfies a component reference <code>(rT, rQ)</code> if</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>cT</code> is assignable to <code>rT</code> (using the typing rules of the Java language) and</p>
+</li>
+<li>
+<p>set <code>cQ</code> contains all elements of set <code>rQ</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The operation of finding all components in a module satisfying a given component reference is called <em>component reference resolution</em>.<br>
+<em>Component reference resolution</em> may result in zero or more components.</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="__inject_dependency_injection">3.1.4. @Inject / dependency injection</h4>
+<div class="paragraph">
+<p>The most important feature of <em>xtend-ioc</em> is dependency injection.<br>
+There are two types: field and constructor injection. These can be mixed in the same component.</p>
+</div>
+<div class="paragraph">
+<p>Dependencies are resolved using <a href="#component-reference-resolution">component reference resolution</a>.</p>
+</div>
+<div class="sect4">
+<h5 id="_field_injection">Field injection</h5>
+<div class="paragraph">
+<p>Injected fields are marked with <code>@Inject</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component
+class SomeComponent {
+  @Inject
+  AnotherComponent anotherComponent
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Component reference resolution is performed with</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>rT</code> = type of the field declaration</p>
+</li>
+<li>
+<p><code>rQ</code> = qualifiers the field is annotated with</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_constructor_injection">Constructor injection</h5>
+<div class="paragraph">
+<p>Injected constructors are marked with <code>@Inject</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component
+class SomeComponent {
+  @Inject
+  new(AnotherComponent anotherComponent) {}
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Component reference resolution is performed for each constructor parameter with</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>rT</code> = type of the parameter declaration</p>
+</li>
+<li>
+<p><code>rQ</code> = qualifiers the parameter is annotated with</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_indirect_component_references">Indirect component references</h5>
 
 </div>
-<div class="sect3">
-<h4 id="__provider_directly_instantiated_components">3.1.5. @Provider / directly instantiated components</h4>
-<div class="admonitionblock tip">
+<div class="sect4">
+<h5 id="_references_to_multiple_components">References to multiple components</h5>
+
+</div>
+<div class="sect4">
+<h5 id="_generic_component_references">Generic component references</h5>
+<div class="paragraph">
+<p>Generic components can be referenced as expected:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">interface Handler&lt;T&gt; {}
+
+@Component
+class IntegerHandler implements Handler&lt;Integer&gt; {}
+
+@Component
+class DoubleHandler implements Handler&lt;Double&gt; {}
+
+@Component
+class TestComponent {
+	@Inject
+	public Handler&lt;Integer&gt; integerHandler
+
+	@Inject
+	public List&lt;Handler&lt;? extends Number&gt;&gt; numberHandlers <i class="conum" data-value="1"></i><b>(1)</b>
+}
+
+@Module(components=#[IntegerHandler, DoubleHandler, TestComponent])
+interface TestModule {
+	def IntegerHandler integerHandler()
+
+	def DoubleHandler doubleHandler()
+
+	def TestComponent testComponent()
+}
+
+class Example {
+	@Test
+	def void test()	{
+		val module = TestModule.Instance.initialize
+		Assert.assertTrue(module.integerHandler == module.testComponent.integerHandler)
+		Assert.assertTrue(
+			#{module.doubleHandler, module.integerHandler} ==
+				module.testComponent.numberHandlers.toSet
+		)
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
 <table>
 <tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-Usually components are <a href="https://en.wikipedia.org/wiki/Plain_Old_Java_Object">simple Java objects</a> but any Java object will do - eg. a <code>String</code> can be a component as well.
-</td>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Both <code>List&lt;Handler&lt;? extends Number&gt;&gt;</code> and <code>List&lt;? extends Handler&lt;? extends Number&gt;&gt;</code> are valid. <code>Iterable</code> could be used as well instead of <code>List</code>.<br>
+But <code>List&lt;Handler&lt;Number&gt;&gt;</code> would not be valid because there is no component implementing <code>Handler&lt;Number&gt;</code> (note that because of Java typing rules, <code>Handler&lt;Integer&gt;</code> is not assignable to <code>Handler&lt;Number&gt;</code>, only to <code>Handler&lt;? extends Number&gt;</code>).</td>
 </tr>
 </table>
 </div>
 </div>
+</div>
 <div class="sect3">
-<h4 id="__scope_component_scope">3.1.6. @Scope / Component scope</h4>
+<h4 id="component-scope">3.1.5. @Scope / Component scope</h4>
 <div class="sect4">
-<h5 id="__singleton_singleton_scope">@Singleton / singleton scope</h5>
+<h5 id="component-scope-singleton">@Singleton / singleton scope</h5>
 
 </div>
 <div class="sect4">
@@ -719,8 +1046,110 @@ Usually components are <a href="https://en.wikipedia.org/wiki/Plain_Old_Java_Obj
 </div>
 </div>
 <div class="sect3">
-<h4 id="__eager_eager_components">3.1.7. @Eager / eager components</h4>
+<h4 id="component-lifecycle-annotations">3.1.6. @Postconstruct and @Predestroy / lifecycle callbacks</h4>
 
+</div>
+<div class="sect3">
+<h4 id="component-eager">3.1.7. @Eager / eager components</h4>
+
+</div>
+<div class="sect3">
+<h4 id="__provider_directly_instantiated_components">3.1.8. @Provider / directly instantiated components</h4>
+<div class="paragraph">
+<p>There are cases when we would like to use instances of a Java class as components but the class does not comply with the <a href="#component-class-requirements">requirements of component classes</a>.<br>
+In most cases it is possible to create a subclass with a valid component constructor but usually it is not practical.
+Besides if the class is final - like <code>String</code> (yes, any Java object can be a component, even a string) - then there is no way to turn it into a component class.</p>
+</div>
+<div class="paragraph">
+<p>To overcome these limitations, component classes can provide other component instances.</p>
+</div>
+<div class="sect4">
+<h5 id="_simple_component_providers">Simple component providers</h5>
+<div class="paragraph">
+<p>Simple component providers are no-args instance methods defined in normal components and annotated with <code>@Provider</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">class ProvidedComponent { <i class="conum" data-value="1"></i><b>(1)</b>
+}
+
+@Component
+class MainComponent {
+  @Provider
+  def ProvidedComponent provider() {
+    new ProvidedComponent() <i class="conum" data-value="2"></i><b>(2)</b>
+  }
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The provided component&#8217;s class is not annotated with <code>@Component</code>, it&#8217;s a simple POJO.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Create a new instance of the provided component using the <code>new</code> operator.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Altough in this case the 'provided' component is instantiated directly using the <code>new</code> operator, its lifecycle is managed by the module, and similar rules apply to them as to normal components:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>they can have <a href="#component-qualifiers">qualifiers</a> (declared on the 'provider method')</p>
+</li>
+<li>
+<p>they are <a href="#component-scope-singleton">singleton</a> by default but can have a <a href="#component-scope">custom scope</a> (declared on the 'provider method')</p>
+</li>
+<li>
+<p><a href="#component-lifecycle-annotations">component lifecycle annotations</a> are supported</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>There are differences as well:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A 'provided component''s <a href="#component-typesignature">type signature</a> is composed of</p>
+<div class="ulist">
+<ul>
+<li>
+<p>the return type of the 'provider method'</p>
+</li>
+<li>
+<p>the qualifiers statically declared on the 'provider method' and the parameterized qualifiers supported by the 'provider method' (see <a href="#parameterized-component-providers">Parameterized component providers</a>)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>They usually don&#8217;t have <code>@Inject</code>-ed dependencies but use the dependencies of the enclosing provider component.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+'Provided components' may have injected dependencies like <a href="#dependency-injection-for-non-components">any POJOs</a> but the resulting code is more readable if the dependecies are passed explicitly to the constructor of the implementing class.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect4">
+<h5 id="parameterized-component-providers">Parameterized component providers</h5>
+
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -743,7 +1172,7 @@ Usually components are <a href="https://en.wikipedia.org/wiki/Plain_Old_Java_Obj
 
 </div>
 <div class="sect2">
-<h3 id="_dependency_injection_for_non_components">3.4. Dependency injection for non-components</h3>
+<h3 id="dependency-injection-for-non-components">3.4. Dependency injection for non-components</h3>
 
 </div>
 </div>
@@ -780,7 +1209,7 @@ Altough it would be possible to implement most <em>xtend-ioc</em> features using
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-09-27 23:04:09 Central Europe Daylight Time
+Last updated 2015-09-28 19:37:12 Central Europe Daylight Time
 </div>
 </div>
 </body>
