@@ -440,15 +440,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_generic_component_references">Generic component references</a></li>
 </ul>
 </li>
-<li><a href="#component-scope">3.1.5. @Scope / Component scope</a>
+<li><a href="#component-scope">3.1.5. @Scope / component scope</a>
 <ul class="sectlevel4">
 <li><a href="#component-scope-singleton">@Singleton / singleton scope</a></li>
-<li><a href="#__prototype_prototype_scope">@Prototype / prototype scope</a></li>
+<li><a href="#component-scope-prototype">@Prototype / prototype scope</a></li>
 </ul>
 </li>
 <li><a href="#component-lifecycle-annotations">3.1.6. @Postconstruct and @Predestroy / lifecycle callbacks</a></li>
 <li><a href="#component-eager">3.1.7. @Eager / eager components</a></li>
-<li><a href="#__provider_directly_instantiated_components">3.1.8. @Provider / directly instantiated components</a>
+<li><a href="#__provider_components_instantiated_by_user_code">3.1.8. @Provider / components instantiated by user code</a>
 <ul class="sectlevel4">
 <li><a href="#_simple_component_providers">Simple component providers</a></li>
 <li><a href="#parameterized-component-providers">Parameterized component providers</a></li>
@@ -458,17 +458,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_modules">3.2. Modules</a>
 <ul class="sectlevel3">
-<li><a href="#__module_module_interfaces">3.2.1. @Module / module interfaces</a></li>
+<li><a href="#__module_defining_modules">3.2.1. @Module / defining modules</a></li>
 <li><a href="#_module_inheritance">3.2.2. Module inheritance</a></li>
-<li><a href="#_abstract_modules">3.2.3. Abstract modules</a></li>
+<li><a href="#_abstract_and_non_abstract_modules">3.2.3. Abstract and non-abstract modules</a></li>
+<li><a href="#_initializing_modules">3.2.4. Initializing modules</a></li>
 </ul>
 </li>
-<li><a href="#_events">3.3. Events</a></li>
+<li><a href="#_module_local_event_dispatching">3.3. Module-local event dispatching</a></li>
 <li><a href="#dependency-injection-for-non-components">3.4. Dependency injection for non-components</a></li>
 </ul>
 </li>
-<li><a href="#_examples">4. Examples</a></li>
-<li><a href="#_faq">5. FAQ</a></li>
+<li><a href="#_faq">4. FAQ</a></li>
 </ul>
 </div>
 </div>
@@ -489,7 +489,7 @@ Its main features are</p>
 <p>dependency injection and</p>
 </li>
 <li>
-<p>module-local event dispatching.</p>
+<p>event dispatching between component instances.</p>
 </li>
 </ul>
 </div>
@@ -500,10 +500,12 @@ Its main features are</p>
 </div>
 <div class="quoteblock">
 <blockquote>
-Xtend is a statically-typed programming language which translates to comprehensible Java source code. Syntactically and semantically Xtend has its roots in the Java programming language but improves on many aspects.
+<div class="paragraph">
+<p>Xtend is a statically-typed programming language which translates to comprehensible Java source code. Syntactically and semantically Xtend has its roots in the Java programming language but improves on many aspects.</p>
+</div>
 </blockquote>
 <div class="attribution">
-&#8212; from the Xtend documentation
+&#8212; by the Xtend website
 </div>
 </div>
 <div class="paragraph">
@@ -518,8 +520,8 @@ Its advanced <a href="http://www.eclipse.org/xtend/documentation/204_activeannot
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Although this documentation sometimes refers to 'Java classes', in most cases this means "Java classes translated from Xtend".
-Similarly, 'Java objects' mean "instances of Java classes translated from Xtend".
+Although this documentation sometimes refers to "Java classes", in most cases this means "Java classes translated from Xtend".<br>
+Similarly, "Java objects" mean instances of "Java classes translated from Xtend".
 </td>
 </tr>
 </table>
@@ -527,15 +529,44 @@ Similarly, 'Java objects' mean "instances of Java classes translated from Xtend"
 </div>
 <div class="sect2">
 <h3 id="_inversion_of_control_and_dependency_injection">1.2. Inversion of control and dependency injection</h3>
+<div class="quoteblock">
+<blockquote>
 <div class="paragraph">
-<p>TODO</p>
+<p>In software engineering, inversion of control (IoC) describes a design in which custom-written portions of a computer program receive the flow of control from a generic, reusable library. A software architecture with this design inverts control as compared to traditional procedural programming: in traditional programming, the custom code that expresses the purpose of the program calls into reusable libraries to take care of generic tasks, but with inversion of control, it is the reusable code that calls into the custom, or task-specific, code.</p>
+</div>
+</blockquote>
+<div class="attribution">
+&#8212; <a href="https://en.wikipedia.org/wiki/Inversion_of_control">by Wikipedia</a>
+</div>
+</div>
+<div class="paragraph">
+<p>In this definition <em>xtend-ioc</em> is the "generic, reusable library" that</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">creates and manages instances of classes</dt>
+<dd>
+<p>instead of the classes would be instantiated in user code using the <code>new</code> operator,</p>
+</dd>
+<dt class="hdlist1">injects dependencies to objects</dt>
+<dd>
+<p>instead of each object would lookup up them manually, and</p>
+</dd>
+<dt class="hdlist1">dispatches events between objects</dt>
+<dd>
+<p>instead of calling methods directly on other objects.</p>
+</dd>
+</dl>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_compile_time_vs_runtime_frameworks">1.3. Compile-time vs runtime frameworks</h3>
 <div class="paragraph">
-<p><em>xtend-ioc</em> is a purely compile-time IOC framework.
-TODO</p>
+<p><em>xtend-ioc</em> is a purely compile-time IOC framework.<br>
+It means that all validation and code generation is performed during the Xtend to Java source code translation phase, so the generated Java code is completely static.</p>
+</div>
+<div class="paragraph">
+<p>This design decision has disadvantages as well compared to runtime IOC frameworks, for example it does not support features like component lookup using runtime classpath scanning.</p>
 </div>
 </div>
 </div>
@@ -545,7 +576,7 @@ TODO</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The <em>xtend-ioc</em> project is not released to the public yet.<br>
-Although all features and examples presented in this documentation are working unit tests, the framework source code needs some cleanup&#8230;&#8203;</p>
+Although all features and examples presented in this documentation are working (they are indeed unit tests), the framework source code needs some cleanup&#8230;&#8203;</p>
 </div>
 </div>
 </div>
@@ -558,10 +589,10 @@ Although all features and examples presented in this documentation are working u
 <div class="ulist">
 <ul>
 <li>
-<p>'Components' are Java objects managed by a module.</p>
+<p><em>Components</em> are Java objects managed by a module.</p>
 </li>
 <li>
-<p>A 'module' manages the lifecycle of its components and may provide external access to them.</p>
+<p>A <em>module</em> manages the lifecycle of its components and may provide external access to them.</p>
 </li>
 </ul>
 </div>
@@ -679,7 +710,7 @@ class ChattyModuleTest {
 <div class="sect3">
 <h4 id="__component_component_classes">3.1.1. @Component / component classes</h4>
 <div id="component-class-requirements" class="paragraph">
-<p>A Java class is a 'component class' if</p>
+<p>A Java class is a <em>component class</em> if</p>
 </div>
 <div class="ulist">
 <ul>
@@ -702,7 +733,7 @@ class ChattyModuleTest {
 </ul>
 </div>
 <div class="paragraph">
-<p>When a new instance of a 'component class' is needed then it is instantiated by using its 'component constructor'.</p>
+<p>When a new instance of a <em>component class</em> is needed then it is instantiated by using its <em>component constructor</em>.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -721,10 +752,10 @@ Components should be focused in functionality.
 <h4 id="component-qualifiers">3.1.2. @Qualifier / qualifiers</h4>
 <div class="paragraph">
 <p>Programming against interfaces is considered a good practice therefore components should be referenced by interfaces instead of concrete classes.
-When multiple 'component classes' implement the same interface, the component classes can be identified by labeling them with 'qualifiers'.</p>
+When multiple <em>component classes</em> implement the same interface, the component classes can be identified by labeling them with <em>qualifiers</em>.</p>
 </div>
 <div class="paragraph">
-<p>A 'qualifier' is an annotation marked with <code>@Qualifier</code>:</p>
+<p>A <em>qualifier</em> is an annotation marked with <code>@Qualifier</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -873,8 +904,8 @@ class SomeComponent {}</code></pre>
 </div>
 <div class="sect3">
 <h4 id="component-typesignature">3.1.3. Type signature of component classes</h4>
-<div class="paragraph">
-<p>Components can be identified by their <em>type signature</em> <code>(cT, cQ)</code> that is composed of</p>
+<div id="component-reference" class="paragraph">
+<p>Components can be referenced by their <em>type signature</em> <code>(cT, cQ)</code> that is composed of</p>
 </div>
 <div class="ulist">
 <ul>
@@ -971,11 +1002,55 @@ class SomeComponent {
 </div>
 <div class="sect4">
 <h5 id="_indirect_component_references">Indirect component references</h5>
-
+<div class="paragraph">
+<p>Indirect <em>component reference</em>s are useful if</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>more than one instance of the <em>component</em> is required (this is useful for <a href="#component-scope-prototype">prototype scoped components</a>)</p>
+</li>
+<li>
+<p>instantiation of the referenced <em>component</em> should be delayed for some reason</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Indirect <em>component reference</em>s are supported by injecting a <em>component supplier</em>:</p>
+</div>
+<div class="paragraph">
+<p>TODO example</p>
+</div>
+<div class="paragraph">
+<p>TODO support optional dependencies using Optional</p>
+</div>
+<div class="paragraph">
+<p>INFO: Currently only <code>com.google.common.base.Supplier</code> is supported as <em>component supplier</em> but there are plans to support others (eg. <code>java.util.function.Supplier</code>).</p>
+</div>
 </div>
 <div class="sect4">
 <h5 id="_references_to_multiple_components">References to multiple components</h5>
-
+<div class="paragraph">
+<p>When a <a href="#component-reference">component references</a> is <a href="#component-reference-resolution">resolved</a> to multiple <em>component</em>s they can be injected as a <code>List</code> or <code>Iterable</code>:</p>
+</div>
+<div class="paragraph">
+<p>TODO example</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Of course the <em>component reference</em> can be injected as a <code>List</code> even if it is <em>resolved</em> to only one <em>component instance</em>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>TODO support 0 instances</p>
+</div>
 </div>
 <div class="sect4">
 <h5 id="_generic_component_references">Generic component references</h5>
@@ -1035,26 +1110,161 @@ But <code>List&lt;Handler&lt;Number&gt;&gt;</code> would not be valid because th
 </div>
 </div>
 <div class="sect3">
-<h4 id="component-scope">3.1.5. @Scope / Component scope</h4>
-<div class="sect4">
-<h5 id="component-scope-singleton">@Singleton / singleton scope</h5>
-
+<h4 id="component-scope">3.1.5. @Scope / component scope</h4>
+<div class="paragraph">
+<p>By default every component has only one instance. When the <em>component</em> is <a href="#component-reference">referenced</a> multiple times the same instance is returned always:</p>
+</div>
+<div class="paragraph">
+<p>TODO singleton example</p>
+</div>
+<div class="paragraph">
+<p>This behaviour is defined by the <em>scope</em> of the <em>component</em> which defines whether a new instance of the <em>component</em> should be created or an existing instance should be used when the <em>component</em> is referenced.<br>
+The built-in scopes are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><em>singleton</em> and</p>
+</li>
+<li>
+<p><em>prototype</em>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <em>scope</em> of a <em>component</em> can be specified by the <em>scope annotation</em>.<br>
+If a <em>component</em> does not have an explicit <em>scope annotation</em> then its scope will be the default <a href="#component-scope-singleton">singleton scope</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Custom scopes can be added by implementing a <code>ScopeManager</code>.
+</td>
+</tr>
+</table>
 </div>
 <div class="sect4">
-<h5 id="__prototype_prototype_scope">@Prototype / prototype scope</h5>
-
+<h5 id="component-scope-singleton">@Singleton / singleton scope</h5>
+<div class="paragraph">
+<p><em>Components</em> with <em>singleton scope</em> never have more than one instance.<br>
+Multiple references to the same <em>component</em> are <a href="#component-reference-resolution">resolved</a> to the same component instance.</p>
+</div>
+<div class="paragraph">
+<p>TODO example</p>
+</div>
+<div class="paragraph">
+<p>This is the default <em>scope</em> so usually no <em>scope annotation</em> is specified on <em>singleton</em> components.<br>
+(So although there there is a <em>scope annotation</em> <code>@Singleton</code>, it is rarely used.)</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="component-scope-prototype">@Prototype / prototype scope</h5>
+<div class="paragraph">
+<p><em>Components</em> annotated with <code>@Prototype</code> have <em>prototype scope</em>.<br>
+Each reference to a <em>prototype</em> scoped <em>component</em> <a href="#component-reference-resolution">resolves</a> to a new instance of the <em>component</em>.</p>
+</div>
+<div class="paragraph">
+<p>TODO example</p>
+</div>
 </div>
 </div>
 <div class="sect3">
 <h4 id="component-lifecycle-annotations">3.1.6. @Postconstruct and @Predestroy / lifecycle callbacks</h4>
-
+<div class="paragraph">
+<p>Methods in <em>component class</em>es are <em>lifecycle callbacks</em> if they are annotated with <em>lifecycle annotations</em>:</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Lifecycle annotation</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@Postconstruct</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The method is called after the given <em>component instance</em> is created and its dependencies are injected.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@Predestroy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The method is called when the given <em>component instance</em> is in the process of being disposed.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>@Predestroy</code> <em>lifecycle annotation</em> is not supported by all <em>scope</em>s.<br>
+The <em>singleton scope</em> supports it but the <em>prototype scope</em> does not.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>@Predestroy</code> methods are called by the <em>scope manager</em> before the <em>component instance</em> is being disposed.<br>
+In case of <em>singleton</em> <em>components</em> this happens only when their <em>module</em> is closed.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>TODO example</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="component-eager">3.1.7. @Eager / eager components</h4>
-
+<div class="paragraph">
+<p>By default <em>component</em>s are instantiated only when they are first referenced.<br>
+To force the eager instantiation of a <em>component</em> it should be annotated with <code>@Eager</code>.</p>
+</div>
+<div class="paragraph">
+<p>TODO example</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+<code>@Eager</code> is usually used on <em>singleton</em> <em>component</em>s.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If <em>prototype scope</em>d <em>component</em> is marked as <code>@Eager</code> then right after the <em>component instance</em> is created, it is immediatelly referenced by the <em>module</em>.
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect3">
-<h4 id="__provider_directly_instantiated_components">3.1.8. @Provider / directly instantiated components</h4>
+<h4 id="__provider_components_instantiated_by_user_code">3.1.8. @Provider / components instantiated by user code</h4>
 <div class="paragraph">
 <p>There are cases when we would like to use instances of a Java class as components but the class does not comply with the <a href="#component-class-requirements">requirements of component classes</a>.<br>
 In most cases it is possible to create a subclass with a valid component constructor but usually it is not practical.
@@ -1095,15 +1305,15 @@ class MainComponent {
 </table>
 </div>
 <div class="paragraph">
-<p>Altough in this case the 'provided' component is instantiated directly using the <code>new</code> operator, its lifecycle is managed by the module, and similar rules apply to them as to normal components:</p>
+<p>Altough in this case the <em>provided</em> component is instantiated directly using the <code>new</code> operator, its lifecycle is managed by the module, and similar rules apply to them as to normal components:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>they can have <a href="#component-qualifiers">qualifiers</a> (declared on the 'provider method')</p>
+<p>they can have <a href="#component-qualifiers">qualifiers</a> (declared on the <em>provider method</em>)</p>
 </li>
 <li>
-<p>they are <a href="#component-scope-singleton">singleton</a> by default but can have a <a href="#component-scope">custom scope</a> (declared on the 'provider method')</p>
+<p>they are <a href="#component-scope-singleton">singleton</a> by default but can have a <a href="#component-scope">custom scope</a> (declared on the <em>provider method</em>)</p>
 </li>
 <li>
 <p><a href="#component-lifecycle-annotations">component lifecycle annotations</a> are supported</p>
@@ -1116,14 +1326,14 @@ class MainComponent {
 <div class="ulist">
 <ul>
 <li>
-<p>A 'provided component''s <a href="#component-typesignature">type signature</a> is composed of</p>
+<p>A <em>provided component</em>'s <a href="#component-typesignature">type signature</a> is composed of</p>
 <div class="ulist">
 <ul>
 <li>
-<p>the return type of the 'provider method'</p>
+<p>the return type of the <em>provider method</em></p>
 </li>
 <li>
-<p>the qualifiers statically declared on the 'provider method' and the parameterized qualifiers supported by the 'provider method' (see <a href="#parameterized-component-providers">Parameterized component providers</a>)</p>
+<p>the qualifiers statically declared on the <em>provider method</em> and the parameterized qualifiers supported by the <em>provider method</em> (see <a href="#parameterized-component-providers">Parameterized component providers</a>)</p>
 </li>
 </ul>
 </div>
@@ -1140,7 +1350,7 @@ class MainComponent {
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-'Provided components' may have injected dependencies like <a href="#dependency-injection-for-non-components">any POJOs</a> but the resulting code is more readable if the dependecies are passed explicitly to the constructor of the implementing class.
+<em>Provided components</em> may have injected dependencies like <a href="#dependency-injection-for-non-components">any POJOs</a> but the resulting code is more readable if the dependecies are passed explicitly to the constructor of the implementing class.
 </td>
 </tr>
 </table>
@@ -1148,43 +1358,88 @@ class MainComponent {
 </div>
 <div class="sect4">
 <h5 id="parameterized-component-providers">Parameterized component providers</h5>
-
+<div class="paragraph">
+<p>TODO</p>
+</div>
 </div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_modules">3.2. Modules</h3>
 <div class="sect3">
-<h4 id="__module_module_interfaces">3.2.1. @Module / module interfaces</h4>
-
+<h4 id="__module_defining_modules">3.2.1. @Module / defining modules</h4>
+<div class="paragraph">
+<p>A <em>module</em> is defined by a Java interface annotated with <code>@Module</code> where the <code>components</code> attribute specifies the <em>component class</em>es managed by the module.</p>
+</div>
+<div class="paragraph">
+<p>TODO example</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_module_inheritance">3.2.2. Module inheritance</h4>
-
+<div class="paragraph">
+<p>A <em>module</em> can inherit other <em>module</em>s by extending the their interface:</p>
+</div>
+<div class="paragraph">
+<p>TODO example</p>
+</div>
+<div class="paragraph">
+<p>When module <code>M1</code> inherits module <code>M2</code> then all components contained by <code>M2</code> will be managed by <code>M1</code> as well. This rule is recursive.</p>
+</div>
 </div>
 <div class="sect3">
-<h4 id="_abstract_modules">3.2.3. Abstract modules</h4>
-
+<h4 id="_abstract_and_non_abstract_modules">3.2.3. Abstract and non-abstract modules</h4>
+<div class="paragraph">
+<p>A <em>module</em> is <em>non-abstract</em> by default that is all <em>component references</em>s must be <a href="#component-reference-resolution">resolvable</a>.<br>
+In case of any component reference resolution errors a compilation error is raised.</p>
+</div>
+<div class="paragraph">
+<p>If this is not the case then the <em>module</em> must be explicitly marked as <em>abstract</em> by specifying the <code>instantiatable=false</code> attribute on the <code>@Module</code> annotation.</p>
+</div>
+<div class="paragraph">
+<p>TODO example</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_initializing_modules">3.2.4. Initializing modules</h4>
+<div class="paragraph">
+<p>A <em>module</em> must be instantiated before it can be used. Only <em>non-abstract</em> modules can be initialized.<br>
+The module <code>ModuleInterface</code> is initialized by calling <code>ModuleInterface.Instance.initialize()</code>.</p>
+</div>
+<div class="paragraph">
+<p>TODO initialize() helyett instantiate()
+TODO example</p>
+</div>
+<div class="paragraph">
+<p>Each <em>module</em> has exactly one instance, this single instance can be accessed by <code>ModuleInterface.Instance.get()</code>.</p>
+</div>
+<div class="paragraph">
+<p>TODO example</p>
+</div>
+<div class="paragraph">
+<p>In case of module inheritance all modules in the inheritance chain share the same module instance:</p>
+</div>
+<div class="paragraph">
+<p>TODO example</p>
+</div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_events">3.3. Events</h3>
-
+<h3 id="_module_local_event_dispatching">3.3. Module-local event dispatching</h3>
+<div class="paragraph">
+<p>TODO</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="dependency-injection-for-non-components">3.4. Dependency injection for non-components</h3>
-
+<div class="paragraph">
+<p>TODO</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_examples">4. Examples</h2>
-<div class="sectionbody">
-
 </div>
 </div>
 <div class="sect1">
-<h2 id="_faq">5. FAQ</h2>
+<h2 id="_faq">4. FAQ</h2>
 <div class="sectionbody">
 <div class="qlist qanda">
 <ol>
@@ -1209,7 +1464,7 @@ Altough it would be possible to implement most <em>xtend-ioc</em> features using
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-09-28 19:37:12 Central Europe Daylight Time
+Last updated 2015-09-29 21:48:29 Central Europe Daylight Time
 </div>
 </div>
 </body>
