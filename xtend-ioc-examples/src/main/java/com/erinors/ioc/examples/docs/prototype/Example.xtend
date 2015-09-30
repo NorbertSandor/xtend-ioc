@@ -12,7 +12,7 @@ import com.erinors.ioc.shared.api.Prototype
 class TestComponent {
 }
 
-@Module(components=#[TestComponent])
+@Module(components=TestComponent)
 interface TestModule {
 	def TestComponent testComponent()
 }

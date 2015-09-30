@@ -10,7 +10,7 @@ import org.junit.Test
 class TestComponent {
 }
 
-@Module(components=#[TestComponent])
+@Module(components=TestComponent)
 interface TestModule {
 	def TestComponent testComponent()
 }
