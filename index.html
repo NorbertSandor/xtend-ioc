@@ -435,7 +435,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel4">
 <li><a href="#_field_injection">Field injection</a></li>
 <li><a href="#_constructor_injection">Constructor injection</a></li>
-<li><a href="#_indirect_component_references">Indirect component references</a></li>
+<li><a href="#indirect-component-references">Indirect component references</a></li>
 <li><a href="#_references_to_multiple_components">References to multiple components</a></li>
 <li><a href="#_generic_component_references">Generic component references</a></li>
 </ul>
@@ -446,7 +446,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#component-scope-prototype">@Prototype / prototype scope</a></li>
 </ul>
 </li>
-<li><a href="#component-lifecycle-annotations">3.1.6. @Postconstruct and @Predestroy / lifecycle callbacks</a></li>
+<li><a href="#component-lifecycle-annotations">3.1.6. @PostConstruct and @PreDestroy / lifecycle callbacks</a></li>
 <li><a href="#component-eager">3.1.7. @Eager / eager components</a></li>
 <li><a href="#__provider_components_instantiated_by_user_code">3.1.8. @Provider / components instantiated by user code</a>
 <ul class="sectlevel4">
@@ -462,6 +462,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_module_inheritance">3.2.2. Module inheritance</a></li>
 <li><a href="#_abstract_and_non_abstract_modules">3.2.3. Abstract and non-abstract modules</a></li>
 <li><a href="#_initializing_modules">3.2.4. Initializing modules</a></li>
+<li><a href="#_external_references_to_components">3.2.5. External references to components</a></li>
+<li><a href="#_the_relation_of_modules_and_component_classes">3.2.6. The relation of modules and component classes</a></li>
 </ul>
 </li>
 <li><a href="#_module_local_event_dispatching">3.3. Module-local event dispatching</a></li>
@@ -548,7 +550,7 @@ Similarly, "Java objects" mean instances of "Java classes translated from Xtend"
 <dd>
 <p>instead of the classes would be instantiated in user code using the <code>new</code> operator,</p>
 </dd>
-<dt class="hdlist1">injects dependencies to objects</dt>
+<dt class="hdlist1">injects dependencies into objects</dt>
 <dd>
 <p>instead of each object would lookup up them manually, and</p>
 </dd>
@@ -584,20 +586,23 @@ Although all features and examples presented in this documentation are working (
 <h2 id="_building_blocks">3. Building blocks</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The two main building blocks of <em>xtend-ioc</em> are components and modules:</p>
+<p>The main building blocks of <em>xtend-ioc</em> are:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><em>Components</em> are Java objects managed by a module.</p>
+<p>A <em>component</em> is a definition that specifies how it should be managed and instantiated by _module_s.</p>
 </li>
 <li>
-<p>A <em>module</em> manages the lifecycle of its components and may provide external access to them.</p>
+<p><em>Component instance</em>s are Java objects, instances of <em>component</em>s.</p>
+</li>
+<li>
+<p>A <em>module</em> manages the life-cycle of <em>component instance</em>s, provides additional services to them, and may provide external access to them.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Let&#8217;s see an example just to taste the features:</p>
+<p>After the theory let&#8217;s see an example just to taste the syntax:</p>
 </div>
 <div id="showcase-example-first" class="listingblock">
 <div class="content">
@@ -733,7 +738,7 @@ class ChattyModuleTest {
 </ul>
 </div>
 <div class="paragraph">
-<p>When a new instance of a <em>component class</em> is needed then it is instantiated by using its <em>component constructor</em>.</p>
+<p>When a new instance of a <em>component class</em> is requested then it is instantiated by using its <em>component constructor</em>.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -887,25 +892,20 @@ class SomeComponent {}</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-xtend" data-lang="xtend">@Qualifier
-annotation Service {
-}
-
-@Qualifier
-annotation Profile {
+annotation Language {
   String value
 }
 
 @Component
-@Service
-@Profile("production")
+@Language("english")
 class SomeComponent {}</code></pre>
 </div>
 </div>
 </div>
 <div class="sect3">
 <h4 id="component-typesignature">3.1.3. Type signature of component classes</h4>
-<div id="component-reference" class="paragraph">
-<p>Components can be referenced by their <em>type signature</em> <code>(cT, cQ)</code> that is composed of</p>
+<div class="paragraph">
+<p>Every component has a <em>type signature</em> <code>(cT, cQ)</code> that is composed of</p>
 </div>
 <div class="ulist">
 <ul>
@@ -914,6 +914,19 @@ class SomeComponent {}</code></pre>
 </li>
 <li>
 <p><code>cQ</code>: the set of qualifiers the component class is annotated with.</p>
+</li>
+</ul>
+</div>
+<div id="component-reference" class="paragraph">
+<p>Components can be referenced by a <em>component reference</em> <code>rT, rQ</code> where</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>rT</code>: a Java type</p>
+</li>
+<li>
+<p><code>rQ</code>: a set of qualifiers</p>
 </li>
 </ul>
 </div>
@@ -926,7 +939,7 @@ class SomeComponent {}</code></pre>
 <p><code>cT</code> is assignable to <code>rT</code> (using the typing rules of the Java language) and</p>
 </li>
 <li>
-<p>set <code>cQ</code> contains all elements of set <code>rQ</code>.</p>
+<p>the set <code>cQ</code> contains all elements of set <code>rQ</code>.</p>
 </li>
 </ul>
 </div>
@@ -938,11 +951,41 @@ class SomeComponent {}</code></pre>
 <div class="sect3">
 <h4 id="__inject_dependency_injection">3.1.4. @Inject / dependency injection</h4>
 <div class="paragraph">
-<p>The most important feature of <em>xtend-ioc</em> is dependency injection.<br>
-There are two types: field and constructor injection. These can be mixed in the same component.</p>
+<p>The most important feature of <em>xtend-ioc</em> is dependency injection i.e. the process of resolving a <em>component instance</em>'s references to other <em>component</em>s.<br>
+There are two types of dependencies:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Field injection: the <em>component reference</em> is defined by a field of the <em>component class</em></p>
+</li>
+<li>
+<p>Constructor injection: the <em>component reference</em>s are defined by the parameters of a <em>component constructor</em></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These can be mixed in the same <em>component</em>.<br>
+The injected fields and constructor parameters are called <em>injection point</em>s.</p>
 </div>
 <div class="paragraph">
 <p>Dependencies are resolved using <a href="#component-reference-resolution">component reference resolution</a>.</p>
+</div>
+<div class="paragraph">
+<p>In case of <em>optional</em> dependencies the <em>injection point</em> should annotated with <code>@Optional</code>. If the <em>component reference</em> cannot be resolved then <code>null</code> is injected.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+It is not recommended to use <em>optional</em> dependencies because they are not null-safe.<br>
+Consider using <a href="#indirect-component-references">indirect component references</a> instead of <code>@Optional</code>.
+</td>
+</tr>
+</table>
 </div>
 <div class="sect4">
 <h5 id="_field_injection">Field injection</h5>
@@ -1001,7 +1044,7 @@ class SomeComponent {
 </div>
 </div>
 <div class="sect4">
-<h5 id="_indirect_component_references">Indirect component references</h5>
+<h5 id="indirect-component-references">Indirect component references</h5>
 <div class="paragraph">
 <p>Indirect <em>component reference</em>s are useful if</p>
 </div>
@@ -1018,23 +1061,137 @@ class SomeComponent {
 <div class="paragraph">
 <p>Indirect <em>component reference</em>s are supported by injecting a <em>component supplier</em>:</p>
 </div>
-<div class="paragraph">
-<p>TODO example</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">interface Handler&lt;T&gt; {}
+
+@Component
+class AnotherComponent {
+}
+
+@Component
+class TestComponent {
+	@Inject <i class="conum" data-value="1"></i><b>(1)</b>
+	public Supplier&lt;AnotherComponent&gt; componentSupplier
+
+	@Inject
+	public AnotherComponent injectedComponent
+}
+
+@Module(components=#[AnotherComponent, TestComponent])
+interface TestModule {
+	def TestComponent testComponent()
+}
+
+class Example {
+	@Test
+	def void test()	{
+		val module = TestModule.Instance.initialize
+		val testComponent = module.testComponent
+		Assert.assertTrue( <i class="conum" data-value="2"></i><b>(2)</b>
+			testComponent.injectedComponent == testComponent.componentSupplier.get
+		)
+	}
+}</code></pre>
 </div>
-<div class="paragraph">
-<p>TODO support optional dependencies using Optional</p>
 </div>
-<div class="paragraph">
-<p>INFO: Currently only <code>com.google.common.base.Supplier</code> is supported as <em>component supplier</em> but there are plans to support others (eg. <code>java.util.function.Supplier</code>).</p>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Inject supplier.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The directly injected and the indirectly supplied component instances are the same because <code>AnotherComponent</code> is <a href="#component-scope-singleton">singleton</a>.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Currently only <code>com.google.common.base.Supplier</code> is supported as <em>component supplier</em> but there are plans to support others (eg. <code>java.util.function.Supplier</code>).
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+Indirect <em>component reference</em>s are supported by annotating the <em>injection point</em> with <code>@Optional</code>. In this case the supplier returns <code>null</code>.
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect4">
 <h5 id="_references_to_multiple_components">References to multiple components</h5>
 <div class="paragraph">
-<p>When a <a href="#component-reference">component references</a> is <a href="#component-reference-resolution">resolved</a> to multiple <em>component</em>s they can be injected as a <code>List</code> or <code>Iterable</code>:</p>
+<p>When a <a href="#component-reference">component reference</a> is <a href="#component-reference-resolution">resolved</a> to multiple <em>component</em>s they can be injected as type <code>List</code> or <code>Iterable</code>:</p>
 </div>
-<div class="paragraph">
-<p>TODO example</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">interface Handler {}
+
+@Component
+class IntegerHandler implements Handler {}
+
+@Component
+class DoubleHandler implements Handler {}
+
+@Component
+class TestComponent {
+	@Inject
+	public List&lt;? extends Handler&gt; handlers <i class="conum" data-value="1"></i><b>(1)</b>
+
+	@Inject
+	public Iterable&lt;Handler&gt; handlers2 <i class="conum" data-value="2"></i><b>(2)</b>
+}
+
+@Module(components=#[IntegerHandler, DoubleHandler, TestComponent])
+interface TestModule {
+	def IntegerHandler integerHandler()
+
+	def DoubleHandler doubleHandler()
+
+	def TestComponent testComponent()
+}
+
+class Example {
+	@Test
+	def void test()	{
+		val module = TestModule.Instance.initialize
+		Assert.assertEquals(
+			#{module.doubleHandler, module.integerHandler},
+			module.testComponent.handlers.toSet
+		)
+		Assert.assertEquals(
+			module.testComponent.handlers,
+			module.testComponent.handlers2
+		)
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Inject list of <em>component reference</em>s by type <code>List&lt;? extends Handler&gt;</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Inject list of <em>component reference</em>s by type <code>Iterable&lt;Handler&gt;</code>.</td>
+</tr>
+</table>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1048,8 +1205,18 @@ Of course the <em>component reference</em> can be injected as a <code>List</code
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>TODO support 0 instances</p>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+If no <em>component</em>s are compatible with the <em>component reference</em> then an empty <code>List</code> would be injected.<br>
+This is valid only if <em>injection point</em> is annotated with <code>@Optional</code> otherwise a compilation error is raised.
+</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect4">
@@ -1112,13 +1279,8 @@ But <code>List&lt;Handler&lt;Number&gt;&gt;</code> would not be valid because th
 <div class="sect3">
 <h4 id="component-scope">3.1.5. @Scope / component scope</h4>
 <div class="paragraph">
-<p>By default every component has only one instance. When the <em>component</em> is <a href="#component-reference">referenced</a> multiple times the same instance is returned always:</p>
-</div>
-<div class="paragraph">
-<p>TODO singleton example</p>
-</div>
-<div class="paragraph">
-<p>This behaviour is defined by the <em>scope</em> of the <em>component</em> which defines whether a new instance of the <em>component</em> should be created or an existing instance should be used when the <em>component</em> is referenced.<br>
+<p>By default every component has only one instance. When the <em>component</em> is <a href="#component-reference">referenced</a> multiple times the same instance is returned always.<br>
+This behaviour is defined by the <em>scope</em> of the <em>component</em> which defines whether a new instance of the <em>component</em> should be created or an existing instance should be used when the <em>component</em> is referenced.<br>
 The built-in scopes are:</p>
 </div>
 <div class="ulist">
@@ -1150,11 +1312,44 @@ Custom scopes can be added by implementing a <code>ScopeManager</code>.
 <div class="sect4">
 <h5 id="component-scope-singleton">@Singleton / singleton scope</h5>
 <div class="paragraph">
-<p><em>Components</em> with <em>singleton scope</em> never have more than one instance.<br>
+<p><em>Components</em> with <em>singleton scope</em> have never more than one instance.<br>
 Multiple references to the same <em>component</em> are <a href="#component-reference-resolution">resolved</a> to the same component instance.</p>
 </div>
-<div class="paragraph">
-<p>TODO example</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component <i class="conum" data-value="1"></i><b>(1)</b>
+class TestComponent {
+}
+
+@Module(components=TestComponent)
+interface TestModule {
+	def TestComponent testComponent()
+}
+
+class Example {
+	@Test
+	def void test()	{
+		val module = TestModule.Instance.initialize
+		val testComponent1 = module.testComponent
+		val testComponent2 = module.testComponent
+		Assert.assertTrue( <i class="conum" data-value="2"></i><b>(2)</b>
+			testComponent1 == testComponent2
+		)
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Define <em>singleton</em> <em>component</em>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>All references to the <em>component</em> returns the same <em>component instance</em>.</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>This is the default <em>scope</em> so usually no <em>scope annotation</em> is specified on <em>singleton</em> components.<br>
@@ -1167,13 +1362,47 @@ Multiple references to the same <em>component</em> are <a href="#component-refer
 <p><em>Components</em> annotated with <code>@Prototype</code> have <em>prototype scope</em>.<br>
 Each reference to a <em>prototype</em> scoped <em>component</em> <a href="#component-reference-resolution">resolves</a> to a new instance of the <em>component</em>.</p>
 </div>
-<div class="paragraph">
-<p>TODO example</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component
+@Prototype <i class="conum" data-value="1"></i><b>(1)</b>
+class TestComponent {
+}
+
+@Module(components=TestComponent)
+interface TestModule {
+	def TestComponent testComponent()
+}
+
+class Example {
+	@Test
+	def void test()	{
+		val module = TestModule.Instance.initialize
+		val testComponent1 = module.testComponent
+		val testComponent2 = module.testComponent
+		Assert.assertTrue( <i class="conum" data-value="2"></i><b>(2)</b>
+			testComponent1 != testComponent2
+		)
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Define <em>prototype</em> <em>component</em>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Each references to the <em>component</em> returns a new <em>component instance</em>.</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
 <div class="sect3">
-<h4 id="component-lifecycle-annotations">3.1.6. @Postconstruct and @Predestroy / lifecycle callbacks</h4>
+<h4 id="component-lifecycle-annotations">3.1.6. @PostConstruct and @PreDestroy / lifecycle callbacks</h4>
 <div class="paragraph">
 <p>Methods in <em>component class</em>es are <em>lifecycle callbacks</em> if they are annotated with <em>lifecycle annotations</em>:</p>
 </div>
@@ -1190,11 +1419,11 @@ Each reference to a <em>prototype</em> scoped <em>component</em> <a href="#compo
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@Postconstruct</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@PostConstruct</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The method is called after the given <em>component instance</em> is created and its dependencies are injected.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@Predestroy</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>@PreDestroy</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">The method is called when the given <em>component instance</em> is in the process of being disposed.</p></td>
 </tr>
 </tbody>
@@ -1206,8 +1435,8 @@ Each reference to a <em>prototype</em> scoped <em>component</em> <a href="#compo
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The <code>@Predestroy</code> <em>lifecycle annotation</em> is not supported by all <em>scope</em>s.<br>
-The <em>singleton scope</em> supports it but the <em>prototype scope</em> does not.
+The <code>@PreDestroy</code> <em>lifecycle annotation</em> is not supported by all <em>scope</em>s.<br>
+For example the <em>singleton scope</em> supports it but the <em>prototype scope</em> does not.
 </td>
 </tr>
 </table>
@@ -1219,14 +1448,86 @@ The <em>singleton scope</em> supports it but the <em>prototype scope</em> does n
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<code>@Predestroy</code> methods are called by the <em>scope manager</em> before the <em>component instance</em> is being disposed.<br>
+<code>@PreDestroy</code> methods are called by the <em>scope manager</em> before the <em>component instance</em> is being disposed.<br>
 In case of <em>singleton</em> <em>components</em> this happens only when their <em>module</em> is closed.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>TODO example</p>
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component <i class="conum" data-value="1"></i><b>(1)</b>
+class TestComponent {
+	@Accessors(PUBLIC_GETTER)
+	static String status = "uninitialized" <i class="conum" data-value="2"></i><b>(2)</b>
+
+	@PostConstruct <i class="conum" data-value="3"></i><b>(3)</b>
+	def void initialize() {
+		status = "initialized"
+	}
+
+	@PreDestroy <i class="conum" data-value="4"></i><b>(4)</b>
+	def void close() {
+		status = "closed"
+	}
+}
+
+@Module(components=TestComponent)
+interface TestModule {
+	def TestComponent testComponent()
+}
+
+class Example {
+	@Test
+	def void test()	{
+		val module = TestModule.Instance.initialize <i class="conum" data-value="5"></i><b>(5)</b>
+		Assert.assertEquals("uninitialized", TestComponent.status) <i class="conum" data-value="6"></i><b>(6)</b>
+		module.testComponent <i class="conum" data-value="7"></i><b>(7)</b>
+		Assert.assertEquals("initialized", TestComponent.status)
+		module.close <i class="conum" data-value="8"></i><b>(8)</b>
+		Assert.assertEquals("closed", TestComponent.status)
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Define the <em>singleton</em> <code>TestComponent</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Declare static status field (the unit test will use it).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Declare <code>@PostConstruct</code> callback method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Declare <code>@PreDestroy</code> callback method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Initialize module.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>The <em>component</em> is not initialized yet (because it is not <a href="#component-eager">eager</a>).</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>The <em>component</em> is intialized when first referenced (i.e. after the single instance of it is created), <code>@PostConstruct</code> callbacks are called in this phase.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>The <em>component</em> is unintialized when the <em>module</em> is closed, <code>@PreDestroy</code> callbacks are called in this phase.</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
@@ -1315,13 +1616,10 @@ class MainComponent {
 <li>
 <p>they are <a href="#component-scope-singleton">singleton</a> by default but can have a <a href="#component-scope">custom scope</a> (declared on the <em>provider method</em>)</p>
 </li>
-<li>
-<p><a href="#component-lifecycle-annotations">component lifecycle annotations</a> are supported</p>
-</li>
 </ul>
 </div>
 <div class="paragraph">
-<p>There are differences as well:</p>
+<p>There are important differences as well:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1330,30 +1628,22 @@ class MainComponent {
 <div class="ulist">
 <ul>
 <li>
-<p>the return type of the <em>provider method</em></p>
+<p>the return type of the <em>provider method</em> and</p>
 </li>
 <li>
-<p>the qualifiers statically declared on the <em>provider method</em> and the parameterized qualifiers supported by the <em>provider method</em> (see <a href="#parameterized-component-providers">Parameterized component providers</a>)</p>
+<p>the qualifiers statically declared on the <em>provider method</em> and the parameterized qualifiers supported by the <em>provider method</em> (see <a href="#parameterized-component-providers">Parameterized component providers</a>).</p>
 </li>
 </ul>
 </div>
 </li>
 <li>
-<p>They usually don&#8217;t have <code>@Inject</code>-ed dependencies but use the dependencies of the enclosing provider component.</p>
+<p><a href="#component-lifecycle-annotations">lifecycle annotations</a> are not supported.</p>
+</li>
+<li>
+<p>They usually don&#8217;t have <code>@Inject</code>-ed dependencies but use the injected dependencies of the enclosing component.<br>
+(They may have injected dependencies like <a href="#dependency-injection-for-non-components">any POJOs</a> but the resulting code is more readable if the dependecies are passed explicitly to the constructor of the implementing class.)</p>
 </li>
 </ul>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<em>Provided components</em> may have injected dependencies like <a href="#dependency-injection-for-non-components">any POJOs</a> but the resulting code is more readable if the dependecies are passed explicitly to the constructor of the implementing class.
-</td>
-</tr>
-</table>
 </div>
 </div>
 <div class="sect4">
@@ -1369,7 +1659,33 @@ class MainComponent {
 <div class="sect3">
 <h4 id="__module_defining_modules">3.2.1. @Module / defining modules</h4>
 <div class="paragraph">
-<p>A <em>module</em> is defined by a Java interface annotated with <code>@Module</code> where the <code>components</code> attribute specifies the <em>component class</em>es managed by the module.</p>
+<p>A <em>module</em> is defined by a Java interface annotated with <code>@Module</code>.<br>
+The <code>@Module</code> annotation defines the <em>component class</em>es managed by the module</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>explicitly by listing the <em>component class</em>es using the <code>components</code> attribute and/or</p>
+</li>
+<li>
+<p>implicitly by specifying the attribute <code>componentScanClasses</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Component scan attempts to find <em>component</em>s recursively in the package of each component scan class.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Component scan is currently experimental and very limited because of the lack of Xtend support.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>TODO example</p>
@@ -1423,6 +1739,25 @@ TODO example</p>
 <p>TODO example</p>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_external_references_to_components">3.2.5. External references to components</h4>
+<div class="paragraph">
+<p>TODO</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_the_relation_of_modules_and_component_classes">3.2.6. The relation of modules and component classes</h4>
+<div class="paragraph">
+<p>The same <em>component class</em> can be managed by multiple module in the same time.<br>
+In this case component dependency resolutions happens independently in each module, so it is possible that a <em>component</em>'s dependency is resolved to instances of different <em>component</em>s in each module.</p>
+</div>
+<div class="paragraph">
+<p>TODO example</p>
+</div>
+<div class="paragraph">
+<p>TODO</p>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_module_local_event_dispatching">3.3. Module-local event dispatching</h3>
@@ -1464,7 +1799,7 @@ Altough it would be possible to implement most <em>xtend-ioc</em> features using
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-09-29 21:58:08 Central Europe Daylight Time
+Last updated 2015-09-30 22:19:50 Central Europe Daylight Time
 </div>
 </div>
 </body>
