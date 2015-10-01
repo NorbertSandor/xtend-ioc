@@ -4,23 +4,25 @@ import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
 import java.util.List
-import org.junit.Assert
+import static org.junit.Assert.*
 import org.junit.Test
 
 // tag::Example[]
-interface Handler {}
+interface Handler {
+}
 
 @Component
-class IntegerHandler implements Handler {}
+class IntegerHandler implements Handler {
+}
 
 @Component
-class DoubleHandler implements Handler {}
+class DoubleHandler implements Handler {
+}
 
 @Component
 class TestComponent {
 	@Inject
 	public List<? extends Handler> handlers // <1>
-
 	@Inject
 	public Iterable<Handler> handlers2 // <2>
 }
@@ -28,21 +30,21 @@ class TestComponent {
 @Module(components=#[IntegerHandler, DoubleHandler, TestComponent])
 interface TestModule {
 	def IntegerHandler integerHandler()
-	
+
 	def DoubleHandler doubleHandler()
-		
+
 	def TestComponent testComponent()
 }
 
 class Example {
 	@Test
-	def void test()	{
+	def void test() {
 		val module = TestModule.Instance.initialize
-		Assert.assertEquals(
-			#{module.doubleHandler, module.integerHandler}, 
+		assertEquals(
+			#{module.doubleHandler, module.integerHandler},
 			module.testComponent.handlers.toSet
 		)
-		Assert.assertEquals(
+		assertEquals(
 			module.testComponent.handlers,
 			module.testComponent.handlers2
 		)

@@ -29,15 +29,15 @@ class AnotherComponent {
 }
 
 @Module( // <4>
-	components=#[EnglishHelloServiceImpl, HungarianHelloServiceImpl, AnotherComponent] // <5>
+components=#[EnglishHelloServiceImpl, HungarianHelloServiceImpl, AnotherComponent] // <5>
 )
 interface ChattyModule {
 	def EnglishHelloServiceImpl englishHelloService() // <6>
 
 	def HungarianHelloServiceImpl hungarianHelloService() // <7>
-	
+
 	def List<? extends HelloService> helloServices() // <8>
-	
+
 	def AnotherComponent anotherComponent()
 }
 
@@ -49,8 +49,7 @@ class ChattyModuleTest {
 		assertEquals("Szia Jeff!", module.hungarianHelloService.sayHello("Jeff")) // <11>
 		assertEquals(2, module.helloServices.size) // <12>
 		assertTrue(
-			module.englishHelloService ==
-			module.anotherComponent.englishHelloService // <13>
+			module.englishHelloService == module.anotherComponent.englishHelloService // <13>
 		)
 	}
 }

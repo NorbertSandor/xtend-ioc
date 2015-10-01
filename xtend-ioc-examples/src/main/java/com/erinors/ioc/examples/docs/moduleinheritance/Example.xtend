@@ -1,4 +1,4 @@
-package com.erinors.ioc.examples.docs.singletons
+package com.erinors.ioc.examples.docs.moduleinheritance
 
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Module
@@ -6,23 +6,24 @@ import static org.junit.Assert.*
 import org.junit.Test
 
 // tag::Example[]
-@Component // <1>
+@Component
 class TestComponent {
 }
 
 @Module(components=TestComponent)
-interface TestModule {
+interface ParentModule {
 	def TestComponent testComponent()
+}
+
+@Module // <1>
+interface TestModule extends ParentModule {
 }
 
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
-		val testComponent1 = module.testComponent
-		val testComponent2 = module.testComponent
-		assertTrue( // <2>
-			testComponent1 == testComponent2
+		assertNotNull( // <2>
+			TestModule.Instance.initialize.testComponent
 		)
 	}
 }

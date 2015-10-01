@@ -2,7 +2,7 @@ package com.erinors.ioc.examples.docs.prototype
 
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Module
-import org.junit.Assert
+import static org.junit.Assert.*
 import org.junit.Test
 import com.erinors.ioc.shared.api.Prototype
 
@@ -19,11 +19,11 @@ interface TestModule {
 
 class Example {
 	@Test
-	def void test()	{
+	def void test() {
 		val module = TestModule.Instance.initialize
 		val testComponent1 = module.testComponent
 		val testComponent2 = module.testComponent
-		Assert.assertTrue( // <2>
+		assertTrue( // <2>
 			testComponent1 != testComponent2
 		)
 	}

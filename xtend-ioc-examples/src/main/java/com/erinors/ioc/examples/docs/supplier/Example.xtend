@@ -4,7 +4,7 @@ import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
 import com.google.common.base.Supplier
-import org.junit.Assert
+import static org.junit.Assert.*
 import org.junit.Test
 
 // tag::Example[]
@@ -33,7 +33,7 @@ class Example {
 	def void test()	{
 		val module = TestModule.Instance.initialize
 		val testComponent = module.testComponent
-		Assert.assertTrue( // <2>
+		assertTrue( // <2>
 			testComponent.injectedComponent == testComponent.componentSupplier.get
 		)
 	}
