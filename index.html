@@ -428,7 +428,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_components">3.1. Components</a>
 <ul class="sectlevel3">
-<li><a href="#__component_component_classes">3.1.1. @Component / component classes</a></li>
+<li><a href="#component-class">3.1.1. @Component / component classes</a></li>
 <li><a href="#component-qualifiers">3.1.2. @Qualifier / qualifiers</a></li>
 <li><a href="#component-typesignature">3.1.3. Type signature of component classes</a></li>
 <li><a href="#__inject_dependency_injection">3.1.4. @Inject / dependency injection</a>
@@ -448,7 +448,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#component-lifecycle-annotations">3.1.6. @PostConstruct and @PreDestroy / lifecycle callbacks</a></li>
 <li><a href="#component-eager">3.1.7. @Eager / eager components</a></li>
-<li><a href="#__provider_components_instantiated_by_user_code">3.1.8. @Provider / components instantiated by user code</a>
+<li><a href="#component-providers">3.1.8. @Provider / components instantiated by user code</a>
 <ul class="sectlevel4">
 <li><a href="#_simple_component_providers">Simple component providers</a></li>
 <li><a href="#parameterized-component-providers">Parameterized component providers</a></li>
@@ -460,9 +460,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel3">
 <li><a href="#__module_defining_modules">3.2.1. @Module / defining modules</a></li>
 <li><a href="#_module_inheritance">3.2.2. Module inheritance</a></li>
-<li><a href="#_abstract_and_non_abstract_modules">3.2.3. Abstract and non-abstract modules</a></li>
-<li><a href="#_initializing_modules">3.2.4. Initializing modules</a></li>
-<li><a href="#_external_references_to_components">3.2.5. External references to components</a></li>
+<li><a href="#_initializing_modules">3.2.3. Initializing modules</a></li>
+<li><a href="#_abstract_and_non_abstract_modules">3.2.4. Abstract and non-abstract modules</a></li>
+<li><a href="#module-level-component-references">3.2.5. Module-level component references</a></li>
 <li><a href="#_the_relation_of_modules_and_component_classes">3.2.6. The relation of modules and component classes</a></li>
 </ul>
 </li>
@@ -548,7 +548,7 @@ Similarly, "Java objects" mean instances of "Java classes translated from Xtend"
 <dl>
 <dt class="hdlist1">creates and manages instances of classes</dt>
 <dd>
-<p>instead of the classes would be instantiated in user code using the <code>new</code> operator,</p>
+<p>instead of the classes would be instantiated using the <code>new</code> operator in user code,</p>
 </dd>
 <dt class="hdlist1">injects dependencies into objects</dt>
 <dd>
@@ -565,10 +565,22 @@ Similarly, "Java objects" mean instances of "Java classes translated from Xtend"
 <h3 id="_compile_time_vs_runtime_frameworks">1.3. Compile-time vs runtime frameworks</h3>
 <div class="paragraph">
 <p><em>xtend-ioc</em> is a purely compile-time IOC framework.<br>
-It means that all validation and code generation is performed during the Xtend to Java source code translation phase, so the generated Java code is completely static.</p>
+It means that all validation and code generation is performed during the Xtend to Java source code translation phase.<br>
+This design decision has major advantages like</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>most errors are detected in compile-time</p>
+</li>
+<li>
+<p>the generated Java code is completely static so e.g. <a href="http://gwtproject.org/">GWT</a> is supported</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>This design decision has disadvantages as well compared to runtime IOC frameworks, for example it does not support features like component lookup using runtime classpath scanning.</p>
+<p>Although there are disadvantages as well compared to runtime IOC frameworks, for example component lookup using runtime classpath scanning cannot be supported.<br>
+Note that a simple compile-time <a href="#component-scan">component scanning</a> is supported.</p>
 </div>
 </div>
 </div>
@@ -591,18 +603,28 @@ Although all features and examples presented in this documentation are working (
 <div class="ulist">
 <ul>
 <li>
-<p>A <em>component</em> is a definition that specifies how it should be managed and instantiated by _module_s.</p>
+<p>A <em>component</em> is a definition that specifies how instances of it should be created and managed by <em>module</em>s.</p>
 </li>
 <li>
 <p><em>Component instance</em>s are Java objects, instances of <em>component</em>s.</p>
 </li>
 <li>
-<p>A <em>module</em> manages the life-cycle of <em>component instance</em>s, provides additional services to them, and may provide external access to them.</p>
+<p>A <em>module</em> is</p>
+<div class="ulist">
+<ul>
+<li>
+<p>at compile-time: a definition that specifies the <em>component</em>s contained by it</p>
+</li>
+<li>
+<p>at runtime: manages the life-cycle of <em>component instance</em>s, provides additional services to them, and may provide external access to them.</p>
+</li>
+</ul>
+</div>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>After the theory let&#8217;s see an example just to taste the syntax:</p>
+<p>Let&#8217;s see an example just to taste the syntax:</p>
 </div>
 <div id="showcase-example-first" class="listingblock">
 <div class="content">
@@ -627,7 +649,7 @@ class AnotherComponent {
 }
 
 @Module( <i class="conum" data-value="4"></i><b>(4)</b>
-	components=#[EnglishHelloServiceImpl, HungarianHelloServiceImpl, AnotherComponent] <i class="conum" data-value="5"></i><b>(5)</b>
+components=#[EnglishHelloServiceImpl, HungarianHelloServiceImpl, AnotherComponent] <i class="conum" data-value="5"></i><b>(5)</b>
 )
 interface ChattyModule {
 	def EnglishHelloServiceImpl englishHelloService() <i class="conum" data-value="6"></i><b>(6)</b>
@@ -647,8 +669,7 @@ class ChattyModuleTest {
 		assertEquals("Szia Jeff!", module.hungarianHelloService.sayHello("Jeff")) <i class="conum" data-value="11"></i><b>(11)</b>
 		assertEquals(2, module.helloServices.size) <i class="conum" data-value="12"></i><b>(12)</b>
 		assertTrue(
-			module.englishHelloService ==
-			module.anotherComponent.englishHelloService <i class="conum" data-value="13"></i><b>(13)</b>
+			module.englishHelloService == module.anotherComponent.englishHelloService <i class="conum" data-value="13"></i><b>(13)</b>
 		)
 	}
 }</code></pre>
@@ -712,8 +733,21 @@ class ChattyModuleTest {
 </div>
 <div class="sect2">
 <h3 id="_components">3.1. Components</h3>
+<div class="paragraph">
+<p>There are two ways to define a <em>component</em>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#component-class">component classes</a> and</p>
+</li>
+<li>
+<p><a href="#component-providers">component providers</a>.</p>
+</li>
+</ul>
+</div>
 <div class="sect3">
-<h4 id="__component_component_classes">3.1.1. @Component / component classes</h4>
+<h4 id="component-class">3.1.1. @Component / component classes</h4>
 <div id="component-class-requirements" class="paragraph">
 <p>A Java class is a <em>component class</em> if</p>
 </div>
@@ -765,8 +799,7 @@ When multiple <em>component classes</em> implement the same interface, the compo
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-xtend" data-lang="xtend">@Qualifier
-annotation Label {
-}</code></pre>
+annotation English {}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -873,15 +906,13 @@ class ChattyModuleTest {
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-xtend" data-lang="xtend">@Qualifier
-annotation Service {
-}
+annotation ThreadSafe {}
 
 @Qualifier
-annotation Production {
-}
+annotation Production {}
 
 @Component
-@Service
+@ThreadSafe
 @Production
 class SomeComponent {}</code></pre>
 </div>
@@ -997,12 +1028,12 @@ Consider using <a href="#indirect-component-references">indirect component refer
 <pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component
 class SomeComponent {
   @Inject
-  AnotherComponent anotherComponent
+  ReferenceToAnotherComponent anotherComponent
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Component reference resolution is performed with</p>
+<p>Component reference resolution is performed using</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1088,7 +1119,7 @@ class Example {
 	def void test()	{
 		val module = TestModule.Instance.initialize
 		val testComponent = module.testComponent
-		Assert.assertTrue( <i class="conum" data-value="2"></i><b>(2)</b>
+		assertTrue( <i class="conum" data-value="2"></i><b>(2)</b>
 			testComponent.injectedComponent == testComponent.componentSupplier.get
 		)
 	}
@@ -1139,19 +1170,21 @@ Indirect <em>component reference</em>s are supported by annotating the <em>injec
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-xtend" data-lang="xtend">interface Handler {}
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">interface Handler {
+}
 
 @Component
-class IntegerHandler implements Handler {}
+class IntegerHandler implements Handler {
+}
 
 @Component
-class DoubleHandler implements Handler {}
+class DoubleHandler implements Handler {
+}
 
 @Component
 class TestComponent {
 	@Inject
 	public List&lt;? extends Handler&gt; handlers <i class="conum" data-value="1"></i><b>(1)</b>
-
 	@Inject
 	public Iterable&lt;Handler&gt; handlers2 <i class="conum" data-value="2"></i><b>(2)</b>
 }
@@ -1167,13 +1200,13 @@ interface TestModule {
 
 class Example {
 	@Test
-	def void test()	{
+	def void test() {
 		val module = TestModule.Instance.initialize
-		Assert.assertEquals(
+		assertEquals(
 			#{module.doubleHandler, module.integerHandler},
 			module.testComponent.handlers.toSet
 		)
-		Assert.assertEquals(
+		assertEquals(
 			module.testComponent.handlers,
 			module.testComponent.handlers2
 		)
@@ -1226,13 +1259,16 @@ This is valid only if <em>injection point</em> is annotated with <code>@Optional
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-xtend" data-lang="xtend">interface Handler&lt;T&gt; {}
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">interface Handler&lt;T&gt; {
+}
 
 @Component
-class IntegerHandler implements Handler&lt;Integer&gt; {}
+class IntegerHandler implements Handler&lt;Integer&gt; {
+}
 
 @Component
-class DoubleHandler implements Handler&lt;Double&gt; {}
+class DoubleHandler implements Handler&lt;Double&gt; {
+}
 
 @Component
 class TestComponent {
@@ -1254,12 +1290,11 @@ interface TestModule {
 
 class Example {
 	@Test
-	def void test()	{
+	def void test() {
 		val module = TestModule.Instance.initialize
-		Assert.assertTrue(module.integerHandler == module.testComponent.integerHandler)
-		Assert.assertTrue(
-			#{module.doubleHandler, module.integerHandler} ==
-				module.testComponent.numberHandlers.toSet
+		assertTrue(module.integerHandler == module.testComponent.integerHandler)
+		assertTrue(
+			#{module.doubleHandler, module.integerHandler} == module.testComponent.numberHandlers.toSet
 		)
 	}
 }</code></pre>
@@ -1328,11 +1363,11 @@ interface TestModule {
 
 class Example {
 	@Test
-	def void test()	{
+	def void test() {
 		val module = TestModule.Instance.initialize
 		val testComponent1 = module.testComponent
 		val testComponent2 = module.testComponent
-		Assert.assertTrue( <i class="conum" data-value="2"></i><b>(2)</b>
+		assertTrue( <i class="conum" data-value="2"></i><b>(2)</b>
 			testComponent1 == testComponent2
 		)
 	}
@@ -1376,11 +1411,11 @@ interface TestModule {
 
 class Example {
 	@Test
-	def void test()	{
+	def void test() {
 		val module = TestModule.Instance.initialize
 		val testComponent1 = module.testComponent
 		val testComponent2 = module.testComponent
-		Assert.assertTrue( <i class="conum" data-value="2"></i><b>(2)</b>
+		assertTrue( <i class="conum" data-value="2"></i><b>(2)</b>
 			testComponent1 != testComponent2
 		)
 	}
@@ -1482,13 +1517,13 @@ interface TestModule {
 
 class Example {
 	@Test
-	def void test()	{
+	def void test() {
 		val module = TestModule.Instance.initialize <i class="conum" data-value="5"></i><b>(5)</b>
-		Assert.assertEquals("uninitialized", TestComponent.status) <i class="conum" data-value="6"></i><b>(6)</b>
+		assertEquals("uninitialized", TestComponent.status) <i class="conum" data-value="6"></i><b>(6)</b>
 		module.testComponent <i class="conum" data-value="7"></i><b>(7)</b>
-		Assert.assertEquals("initialized", TestComponent.status)
+		assertEquals("initialized", TestComponent.status)
 		module.close <i class="conum" data-value="8"></i><b>(8)</b>
-		Assert.assertEquals("closed", TestComponent.status)
+		assertEquals("closed", TestComponent.status)
 	}
 }</code></pre>
 </div>
@@ -1497,7 +1532,8 @@ class Example {
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Define the <em>singleton</em> <code>TestComponent</code>.</td>
+<td>Declare <code>TestComponent</code> of <em>scope</em> <em>singleton</em>.<br>
+(Adding <code>@Prototype</code> to this class would result in a compile-time error because the <em>prototype scope</em> does not support <code>@PreDestroy</code> methods.)</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
@@ -1536,8 +1572,86 @@ class Example {
 <p>By default <em>component</em>s are instantiated only when they are first referenced.<br>
 To force the eager instantiation of a <em>component</em> it should be annotated with <code>@Eager</code>.</p>
 </div>
-<div class="paragraph">
-<p>TODO example</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component <i class="conum" data-value="1"></i><b>(1)</b>
+class LazyComponent {
+	@Accessors(PUBLIC_GETTER)
+	static String status = "uninitialized"
+
+	@PostConstruct
+	def void initialize() {
+		status = "initialized"
+	}
+}
+
+@Component
+@Eager <i class="conum" data-value="2"></i><b>(2)</b>
+class EagerComponent {
+	@Accessors(PUBLIC_GETTER)
+	static String status = "uninitialized"
+
+	@PostConstruct
+	def void initialize() {
+		status = "initialized"
+	}
+}
+
+@Module(components=#[LazyComponent, EagerComponent])
+interface TestModule {
+	def LazyComponent lazyComponent()
+
+	def EagerComponent eagerComponent()
+}
+
+class Example {
+	@Test
+	def void test() {
+		val module = TestModule.Instance.initialize
+		assertEquals( <i class="conum" data-value="3"></i><b>(3)</b>
+			"uninitialized",
+			LazyComponent.status
+		)
+		assertEquals( <i class="conum" data-value="4"></i><b>(4)</b>
+			"initialized",
+			EagerComponent.status
+		)
+		module.lazyComponent <i class="conum" data-value="5"></i><b>(5)</b>
+		assertEquals( <i class="conum" data-value="6"></i><b>(6)</b>
+			"initialized",
+			LazyComponent.status
+		)
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><em>Component</em>s are lazy by default.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Define <em>eager</em> component.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>The <em>lazy</em> <em>component</em> is not instantiated when the <em>module</em> is created.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The <em>eager</em> <em>component</em> is instantiated right after the <em>module</em> is created.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Force instantiation of the <em>lazy</em> <em>component</em>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>The <em>lazy</em> <em>component instance</em> is now initialized.</td>
+</tr>
+</table>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1565,14 +1679,26 @@ If a <em>prototype scope</em>d <em>component</em> is marked as <code>@Eager</cod
 </div>
 </div>
 <div class="sect3">
-<h4 id="__provider_components_instantiated_by_user_code">3.1.8. @Provider / components instantiated by user code</h4>
+<h4 id="component-providers">3.1.8. @Provider / components instantiated by user code</h4>
 <div class="paragraph">
 <p>There are cases when we would like to use instances of a Java class as components but the class does not comply with the <a href="#component-class-requirements">requirements of component classes</a>.<br>
 In most cases it is possible to create a subclass with a valid component constructor but usually it is not practical.
 Besides if the class is final - like <code>String</code> (yes, any Java object can be a component, even a string) - then there is no way to turn it into a component class.</p>
 </div>
 <div class="paragraph">
-<p>To overcome these limitations, component classes can provide other component instances.</p>
+<p>To overcome these limitations, component classes can provide other component instances by <em>provider method</em>s.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<em>Provider method</em>s must have an explicit return type, type inference is not supported.
+</td>
+</tr>
+</table>
 </div>
 <div class="sect4">
 <h5 id="_simple_component_providers">Simple component providers</h5>
@@ -1649,7 +1775,119 @@ class MainComponent {
 <div class="sect4">
 <h5 id="parameterized-component-providers">Parameterized component providers</h5>
 <div class="paragraph">
-<p>TODO</p>
+<p>Parameterized component providers are very similar to <a href="#component-providers">simple component providers</a>, the only difference is that they can provide <em>component instance</em>s for multiple <em>qualifier</em>s.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<em>Parameterized component providers</em> is an experimental feature, use it at your own risk.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+As all features of <em>xtend-ioc</em>, <em>parameterized component providers</em> is a compile-time feature.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Qualifier <i class="conum" data-value="1"></i><b>(1)</b>
+annotation ConfigurationValue {
+	String value
+}
+
+@Component
+class ProviderComponent {
+	Properties configuration
+
+	@PostConstruct
+	def void initialize() {
+		// In a real provider the configuration would be loaded from a file
+		configuration = new Properties
+		configuration.setProperty("a", "A")
+		configuration.setProperty("b", "B")
+	}
+
+	@Provider( <i class="conum" data-value="2"></i><b>(2)</b>
+	parametrizedQualifiers=@ParametrizedQualifier(qualifier=ConfigurationValue, <i class="conum" data-value="3"></i><b>(3)</b>
+	attributeName="value", <i class="conum" data-value="4"></i><b>(4)</b>
+	parameterName="configurationName" <i class="conum" data-value="5"></i><b>(5)</b>
+	))
+	def String configurationValueProvider(String configurationName) {
+		return configuration.getProperty(configurationName)
+	}
+}
+
+@Component <i class="conum" data-value="6"></i><b>(6)</b>
+class TestComponent {
+	@Inject
+	@ConfigurationValue("a")
+	public String a
+
+	@Inject
+	@ConfigurationValue("b")
+	public String b
+}
+
+@Module(components=#[ProviderComponent, TestComponent])
+interface TestModule {
+	def TestComponent testComponent()
+}
+
+class Example {
+	@Test
+	def void test() {
+		val module = TestModule.Instance.initialize
+		val testComponent = module.testComponent
+		assertEquals("A", testComponent.a) <i class="conum" data-value="7"></i><b>(7)</b>
+		assertEquals("B", testComponent.b)
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Declare qualifier annotation with attributes.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Declare parameterized provider.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Specify the qualifier annotation supported by the provider.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Specify the annotation attribute name.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Specify the method parameter name the annotation attribute value is mapped to.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Declare component with injected fields.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Test injected values.</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -1672,103 +1910,611 @@ The <code>@Module</code> annotation defines the <em>component class</em>es manag
 </li>
 </ul>
 </div>
-<div class="paragraph">
-<p>Component scan attempts to find <em>component</em>s recursively in the package of each component scan class.</p>
+<div id="component-scan" class="paragraph">
+<p>Component scan attempts to find <em>component</em>s recursively in the package of each listed class.</p>
 </div>
-<div class="admonitionblock note">
+<div class="admonitionblock warning">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-note" title="Note"></i>
+<i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-Component scan is currently experimental and very limited because of the lack of Xtend support.
+Component scan is an experimental feature, use it at your own risk.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>TODO example</p>
+<p>Component scan example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">interface SomeInterface {
+}
+
+@Component
+class Component1 implements SomeInterface {
+}
+
+@Component
+class Component2 implements SomeInterface {
+}
+
+@Module(componentScanClasses=TestModule) <i class="conum" data-value="1"></i><b>(1)</b>
+interface TestModule {
+	def List&lt;SomeInterface&gt; instances()
+}
+
+class Example {
+	@Test
+	def void test() {
+		val module = TestModule.Instance.initialize
+		assertEquals(2, module.instances.size) <i class="conum" data-value="2"></i><b>(2)</b>
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Define component scan root packages.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Both <code>Component1</code> and <code>Component2</code> is found by component scanning.</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_module_inheritance">3.2.2. Module inheritance</h4>
 <div class="paragraph">
-<p>A <em>module</em> can inherit other <em>module</em>s by extending the their interface:</p>
+<p>A <em>module</em> can inherit other <em>module</em>s by extending the their interface.<br>
+When module <code>M1</code> inherits module <code>M2</code> then all components contained by <code>M2</code> will be managed by <code>M1</code> as well. This rule is recursive.</p>
 </div>
-<div class="paragraph">
-<p>TODO example</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component
+class TestComponent {
+}
+
+@Module(components=TestComponent)
+interface ParentModule {
+	def TestComponent testComponent()
+}
+
+@Module <i class="conum" data-value="1"></i><b>(1)</b>
+interface TestModule extends ParentModule {
+}
+
+class Example {
+	@Test
+	def void test() {
+		assertNotNull( <i class="conum" data-value="2"></i><b>(2)</b>
+			TestModule.Instance.initialize.testComponent
+		)
+	}
+}</code></pre>
 </div>
-<div class="paragraph">
-<p>When module <code>M1</code> inherits module <code>M2</code> then all components contained by <code>M2</code> will be managed by <code>M1</code> as well. This rule is recursive.</p>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>TestModule</code> inherits <code>ParentModule</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The inherited <em>component</em> is available in <code>TestModule</code>.</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_abstract_and_non_abstract_modules">3.2.3. Abstract and non-abstract modules</h4>
-<div class="paragraph">
-<p>A <em>module</em> is <em>non-abstract</em> by default that is all <em>component references</em>s must be <a href="#component-reference-resolution">resolvable</a>.<br>
-In case of any component reference resolution errors a compilation error is raised.</p>
-</div>
-<div class="paragraph">
-<p>If this is not the case then the <em>module</em> must be explicitly marked as <em>abstract</em> by specifying the <code>instantiatable=false</code> attribute on the <code>@Module</code> annotation.</p>
-</div>
-<div class="paragraph">
-<p>TODO example</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_initializing_modules">3.2.4. Initializing modules</h4>
+<h4 id="_initializing_modules">3.2.3. Initializing modules</h4>
 <div class="paragraph">
 <p>A <em>module</em> must be instantiated before it can be used. Only <em>non-abstract</em> modules can be initialized.<br>
 The module <code>ModuleInterface</code> is initialized by calling <code>ModuleInterface.Instance.initialize()</code>.</p>
 </div>
 <div class="paragraph">
-<p>TODO initialize() helyett instantiate()
-TODO example</p>
+<p>Each <em>module</em> has exactly one instance, this single instance can be accessed by <code>ModuleInterface.Instance.get()</code>.<br>
+In case of module inheritance all modules in the inheritance chain share the same module instance:</p>
 </div>
-<div class="paragraph">
-<p>Each <em>module</em> has exactly one instance, this single instance can be accessed by <code>ModuleInterface.Instance.get()</code>.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component
+class TestComponent {
+}
+
+@Module(components=TestComponent)
+interface ParentModule {
+	def TestComponent testComponent()
+}
+
+@Module <i class="conum" data-value="1"></i><b>(1)</b>
+interface TestModule extends ParentModule {
+}
+
+class Example {
+	@Test
+	def void test() {
+		TestModule.Instance.initialize <i class="conum" data-value="2"></i><b>(2)</b>
+		assertTrue(TestModule.Instance.get === ParentModule.Instance.get) <i class="conum" data-value="3"></i><b>(3)</b>
+		assertTrue( <i class="conum" data-value="4"></i><b>(4)</b>
+			TestModule.Instance.get.testComponent ===
+			ParentModule.Instance.get.testComponent
+		)
+	}
+}</code></pre>
 </div>
-<div class="paragraph">
-<p>TODO example</p>
 </div>
-<div class="paragraph">
-<p>In case of module inheritance all modules in the inheritance chain share the same module instance:</p>
-</div>
-<div class="paragraph">
-<p>TODO example</p>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>TestModule</code> inherits <code>ParentModule</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Initialize <code>TestModule</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Both <code>TestModule</code> and <code>ParentModule</code> share the same runtime instance.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>TestComponent</code> is available from both <em>module</em> instances.</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_external_references_to_components">3.2.5. External references to components</h4>
+<h4 id="_abstract_and_non_abstract_modules">3.2.4. Abstract and non-abstract modules</h4>
 <div class="paragraph">
-<p>TODO</p>
+<p>All <em>module</em> is <em>non-abstract</em> by default that is all <em>component references</em>s must be <a href="#component-reference-resolution">resolvable</a>, otherwise a compilation error is raised.</p>
+</div>
+<div class="paragraph">
+<p>If we know that not all <em>component references</em>s are available (on purpose) then the <em>module</em> must be explicitly marked as <em>abstract</em> by specifying the <code>instantiatable=false</code> attribute on the <code>@Module</code> annotation.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">interface SomeService {
+}
+
+@Component
+class TestComponent {
+	@Inject
+	public SomeService someService
+}
+
+@Module(components=TestComponent, instantiatable=false) <i class="conum" data-value="1"></i><b>(1)</b>
+interface ParentModule {
+	def TestComponent testComponent()
+}
+
+@Component
+class SomeServiceComponent implements SomeService {
+}
+
+@Module(components=SomeServiceComponent)
+interface TestModule extends ParentModule {
+	def SomeService someService()
+}
+
+class Example {
+	@Test
+	def void test() {
+		// Compile-time error: ParentModule.Instance.initialize() <i class="conum" data-value="2"></i><b>(2)</b>
+		val module = TestModule.Instance.initialize
+		assertTrue(TestModule.Instance.get === ParentModule.Instance.get) <i class="conum" data-value="3"></i><b>(3)</b>
+		assertTrue(module.testComponent.someService === module.someService) <i class="conum" data-value="4"></i><b>(4)</b>
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>ParentModule</code> is declared as <em>abstract</em> because the <code>TestComponent.someService</code> <em>component reference</em> is not resolvable.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>ParentModule</code> is <em>abstract</em> therefore no <code>initialize()</code> method is available on it.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Both <code>TestModule</code> and <code>ParentModule</code> share the same runtime instance. There is no  difference compared to <em>non-abstract</em> <em>module</em>s.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Dependency injection works between <em>module</em>s as expected.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="module-level-component-references">3.2.5. Module-level component references</h4>
+<div class="paragraph">
+<p><em>Module</em> interfaces may declare <a href="#component-reference">component references</a>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>rT: the return type of the method declaration</p>
+</li>
+<li>
+<p>rQ: the qualifiers the method declaration is annotated with</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These methods can be called on the <em>module</em> instance from "external" code:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">interface SomeInterface {
+}
+
+@Component
+class TestComponent implements SomeInterface {
+}
+
+@Module(components=TestComponent)
+interface TestModule { <i class="conum" data-value="1"></i><b>(1)</b>
+	def TestComponent testComponent()
+
+	def SomeInterface someInterface()
+
+	def Supplier&lt;SomeInterface&gt; someInterfaceSupplier()
+}
+
+class Example {
+	@Test
+	def void test() { <i class="conum" data-value="2"></i><b>(2)</b>
+		val module = TestModule.Instance.initialize
+		assertTrue(module.testComponent === module.someInterface)
+		assertTrue(module.testComponent === module.someInterfaceSupplier.get)
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Declare <em>module</em> with module-level <em>component reference</em>s.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>All declared <em>component reference</em>s refer to the same <em>singleton</em> <code>TestComponent</code> instance.</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_the_relation_of_modules_and_component_classes">3.2.6. The relation of modules and component classes</h4>
 <div class="paragraph">
-<p>The same <em>component class</em> can be managed by multiple module in the same time.<br>
-In this case component dependency resolutions happens independently in each module, so it is possible that a <em>component</em>'s dependency is resolved to instances of different <em>component</em>s in each module.</p>
+<p>The same <em>component class</em> can be contained by multiple <em>module</em>s.<br>
+In this case component dependency resolutions happens independently in each module, so it is possible that a <em>component reference</em> is resolved to different <em>component instance</em>s.</p>
 </div>
-<div class="paragraph">
-<p>TODO example</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component <i class="conum" data-value="1"></i><b>(1)</b>
+class TestComponent {
+	@Inject
+	public String value
+}
+
+@Component
+class Provider1 {
+	@Provider <i class="conum" data-value="2"></i><b>(2)</b>
+	def String provider() '''1'''
+}
+
+@Component
+class Provider2 {
+	@Provider <i class="conum" data-value="3"></i><b>(3)</b>
+	def String provider() '''2'''
+}
+
+@Module(components=#[TestComponent, Provider1]) <i class="conum" data-value="4"></i><b>(4)</b>
+interface TestModule1 {
+	def TestComponent testComponent()
+}
+
+@Module(components=#[TestComponent, Provider2]) <i class="conum" data-value="5"></i><b>(5)</b>
+interface TestModule2 {
+	def TestComponent testComponent()
+}
+
+class Example {
+	@Test
+	def void test() {
+		val module1 = TestModule1.Instance.initialize
+		val module2 = TestModule2.Instance.initialize
+		val testComponent1 = module1.testComponent
+		val testComponent2 = module2.testComponent
+		assertEquals( <i class="conum" data-value="6"></i><b>(6)</b>
+			"1", testComponent1.value
+		)
+		assertEquals( <i class="conum" data-value="7"></i><b>(7)</b>
+			"2", testComponent2.value
+		)
+	}
+}</code></pre>
 </div>
-<div class="paragraph">
-<p>TODO</p>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Declare <em>component</em> <code>TestComponent</code> with injected dependency.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Declare <em>component provider</em> <code>Provider1</code> with value <code>"1"</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Declare <em>component provider</em> <code>Provider2</code> with value <code>"2"</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>TestModule1</code> contains <code>TestComponent</code> and <code>Provider1</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td><code>TestModule2</code> contains <code>TestComponent</code> and <code>Provider2</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td><code>TestComponent&#8217;s dependency is resolved using `Provider1</code> in <code>TestModule1</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td><code>TestComponent&#8217;s dependency is resolved using `Provider2</code> in <code>TestModule2</code>.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Because each <em>module</em> may have only one instance, inheritance is not supported with a common parent <em>module</em>.<br>
+I.e. if both <code>TestModule1</code> and <code>TestModule2</code> would inherit from the same parent <em>module</em>, only <code>module1</code> could be initialized, the initialization of <code>module2</code> would fail.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_module_local_event_dispatching">3.3. Module-local event dispatching</h3>
 <div class="paragraph">
-<p>TODO</p>
+<p>Events allow simple communication between <em>component instance</em>s in a <em>module</em> instance:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Event classes are simple POJOs.</p>
+</li>
+<li>
+<p>Events can be fired by <code>@Inject</code>-ing a dependency <code>Event&lt;EventClass&gt;</code>.</p>
+</li>
+<li>
+<p>Events can be observed by declaring instance methods in <em>component</em>s annotationed with <code>@Observes</code>.</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Data <i class="conum" data-value="1"></i><b>(1)</b>
+class MessageEvent {
+	String message
+}
+
+@Component
+@Eager
+class EventSource {
+	Event&lt;MessageEvent&gt; event <i class="conum" data-value="2"></i><b>(2)</b>
+
+	@PostConstruct
+	def void initialize() {
+		fireEvent("a")
+	}
+
+	def void fireEvent(String message) {
+		event.fire(new MessageEvent(message)) <i class="conum" data-value="3"></i><b>(3)</b>
+	}
+}
+
+@Component
+class EventObserver {
+	@Accessors(PUBLIC_GETTER)
+	String messages = ""
+
+	@Observes <i class="conum" data-value="4"></i><b>(4)</b>
+	def void observe(MessageEvent event) {
+		messages += event.message
+	}
+}
+
+@Module(components=#[EventSource, EventObserver])
+interface TestModule {
+	def EventSource source()
+
+	def EventObserver observer()
+}
+
+class Example {
+	@Test
+	def void test() {
+		val module = TestModule.Instance.initialize <i class="conum" data-value="5"></i><b>(5)</b>
+		val eventSource = module.source
+		val observer = module.observer <i class="conum" data-value="6"></i><b>(6)</b>
+		assertEquals("", observer.messages) <i class="conum" data-value="7"></i><b>(7)</b>
+		eventSource.fireEvent("b") <i class="conum" data-value="8"></i><b>(8)</b>
+		assertEquals("b", observer.messages) <i class="conum" data-value="9"></i><b>(9)</b>
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Declare event class.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Inject event.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Fire event <code>"a"</code> when the <em>component instance</em> is created.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Declare event observer method.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td><code>EventSource</code> fires event <code>"a"</code> during module initialization because it is <em>eager</em>.<br>
+But there are no observers at this time because <code>EventObserver</code> is non-<em>eager</em>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td><code>EventObserver</code> is instantiated only here&#8230;&#8203;</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>&#8230;&#8203; therefore it did not received the message <code>"a"</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>Fire event <code>"b"</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="9"></i><b>9</b></td>
+<td><code>EventObserver</code> received message <code>"b"</code>.</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="sect2">
 <h3 id="dependency-injection-for-non-components">3.4. Dependency injection for non-components</h3>
 <div class="paragraph">
-<p>TODO</p>
+<p>Dependency injection is supported for simple POJOs annotated with <code>@Injectable</code>. The <em>module</em> specified in this annotation will be used for component reference resolution.<br>
+Both field and constructor injection is supported. Besides constructor parameter injection is supported as well, see the example below.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+In this case <a href="#component-reference-resolution">component reference resolution</a> is limited: a <em>component reference</em> can be resolved only if there is a compatible <a href="#module-level-component-references module-level component reference">[module-level-component-references module-level component reference]</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component
+class ValueProvider {
+	@Provider
+	def String value() '''a'''
+}
+
+@Module(components=ValueProvider)
+interface TestModule { <i class="conum" data-value="1"></i><b>(1)</b>
+	def String value()
+}
+
+@Injectable(TestModule) <i class="conum" data-value="2"></i><b>(2)</b>
+class Injectable1 {
+	@Inject
+	public String value
+}
+
+@Data
+@Injectable(TestModule) <i class="conum" data-value="3"></i><b>(3)</b>
+class Injectable2 {
+	String value
+
+	@Inject
+	new(String value) {
+		this.value = value
+	}
+}
+
+@Data
+@Injectable(TestModule) <i class="conum" data-value="4"></i><b>(4)</b>
+class Injectable3 {
+	int number
+
+	String value
+
+	new(int number, @Inject String value) {
+		this.number = number
+		this.value = value
+	}
+}
+
+class Example {
+	@Test
+	def void test() {
+		TestModule.Instance.initialize <i class="conum" data-value="5"></i><b>(5)</b>
+		assertEquals("a", new Injectable1().value) <i class="conum" data-value="6"></i><b>(6)</b>
+		assertEquals("a", new Injectable2().value) <i class="conum" data-value="7"></i><b>(7)</b>
+		assertEquals("a", new Injectable3(1).value) <i class="conum" data-value="8"></i><b>(8)</b>
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Declare module with provider component.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Declare injectable class <code>Injectable1</code> with field injection.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Declare injectable class <code>Injectable2</code> with constructor injection.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Declare injectable class <code>Injectable3</code> with constructor parameter injection.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>Explicit module initialization is required before the <code>@Injectable</code> class is instantiated.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Instantiate <code>Injectable1</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>Instantiate <code>Injectable2</code>. Note that because the constructor is injected therefore the object is created using a generated no-args constructor.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="8"></i><b>8</b></td>
+<td>Instantiate <code>Injectable3</code>. Note that because the declared 2-args constructor is injected therefore the object is created using a generated 1-arg constructor.</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -1799,7 +2545,7 @@ Altough it would be possible to implement most <em>xtend-ioc</em> features using
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-09-30 22:19:50 Central Europe Daylight Time
+Last updated 2015-10-01 15:45:20 Central Europe Daylight Time
 </div>
 </div>
 </body>
