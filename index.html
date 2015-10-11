@@ -2307,7 +2307,7 @@ I.e. if both <code>TestModule1</code> and <code>TestModule2</code> would inherit
 <p>Event classes are simple POJOs.</p>
 </li>
 <li>
-<p>Events can be fired by <code>@Inject</code>-ing a dependency <code>Event&lt;EventClass&gt;</code>.</p>
+<p>Events can be fired using a special built-in component type <code>Event&lt;EventClass&gt;</code> that can be injected as usual.</p>
 </li>
 <li>
 <p>Events can be observed by declaring instance methods in <em>component</em>s annotated with <code>@EventObserver</code>.
@@ -2324,26 +2324,37 @@ class MessageEvent {
 
 @Component
 @Eager
+@Priority(1) <i class="conum" data-value="2"></i><b>(2)</b>
 class EventSourceComponent {
 	@Inject
-	Event&lt;MessageEvent&gt; event <i class="conum" data-value="2"></i><b>(2)</b>
+	Event&lt;MessageEvent&gt; event <i class="conum" data-value="3"></i><b>(3)</b>
 
 	@PostConstruct
-	def void initialize() {
-		fireEvent("a")
+	def void componentInitialized() {
+		fireEvent("C") <i class="conum" data-value="4"></i><b>(4)</b>
+	}
+
+	@EventObserver(ModuleInitializedEvent) <i class="conum" data-value="5"></i><b>(5)</b>
+	def void moduleInitialize() {
+		fireEvent("M") <i class="conum" data-value="6"></i><b>(6)</b>
 	}
 
 	def void fireEvent(String message) {
-		event.fire(new MessageEvent(message)) <i class="conum" data-value="3"></i><b>(3)</b>
+		event.fire(new MessageEvent(message)) <i class="conum" data-value="7"></i><b>(7)</b>
 	}
 }
 
 @Component
+@Eager
+@Priority(0) <i class="conum" data-value="8"></i><b>(8)</b>
 class EventObserverComponent {
-	@Accessors(PUBLIC_GETTER)
-	String messages = ""
+	val messages = newArrayList
 
-	@EventObserver <i class="conum" data-value="4"></i><b>(4)</b>
+	def getMessages() {
+		messages.join(",")
+	}
+
+	@EventObserver <i class="conum" data-value="9"></i><b>(9)</b>
 	def void observe(MessageEvent event) {
 		messages += event.message
 	}
@@ -2359,12 +2370,10 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize <i class="conum" data-value="5"></i><b>(5)</b>
-		val eventSource = module.source
-		val observer = module.observer <i class="conum" data-value="6"></i><b>(6)</b>
-		assertEquals("", observer.messages) <i class="conum" data-value="7"></i><b>(7)</b>
-		eventSource.fireEvent("b") <i class="conum" data-value="8"></i><b>(8)</b>
-		assertEquals("b", observer.messages) <i class="conum" data-value="9"></i><b>(9)</b>
+		val module = TestModule.Instance.initialize <i class="conum" data-value="10"></i><b>(10)</b>
+		assertEquals("M", module.observer.messages) <i class="conum" data-value="11"></i><b>(11)</b>
+		module.source.fireEvent("1") <i class="conum" data-value="12"></i><b>(12)</b>
+		assertEquals("M,1", module.observer.messages) <i class="conum" data-value="13"></i><b>(13)</b>
 	}
 }</code></pre>
 </div>
@@ -2377,36 +2386,51 @@ class Example {
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>Inject event.</td>
+<td><code>EventSourceComponent</code> is eagerly initialized before <code>EventObserverComponent</code>.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Fire event <code>"a"</code> when the <em>component instance</em> is created.</td>
+<td>Inject event.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>Declare event observer method.</td>
+<td>Fire event <code>"C"</code> when the <em>component instance</em> is initialized.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="5"></i><b>5</b></td>
-<td><code>EventSource</code> fires event <code>"a"</code> during module initialization because it is <em>eager</em>.<br>
-But there are no observers at this time because <code>EventObserver</code> is non-<em>eager</em>.</td>
+<td>Declare event observer method without parameters.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="6"></i><b>6</b></td>
-<td><code>EventObserver</code> is instantiated only here&#8230;&#8203;</td>
+<td>Fire event <code>"M"</code> when the <em>module instance</em> is initialized.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="7"></i><b>7</b></td>
-<td>&#8230;&#8203; therefore it did not received the message <code>"a"</code>.</td>
+<td><code>Event.fire()</code> can be used to fire <em>event</em>s.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="8"></i><b>8</b></td>
-<td>Fire event <code>"b"</code>.</td>
+<td><code>EventObserverComponent</code> is eagerly initialized after <code>EventSourceComponent</code>.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="9"></i><b>9</b></td>
-<td><code>EventObserver</code> received message <code>"b"</code>.</td>
+<td>Declare event observer method receiving the <em>event object</em>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="10"></i><b>10</b></td>
+<td><code>EventSourceComponent</code> fires event <code>"C"</code> during component initialization and <code>"M"</code> during module initialization.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="11"></i><b>11</b></td>
+<td><code>EventObserverComponent</code> received only <code>"M"</code> because it was initialized only after <code>EventSourceComponent</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="12"></i><b>12</b></td>
+<td>Fire event <code>"1"</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="13"></i><b>13</b></td>
+<td><code>EventObserverComponent</code> received message <code>"1"</code>.</td>
 </tr>
 </table>
 </div>
@@ -2561,7 +2585,7 @@ Altough it would be possible to implement most <em>xtend-ioc</em> features using
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-10-11 19:58:54 Central Europe Daylight Time
+Last updated 2015-10-11 20:40:57 Central Europe Daylight Time
 </div>
 </div>
 </body>
