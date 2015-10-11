@@ -12,6 +12,8 @@ import org.eclipse.xtend.lib.annotations.Data
 import org.junit.Test
 
 import static org.junit.Assert.*
+import com.erinors.ioc.shared.api.ModuleInitializedEvent
+import com.erinors.ioc.shared.api.Priority
 
 // tag::Example[]
 @Data // <1>
@@ -21,26 +23,37 @@ class MessageEvent {
 
 @Component
 @Eager
+@Priority(1) // <2>
 class EventSourceComponent {
 	@Inject
-	Event<MessageEvent> event // <2>
+	Event<MessageEvent> event // <3>
 
 	@PostConstruct
-	def void initialize() {
-		fireEvent("a")
+	def void componentInitialized() {
+		fireEvent("C") // <4>
 	}
 
+	@EventObserver(ModuleInitializedEvent) // <5>
+	def void moduleInitialize() {
+		fireEvent("M") // <6>
+	}
+	
 	def void fireEvent(String message) {
-		event.fire(new MessageEvent(message)) // <3>
+		event.fire(new MessageEvent(message)) // <7>
 	}
 }
 
 @Component
+@Eager
+@Priority(0) // <8>
 class EventObserverComponent {
-	@Accessors(PUBLIC_GETTER)
-	String messages = ""
+	val messages = newArrayList
 
-	@EventObserver // <4>
+	def getMessages() {
+		messages.join(",")
+	}
+
+	@EventObserver // <9>
 	def void observe(MessageEvent event) {
 		messages += event.message
 	}
@@ -56,12 +69,10 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize // <5>
-		val eventSource = module.source
-		val observer = module.observer // <6>
-		assertEquals("", observer.messages) // <7>
-		eventSource.fireEvent("b") // <8>
-		assertEquals("b", observer.messages) // <9>
+		val module = TestModule.Instance.initialize // <10>
+		assertEquals("M", module.observer.messages) // <11>
+		module.source.fireEvent("1") // <12>
+		assertEquals("M,1", module.observer.messages) // <13>
 	}
 }
 // end::Example[]
