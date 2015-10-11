@@ -978,32 +978,34 @@ class SomeComponent {}</code></pre>
 <p>The operation of finding all components in a module satisfying a given component reference is called <em>component reference resolution</em>.<br>
 <em>Component reference resolution</em> may result in zero or more components.</p>
 </div>
+<div class="paragraph">
+<p>The most common <em>component reference</em> is the <em>injection point</em>: a <em>component reference</em> defined by an Xtend field, method or parameter declaration.</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="__inject_dependency_injection">3.1.4. @Inject / dependency injection</h4>
 <div class="paragraph">
-<p>The most important feature of <em>xtend-ioc</em> is dependency injection i.e. the process of resolving a <em>component instance</em>'s references to other <em>component</em>s.<br>
-There are two types of dependencies:</p>
+<p>The most important feature of <em>xtend-ioc</em> is dependency injection i.e. the process of resolving a <em>component</em>'s references to other <em>component</em>s.<br>
+In practice this means the <a href="#component-reference-resolution">resolution</a> of <em>injection point</em>s.</p>
+</div>
+<div class="paragraph">
+<p>There are two types of <em>injection point</em>s in <em>component</em>s:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Field injection: the <em>component reference</em> is defined by a field of the <em>component class</em></p>
+<p>Field: the <em>component reference</em> is defined by a field declaration of the <em>component class</em></p>
 </li>
 <li>
-<p>Constructor injection: the <em>component reference</em>s are defined by the parameters of a <em>component constructor</em></p>
+<p>Constructor: the <em>component reference</em>s are defined by the parameter declarations of a <em>component constructor</em></p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>These can be mixed in the same <em>component</em>.<br>
-The injected fields and constructor parameters are called <em>injection point</em>s.</p>
+<p>Different types of <em>injection point</em>s canbe mixed in the same <em>component</em>.</p>
 </div>
 <div class="paragraph">
-<p>Dependencies are resolved using <a href="#component-reference-resolution">component reference resolution</a>.</p>
-</div>
-<div class="paragraph">
-<p>In case of <em>optional</em> dependencies the <em>injection point</em> should annotated with <code>@Optional</code>. If the <em>component reference</em> cannot be resolved then <code>null</code> is injected.</p>
+<p>In case of <em>optional</em> dependencies the <em>injection point</em> should be annotated with <code>@Optional</code>. If the <em>component reference</em> cannot be resolved then <code>null</code> is injected.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1012,8 +1014,7 @@ The injected fields and constructor parameters are called <em>injection point</e
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-It is not recommended to use <em>optional</em> dependencies because they are not null-safe.<br>
-Consider using <a href="#indirect-component-references">indirect component references</a> instead of <code>@Optional</code>.
+To ensure null-safety it is recommended to use <a href="#indirect-component-references">indirect component references</a> instead of directly injected <em>component instance</em>s.
 </td>
 </tr>
 </table>
@@ -2309,7 +2310,8 @@ I.e. if both <code>TestModule1</code> and <code>TestModule2</code> would inherit
 <p>Events can be fired by <code>@Inject</code>-ing a dependency <code>Event&lt;EventClass&gt;</code>.</p>
 </li>
 <li>
-<p>Events can be observed by declaring instance methods in <em>component</em>s annotationed with <code>@Observes</code>.</p>
+<p>Events can be observed by declaring instance methods in <em>component</em>s annotated with <code>@EventObserver</code>.
+The observed event type can be specified by a method parameter or by <code>@EventObserver.value</code> (if the event object is not used).</p>
 </li>
 </ul>
 </div>
@@ -2322,7 +2324,8 @@ class MessageEvent {
 
 @Component
 @Eager
-class EventSource {
+class EventSourceComponent {
+	@Inject
 	Event&lt;MessageEvent&gt; event <i class="conum" data-value="2"></i><b>(2)</b>
 
 	@PostConstruct
@@ -2336,21 +2339,21 @@ class EventSource {
 }
 
 @Component
-class EventObserver {
+class EventObserverComponent {
 	@Accessors(PUBLIC_GETTER)
 	String messages = ""
 
-	@Observes <i class="conum" data-value="4"></i><b>(4)</b>
+	@EventObserver <i class="conum" data-value="4"></i><b>(4)</b>
 	def void observe(MessageEvent event) {
 		messages += event.message
 	}
 }
 
-@Module(components=#[EventSource, EventObserver])
+@Module(components=#[EventSourceComponent, EventObserverComponent])
 interface TestModule {
-	def EventSource source()
+	def EventSourceComponent source()
 
-	def EventObserver observer()
+	def EventObserverComponent observer()
 }
 
 class Example {
@@ -2411,8 +2414,21 @@ But there are no observers at this time because <code>EventObserver</code> is no
 <div class="sect2">
 <h3 id="dependency-injection-for-non-components">3.4. Dependency injection for non-components</h3>
 <div class="paragraph">
-<p>Dependency injection is supported for simple POJOs annotated with <code>@Injectable</code>. The <em>module</em> specified in this annotation will be used for component reference resolution.<br>
-Both field and constructor injection is supported. Besides constructor parameter injection is supported as well, see the example below.</p>
+<p>Dependency injection is supported for simple POJOs annotated with <code>@Injectable</code>. The <em>module</em> specified in this annotation will be used for <a href="#component-reference-resolution">component reference resolution</a>.<br>
+Both field and constructor injection is supported. Besides, the injection of individual constructor parameters is supported as well, see the example below.</p>
+</div>
+<div class="paragraph">
+<p>Component reference resolution works differently for abstract and non-abstract modules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For non-abstract modules it works the same as in case of normal components.</p>
+</li>
+<li>
+<p>However resolution is limited for abstract modules: a <em>component reference</em> can be resolved only if there is a compatible <a href="#module-level-component-references">module-level component reference</a> declared.</p>
+</li>
+</ul>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -2421,7 +2437,7 @@ Both field and constructor injection is supported. Besides constructor parameter
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-In this case <a href="#component-reference-resolution">component reference resolution</a> is limited: a <em>component reference</em> can be resolved only if there is a compatible <a href="#module-level-component-references module-level component reference">[module-level-component-references module-level component reference]</a>.
+Event dispatch is not supported for non-components.
 </td>
 </tr>
 </table>
@@ -2545,7 +2561,7 @@ Altough it would be possible to implement most <em>xtend-ioc</em> features using
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-10-01 15:45:20 Central Europe Daylight Time
+Last updated 2015-10-11 19:58:54 Central Europe Daylight Time
 </div>
 </div>
 </body>
