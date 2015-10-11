@@ -3,13 +3,15 @@ package com.erinors.ioc.examples.docs.events
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Eager
 import com.erinors.ioc.shared.api.Event
+import com.erinors.ioc.shared.api.EventObserver
+import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
-import com.erinors.ioc.shared.api.Observes
 import javax.annotation.PostConstruct
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.Data
-import static org.junit.Assert.*
 import org.junit.Test
+
+import static org.junit.Assert.*
 
 // tag::Example[]
 @Data // <1>
@@ -19,7 +21,8 @@ class MessageEvent {
 
 @Component
 @Eager
-class EventSource {
+class EventSourceComponent {
+	@Inject
 	Event<MessageEvent> event // <2>
 
 	@PostConstruct
@@ -33,21 +36,21 @@ class EventSource {
 }
 
 @Component
-class EventObserver {
+class EventObserverComponent {
 	@Accessors(PUBLIC_GETTER)
 	String messages = ""
 
-	@Observes // <4>
+	@EventObserver // <4>
 	def void observe(MessageEvent event) {
 		messages += event.message
 	}
 }
 
-@Module(components=#[EventSource, EventObserver])
+@Module(components=#[EventSourceComponent, EventObserverComponent])
 interface TestModule {
-	def EventSource source()
+	def EventSourceComponent source()
 
-	def EventObserver observer()
+	def EventObserverComponent observer()
 }
 
 class Example {
