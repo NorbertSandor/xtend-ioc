@@ -6,14 +6,13 @@ import com.erinors.ioc.shared.api.Event
 import com.erinors.ioc.shared.api.EventObserver
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
+import com.erinors.ioc.shared.api.ModuleInitializedEvent
+import com.erinors.ioc.shared.api.Priority
 import javax.annotation.PostConstruct
-import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.Data
 import org.junit.Test
 
 import static org.junit.Assert.*
-import com.erinors.ioc.shared.api.ModuleInitializedEvent
-import com.erinors.ioc.shared.api.Priority
 
 // tag::Example[]
 @Data // <1>

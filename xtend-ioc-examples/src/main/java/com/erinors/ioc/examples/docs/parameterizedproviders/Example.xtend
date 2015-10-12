@@ -3,7 +3,7 @@ package com.erinors.ioc.examples.docs.parameterizedproviders
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
-import com.erinors.ioc.shared.api.ParametrizedQualifier
+import com.erinors.ioc.shared.api.ParameterizedQualifier
 import com.erinors.ioc.shared.api.Provider
 import com.erinors.ioc.shared.api.Qualifier
 import java.util.Properties
@@ -31,7 +31,7 @@ class ProviderComponent {
 	}
 
 	@Provider( // <2>
-	parametrizedQualifiers=@ParametrizedQualifier(qualifier=ConfigurationValue, // <3>
+	parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, // <3>
 	attributeName="value", // <4>
 	parameterName="configurationName" // <5>
 	))
