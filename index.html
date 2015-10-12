@@ -460,8 +460,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel3">
 <li><a href="#__module_defining_modules">3.2.1. @Module / defining modules</a></li>
 <li><a href="#_module_inheritance">3.2.2. Module inheritance</a></li>
-<li><a href="#_initializing_modules">3.2.3. Initializing modules</a></li>
-<li><a href="#_abstract_and_non_abstract_modules">3.2.4. Abstract and non-abstract modules</a></li>
+<li><a href="#_module_lifecycle">3.2.3. Module lifecycle</a></li>
+<li><a href="#module-instantiatable">3.2.4. Abstract and non-abstract modules</a></li>
 <li><a href="#module-level-component-references">3.2.5. Module-level component references</a></li>
 <li><a href="#_the_relation_of_modules_and_component_classes">3.2.6. The relation of modules and component classes</a></li>
 </ul>
@@ -918,7 +918,32 @@ class SomeComponent {}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Qualifiers may have attributes of <code>String</code>, enum and primitive types:</p>
+<p>Qualifiers may have attributes of any supported type:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>primitive value</p>
+</li>
+<li>
+<p>String</p>
+</li>
+<li>
+<p>enum</p>
+</li>
+<li>
+<p>class literal</p>
+</li>
+<li>
+<p>annotation (any annotation is supported, even annotations not marked with <code>@Qualifier</code>)</p>
+</li>
+<li>
+<p>array of any of the above types</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Example:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1005,7 +1030,7 @@ In practice this means the <a href="#component-reference-resolution">resolution<
 <p>Different types of <em>injection point</em>s canbe mixed in the same <em>component</em>.</p>
 </div>
 <div class="paragraph">
-<p>In case of <em>optional</em> dependencies the <em>injection point</em> should be annotated with <code>@Optional</code>. If the <em>component reference</em> cannot be resolved then <code>null</code> is injected.</p>
+<p>In case of <em>optional</em> dependencies the <em>injection point</em> should be annotated with <code>@NotRequired</code>. If the <em>component reference</em> cannot be resolved then <code>null</code> is injected.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -1158,7 +1183,7 @@ Currently only <code>com.google.common.base.Supplier</code> is supported as <em>
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-Indirect <em>component reference</em>s are supported by annotating the <em>injection point</em> with <code>@Optional</code>. In this case the supplier returns <code>null</code>.
+Indirect <em>component reference</em>s are supported by annotating the <em>injection point</em> with <code>@NotRequired</code>. In this case the supplier returns <code>null</code>.
 </td>
 </tr>
 </table>
@@ -1485,7 +1510,7 @@ For example the <em>singleton scope</em> supports it but the <em>prototype scope
 </td>
 <td class="content">
 <code>@PreDestroy</code> methods are called by the <em>scope manager</em> before the <em>component instance</em> is being disposed.<br>
-In case of <em>singleton</em> <em>components</em> this happens only when their <em>module</em> is closed.
+In case of <em>singleton</em> <em>components</em> this happens only when their <em>module</em> is <a href="#module-close">closed</a>.
 </td>
 </tr>
 </table>
@@ -1834,7 +1859,7 @@ class ProviderComponent {
 	}
 
 	@Provider( <i class="conum" data-value="2"></i><b>(2)</b>
-	parametrizedQualifiers=@ParametrizedQualifier(qualifier=ConfigurationValue, <i class="conum" data-value="3"></i><b>(3)</b>
+	parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, <i class="conum" data-value="3"></i><b>(3)</b>
 	attributeName="value", <i class="conum" data-value="4"></i><b>(4)</b>
 	parameterName="configurationName" <i class="conum" data-value="5"></i><b>(5)</b>
 	))
@@ -2026,10 +2051,10 @@ class Example {
 </div>
 </div>
 <div class="sect3">
-<h4 id="_initializing_modules">3.2.3. Initializing modules</h4>
+<h4 id="_module_lifecycle">3.2.3. Module lifecycle</h4>
 <div class="paragraph">
 <p>A <em>module</em> must be instantiated before it can be used. Only <em>non-abstract</em> modules can be initialized.<br>
-The module <code>ModuleInterface</code> is initialized by calling <code>ModuleInterface.Instance.initialize()</code>.</p>
+The module <code>ModuleInterface</code> can be initialized by calling <code>ModuleInterface.Instance.initialize()</code>.</p>
 </div>
 <div class="paragraph">
 <p>Each <em>module</em> has exactly one instance, this single instance can be accessed by <code>ModuleInterface.Instance.get()</code>.<br>
@@ -2083,14 +2108,18 @@ class Example {
 </tr>
 </table>
 </div>
+<div id="module-close" class="paragraph">
+<p>When the <em>module instance</em> is not needed anymore (e.g. on application shutdown) it should be closed by calling <code>ModuleInterface.Instance.close()</code>.<br>
+During the close operation <a href="#component-lifecycle-annotations">predestroy methods</a> are called on the corresponding <em>component instance</em>s.</p>
+</div>
 </div>
 <div class="sect3">
-<h4 id="_abstract_and_non_abstract_modules">3.2.4. Abstract and non-abstract modules</h4>
+<h4 id="module-instantiatable">3.2.4. Abstract and non-abstract modules</h4>
 <div class="paragraph">
 <p>All <em>module</em> is <em>non-abstract</em> by default that is all <em>component references</em>s must be <a href="#component-reference-resolution">resolvable</a>, otherwise a compilation error is raised.</p>
 </div>
 <div class="paragraph">
-<p>If we know that not all <em>component references</em>s are available (on purpose) then the <em>module</em> must be explicitly marked as <em>abstract</em> by specifying the <code>instantiatable=false</code> attribute on the <code>@Module</code> annotation.</p>
+<p>If it is known that not all <em>component references</em>s are available (on purpose) then the <em>module</em> must be explicitly marked as <em>abstract</em> by specifying the <code>instantiatable=false</code> attribute on the <code>@Module</code> annotation.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2597,7 +2626,7 @@ Altough it would be possible to implement most <em>xtend-ioc</em> features using
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-10-11 20:46:29 Central Europe Daylight Time
+Last updated 2015-10-12 21:18:15 Central Europe Daylight Time
 </div>
 </div>
 </body>
