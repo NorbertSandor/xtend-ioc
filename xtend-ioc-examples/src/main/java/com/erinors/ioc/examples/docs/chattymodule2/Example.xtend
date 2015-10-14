@@ -64,7 +64,7 @@ class ChattyModuleTest {
 		assertEquals("Szia Jeff!", module.hungarianHelloService.sayHello("Jeff"))
 		assertEquals(2, module.helloServices.size)
 		assertTrue(
-			module.englishHelloService ==
+			module.englishHelloService ===
 			module.anotherComponent.englishHelloService
 		)
 	}
