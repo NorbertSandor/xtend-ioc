@@ -464,6 +464,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#module-instantiatable">3.2.4. Abstract and non-abstract modules</a></li>
 <li><a href="#module-level-component-references">3.2.5. Module-level component references</a></li>
 <li><a href="#_the_relation_of_modules_and_component_classes">3.2.6. The relation of modules and component classes</a></li>
+<li><a href="#component-dependency-graph">3.2.7. The component dependency graph</a></li>
+<li><a href="#_module_report">3.2.8. Module report</a></li>
 </ul>
 </li>
 <li><a href="#_module_local_event_dispatching">3.3. Module-local event dispatching</a></li>
@@ -2341,6 +2343,243 @@ I.e. if both <code>TestModule1</code> and <code>TestModule2</code> would inherit
 </table>
 </div>
 </div>
+<div class="sect3">
+<h4 id="component-dependency-graph">3.2.7. The component dependency graph</h4>
+<div class="paragraph">
+<p>Each <em>module</em> defines a <em>dependency graph</em> between <em>component</em>s: it is a <a href="https://en.wikipedia.org/wiki/Directed_acyclic_graph">directed acyclic graph (DAG)</a> where each node <code>Cn</code> is a <em>component</em> and each directed edge <code>C1</code>&#8594;`C2` corresponds to a <em>component reference</em> declared in <code>C1</code> and <a href="#component-reference-resolution">resolved</a> as <code>C2</code>.</p>
+</div>
+<div class="paragraph">
+<p>If the <em>dependency graph</em> would not be a DAG i.e. it contains a <a href="https://en.wikipedia.org/wiki/Cycle_graph#Directed_cycle_graph">directed cycle</a> then a compile-time error is raised.</p>
+</div>
+<div class="paragraph">
+<p>The following example does not compile, there are two compile-time errors:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Error message #1:
+Component reference cycle detected: Component1 &#8594; Component4 &#8594; Component3 &#8594; Component1 [E004]</p>
+</li>
+<li>
+<p>Error message #2:
+Component reference cycle detected: Component1 &#8594; Component4 &#8594; Component3 &#8594; Component2 &#8594; Component1 [E004]</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component
+class Component1 {
+	@Inject
+	Component4 component4
+}
+
+@Component
+class Component2 {
+	@Inject
+	Component1 component1
+}
+
+@Component
+class Component3 {
+	@Inject
+	Component1 component1
+
+	@Inject
+	Component2 component2
+}
+
+@Component
+class Component4 {
+	@Inject
+	Component3 component3
+}
+
+@Module(components=#[Component1, Component2, Component3, Component4])
+interface TestModule {}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The cycle can be avoided by referencing one of the affected components indirectly by using a <a href="#module-level-component-references">module-level component reference</a>:</p>
+</div>
+<div id="component-dependency-graph-example-cycle-avoided" class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Module(instantiatable=false)
+interface AbstractModule {
+	def Supplier&lt;Component4&gt; component4Supplier() <i class="conum" data-value="1"></i><b>(1)</b>
+}
+
+@Component
+class Component1 {
+	// Direct injection is not allowed because it would cause two cycles in the dependency graph
+	// @Inject <i class="conum" data-value="2"></i><b>(2)</b>
+	// Component4 component4
+
+	Supplier&lt;Component4&gt; component4Supplier
+
+	@PostConstruct
+	def void initialize() {
+		component4Supplier = AbstractModule.Instance.get.component4Supplier <i class="conum" data-value="3"></i><b>(3)</b>
+		// component4Supplier.get <i class="conum" data-value="4"></i><b>(4)</b>
+	}
+
+	def boolean someBusinessMethod() {
+		!component4Supplier.get.anotherBusinessMethod <i class="conum" data-value="5"></i><b>(5)</b>
+	}
+}
+
+@Component
+class Component2 {
+	@Inject
+	public Component1 component1
+}
+
+@Component
+class Component3 {
+	@Inject
+	public Component1 component1
+
+	@Inject
+	public Component2 component2
+}
+
+@Component
+class Component4 {
+	@Inject
+	public Component3 component3
+
+	def anotherBusinessMethod() {
+		true
+	}
+}
+
+@Module(components=#[Component1, Component2, Component3, Component4])
+interface TestModule extends AbstractModule <i class="conum" data-value="6"></i><b>(6)</b>
+{
+	def Component1 component1()
+}
+
+class AvoidDependencyGraphCycleTest {
+	@Test
+	def void test() {
+		val module = TestModule.Instance.initialize
+		assertFalse(module.component1.someBusinessMethod) <i class="conum" data-value="7"></i><b>(7)</b>
+	}
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Declare abstract module having an indirect component reference to <code>Component4</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The direct injection is not working because it causes a dependency graph cycle.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Get the supplier of <code>Component4</code> from <code>AbstractModule</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The instance of <code>Component4</code> is not yet available in the <code>@PostConstruct</code> method.<br>
+Calling <code>component4Supplier.get</code> would raise an <code>IllegalStateException</code> with message <code>Recursion detected during component initialization.</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="5"></i><b>5</b></td>
+<td>After component initialization the <code>Component4</code> instance is available.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="6"></i><b>6</b></td>
+<td>Declare a module inheriting from <code>AbstractModule</code>.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="7"></i><b>7</b></td>
+<td>After module initialization the business method executes as expected.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_module_report">3.2.8. Module report</h4>
+<div class="paragraph">
+<p>If the <em>module</em> <code>ModuleName</code> is compiled without errors, two additional files are generated next to the module interface declaration:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>ModuleName.dot</code>: the <em>dependency graph</em> in GraphViz format</p>
+</li>
+<li>
+<p><code>ModuleName.html</code>: a HTML report that contains some information about the <em>module</em> like module properties, declared <em>component</em>s, the <em>dependency graph</em>, etc.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>E.g. the <a href="#component-dependency-graph-example-cycle-avoided">example above</a> has the following graph:</p>
+</div>
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" viewBox="0.00 0.00 209.20 260.00" height="260pt" width="209pt">
+<g transform="scale(1 1) rotate(0) translate(4 256)" class="graph" id="graph0">
+<title>G</title>
+<polygon points="-4,4 -4,-256 205.205,-256 205.205,4 -4,4" stroke="none" fill="white"></polygon>
+<!-- 1 -->
+<g class="node" id="node1"><title>1</title>
+<ellipse ry="18" rx="74.7049" cy="-18" cx="74.6024" stroke="black" fill="none"></ellipse>
+<text font-size="14.00" font-family="Times,serif" y="-13.8" x="74.6024" text-anchor="middle">Component1 [1]</text>
+</g>
+<!-- 2 -->
+<g class="node" id="node2"><title>2</title>
+<ellipse ry="18" rx="74.7049" cy="-90" cx="126.602" stroke="black" fill="none"></ellipse>
+<text font-size="14.00" font-family="Times,serif" y="-85.8" x="126.602" text-anchor="middle">Component2 [2]</text>
+</g>
+<!-- 2&#45;&gt;1 -->
+<g class="edge" id="edge1"><title>2-&gt;1</title>
+<path d="M114.015,-72.055C107.755,-63.6287 100.067,-53.2798 93.1488,-43.9663" stroke="black" fill="none"></path>
+<polygon points="95.8471,-41.7293 87.0742,-35.789 90.2279,-45.9036 95.8471,-41.7293" stroke="black" fill="black"></polygon>
+</g>
+<!-- 3 -->
+<g class="node" id="node3"><title>3</title>
+<ellipse ry="18" rx="74.7049" cy="-162" cx="74.6024" stroke="black" fill="none"></ellipse>
+<text font-size="14.00" font-family="Times,serif" y="-157.8" x="74.6024" text-anchor="middle">Component3 [3]</text>
+</g>
+<!-- 3&#45;&gt;1 -->
+<g class="edge" id="edge2"><title>3-&gt;1</title>
+<path d="M61.0381,-143.972C54.0443,-134.09 46.2356,-121.047 42.6024,-108 38.3101,-92.5865 38.3101,-87.4135 42.6024,-72 45.2705,-62.4189 50.1905,-52.8397 55.3859,-44.5128" stroke="black" fill="none"></path>
+<polygon points="58.407,-46.2908 61.0381,-36.0279 52.5812,-42.41 58.407,-46.2908" stroke="black" fill="black"></polygon>
+</g>
+<!-- 3&#45;&gt;2 -->
+<g class="edge" id="edge3"><title>3-&gt;2</title>
+<path d="M87.1901,-144.055C93.4496,-135.629 101.137,-125.28 108.056,-115.966" stroke="black" fill="none"></path>
+<polygon points="110.977,-117.904 114.131,-107.789 105.358,-113.729 110.977,-117.904" stroke="black" fill="black"></polygon>
+</g>
+<!-- 4 -->
+<g class="node" id="node4"><title>4</title>
+<ellipse ry="18" rx="74.7049" cy="-234" cx="74.6024" stroke="black" fill="none"></ellipse>
+<text font-size="14.00" font-family="Times,serif" y="-229.8" x="74.6024" text-anchor="middle">Component4 [4]</text>
+</g>
+<!-- 4&#45;&gt;3 -->
+<g class="edge" id="edge4"><title>4-&gt;3</title>
+<path d="M74.6024,-215.697C74.6024,-207.983 74.6024,-198.712 74.6024,-190.112" stroke="black" fill="none"></path>
+<polygon points="78.1025,-190.104 74.6024,-180.104 71.1025,-190.104 78.1025,-190.104" stroke="black" fill="black"></polygon>
+</g>
+</g>
+</svg>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The module report is a work in progress.<br>
+Currently graph rendering is very slow (done with <a href="https://github.com/mdaines/viz.js/">viz.js</a>).
+</td>
+</tr>
+</table>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_module_local_event_dispatching">3.3. Module-local event dispatching</h3>
@@ -2647,6 +2886,11 @@ Altough it would be possible to implement most <em>xtend-ioc</em> features using
 <dd>
 <p>Only classes may be annotated with <code>@Injectable</code>.</p>
 </dd>
+<dt class="hdlist1">[E004] Component reference cycle detected: ComponentX &#8594; &#8230;&#8203; &#8594; ComponentX</dt>
+<dd>
+<p>There is a cycle in the component dependency graph therefore the correct order of component instantiation cannot be resolved.
+See the section about the <a href="#component-dependency-graph">component dependency graph</a> how this error could be avoided.</p>
+</dd>
 </dl>
 </div>
 </div>
@@ -2655,7 +2899,7 @@ Altough it would be possible to implement most <em>xtend-ioc</em> features using
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-10-12 22:28:31 Central Europe Daylight Time
+Last updated 2015-10-14 21:52:29 Central Europe Daylight Time
 </div>
 </div>
 </body>
