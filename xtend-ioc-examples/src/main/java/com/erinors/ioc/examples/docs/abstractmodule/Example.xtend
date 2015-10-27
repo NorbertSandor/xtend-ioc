@@ -33,9 +33,9 @@ interface TestModule extends ParentModule {
 class Example {
 	@Test
 	def void test() {
-		// Compile-time error: ParentModule.Instance.initialize() <2>
-		val module = TestModule.Instance.initialize
-		assertTrue(TestModule.Instance.get === ParentModule.Instance.get) // <3>
+		// Compile-time error: ParentModule.Peer.initialize() <2>
+		val module = TestModule.Peer.initialize
+		assertTrue(TestModule.Peer.get === ParentModule.Peer.get) // <3>
 		assertTrue(module.testComponent.someService === module.someService) // <4>
 	}
 }

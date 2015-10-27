@@ -23,7 +23,7 @@ class Example {
 	@Test
 	def void test() {
 		assertNotNull( // <2>
-			TestModule.Instance.initialize.testComponent
+			TestModule.Peer.initialize.testComponent
 		)
 	}
 }

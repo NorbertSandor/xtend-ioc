@@ -33,7 +33,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize // <5>
+		val module = TestModule.Peer.initialize // <5>
 		assertEquals("uninitialized", TestComponent.status) // <6>
 		module.testComponent // <7>
 		assertEquals("initialized", TestComponent.status)

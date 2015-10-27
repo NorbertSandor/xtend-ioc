@@ -29,7 +29,7 @@ class Component1 {
 
 	@PostConstruct
 	def void initialize() {
-		component4Supplier = AbstractModule.Instance.get.component4Supplier // <3>
+		component4Supplier = AbstractModule.Peer.get.component4Supplier // <3>
 		// component4Supplier.get <4>
 	}
 
@@ -72,7 +72,7 @@ interface TestModule extends AbstractModule // <6>
 class AvoidDependencyGraphCycleTest {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		assertFalse(module.component1.someBusinessMethod) // <7>
 	}
 }

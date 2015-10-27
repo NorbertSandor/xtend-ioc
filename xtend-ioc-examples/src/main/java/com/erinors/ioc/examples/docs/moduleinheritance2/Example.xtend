@@ -22,11 +22,11 @@ interface TestModule extends ParentModule {
 class Example {
 	@Test
 	def void test() {
-		TestModule.Instance.initialize // <2>
-		assertTrue(TestModule.Instance.get === ParentModule.Instance.get) // <3>
+		TestModule.Peer.initialize // <2>
+		assertTrue(TestModule.Peer.get === ParentModule.Peer.get) // <3>
 		assertTrue( // <4>
-			TestModule.Instance.get.testComponent ===
-			ParentModule.Instance.get.testComponent
+			TestModule.Peer.get.testComponent ===
+			ParentModule.Peer.get.testComponent
 		)
 	}
 }

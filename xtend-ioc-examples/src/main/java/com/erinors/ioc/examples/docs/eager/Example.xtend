@@ -43,7 +43,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		assertEquals( // <3>
 			"uninitialized",
 			LazyComponent.status

@@ -27,7 +27,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		assertEquals(2, module.instances.size) // <2>
 	}
 }

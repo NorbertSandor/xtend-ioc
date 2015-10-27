@@ -39,7 +39,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		assertEquals(
 			#{module.doubleHandler, module.integerHandler},
 			module.testComponent.handlers.toSet

@@ -44,7 +44,7 @@ interface ChattyModule {
 class ChattyModuleTest {
 	@Test
 	def void test() {
-		val module = ChattyModule.Instance.initialize // <9>
+		val module = ChattyModule.Peer.initialize // <9>
 		assertEquals("Hello Jeff!", module.englishHelloService.sayHello("Jeff")) // <10>
 		assertEquals("Szia Jeff!", module.hungarianHelloService.sayHello("Jeff")) // <11>
 		assertEquals(2, module.helloServices.size) // <12>

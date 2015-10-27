@@ -68,7 +68,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize // <10>
+		val module = TestModule.Peer.initialize // <10>
 		assertEquals("M", module.observer.messages) // <11>
 		module.source.fireEvent("1") // <12>
 		assertEquals("M,1", module.observer.messages) // <13>

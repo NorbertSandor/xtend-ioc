@@ -31,7 +31,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test()	{
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		val testComponent = module.testComponent
 		assertTrue( // <2>
 			testComponent.injectedComponent == testComponent.componentSupplier.get

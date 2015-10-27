@@ -54,7 +54,7 @@ class Injectable3 {
 class Example {
 	@Test
 	def void test() {
-		TestModule.Instance.initialize // <5>
+		TestModule.Peer.initialize // <5>
 		assertEquals("a", new Injectable1().value) // <6>
 		assertEquals("a", new Injectable2().value) // <7>
 		assertEquals("a", new Injectable3(1).value) // <8>

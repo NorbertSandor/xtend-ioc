@@ -40,7 +40,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		assertTrue(module.integerHandler == module.testComponent.integerHandler)
 		assertTrue(
 			#{module.doubleHandler, module.integerHandler} == module.testComponent.numberHandlers.toSet
