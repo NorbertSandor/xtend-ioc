@@ -32,7 +32,7 @@ class EventSourceComponent {
 		fireEvent("C") // <4>
 	}
 
-	@EventObserver(ModuleInitializedEvent) // <5>
+	@EventObserver(eventType=ModuleInitializedEvent) // <5>
 	def void moduleInitialize() {
 		fireEvent("M") // <6>
 	}

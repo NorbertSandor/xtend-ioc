@@ -16,7 +16,7 @@ class TestComponent {
 	public SomeService someService
 }
 
-@Module(components=TestComponent, nonAbstract=false) // <1>
+@Module(components=TestComponent, isAbstract=true) // <1>
 interface ParentModule {
 	def TestComponent testComponent()
 }

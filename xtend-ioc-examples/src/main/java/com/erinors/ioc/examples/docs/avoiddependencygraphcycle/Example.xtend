@@ -14,7 +14,7 @@ import static org.junit.Assert.*
 //
 
 // tag::Example[]
-@Module(nonAbstract=false)
+@Module(isAbstract=true)
 interface AbstractModule {
 	def Supplier<Component4> component4Supplier() // <1>
 }
