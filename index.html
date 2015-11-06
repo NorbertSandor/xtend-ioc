@@ -430,7 +430,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel3">
 <li><a href="#component-class">3.1.1. @Component / component classes</a></li>
 <li><a href="#component-qualifiers">3.1.2. @Qualifier / qualifiers</a></li>
-<li><a href="#component-typesignature">3.1.3. Type signature of component classes</a></li>
+<li><a href="#component-typesignature">3.1.3. Type signature of components</a></li>
 <li><a href="#__inject_dependency_injection">3.1.4. @Inject / dependency injection</a>
 <ul class="sectlevel4">
 <li><a href="#_field_injection">Field injection</a></li>
@@ -460,12 +460,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel3">
 <li><a href="#__module_defining_modules">3.2.1. @Module / defining modules</a></li>
 <li><a href="#_module_inheritance">3.2.2. Module inheritance</a></li>
-<li><a href="#_module_lifecycle">3.2.3. Module lifecycle</a></li>
-<li><a href="#module-instantiatable">3.2.4. Abstract and non-abstract modules</a></li>
+<li><a href="#_module_lifecycle_singleton_modules">3.2.3. Module lifecycle / Singleton modules</a></li>
+<li><a href="#module-abstract">3.2.4. Abstract and non-abstract modules</a></li>
 <li><a href="#module-level-component-references">3.2.5. Module-level component references</a></li>
 <li><a href="#_the_relation_of_modules_and_component_classes">3.2.6. The relation of modules and component classes</a></li>
 <li><a href="#component-dependency-graph">3.2.7. The component dependency graph</a></li>
 <li><a href="#_module_report">3.2.8. Module report</a></li>
+<li><a href="#_gwt_support">3.2.9. GWT support</a></li>
 </ul>
 </li>
 <li><a href="#_module_local_event_dispatching">3.3. Module-local event dispatching</a></li>
@@ -559,7 +560,7 @@ Similarly, "Java objects" mean instances of "Java classes translated from Xtend"
 </dd>
 <dt class="hdlist1">injects dependencies into objects</dt>
 <dd>
-<p>instead of each object would lookup up them manually, and</p>
+<p>instead of each object would look up them manually, and</p>
 </dd>
 <dt class="hdlist1">dispatches events between objects</dt>
 <dd>
@@ -671,12 +672,13 @@ interface ChattyModule {
 class ChattyModuleTest {
 	@Test
 	def void test() {
-		val module = ChattyModule.Instance.initialize <i class="conum" data-value="9"></i><b>(9)</b>
+		val module = ChattyModule.Peer.initialize <i class="conum" data-value="9"></i><b>(9)</b>
 		assertEquals("Hello Jeff!", module.englishHelloService.sayHello("Jeff")) <i class="conum" data-value="10"></i><b>(10)</b>
 		assertEquals("Szia Jeff!", module.hungarianHelloService.sayHello("Jeff")) <i class="conum" data-value="11"></i><b>(11)</b>
 		assertEquals(2, module.helloServices.size) <i class="conum" data-value="12"></i><b>(12)</b>
 		assertTrue(
-			module.englishHelloService == module.anotherComponent.englishHelloService <i class="conum" data-value="13"></i><b>(13)</b>
+			module.englishHelloService ===
+			module.anotherComponent.englishHelloService <i class="conum" data-value="13"></i><b>(13)</b>
 		)
 	}
 }</code></pre>
@@ -781,6 +783,9 @@ class ChattyModuleTest {
 <div class="paragraph">
 <p>When a new instance of a <em>component class</em> is requested then it is instantiated by using its <em>component constructor</em>.</p>
 </div>
+<div class="paragraph">
+<p><em>Component class</em>es may have superclasses. If a <em>component</em>'s superclass is itself a <em>component class</em> then dependency injection is performed as expected.</p>
+</div>
 <div class="admonitionblock tip">
 <table>
 <tr>
@@ -863,12 +868,12 @@ interface ChattyModule {
 class ChattyModuleTest {
 	@Test
 	def void test() {
-		val module = ChattyModule.Instance.initialize
+		val module = ChattyModule.Peer.initialize
 		assertEquals("Hello Jeff!", module.englishHelloService.sayHello("Jeff"))
 		assertEquals("Szia Jeff!", module.hungarianHelloService.sayHello("Jeff"))
 		assertEquals(2, module.helloServices.size)
 		assertTrue(
-			module.englishHelloService ==
+			module.englishHelloService ===
 			module.anotherComponent.englishHelloService
 		)
 	}
@@ -966,14 +971,27 @@ class SomeComponent {}</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="component-typesignature">3.1.3. Type signature of component classes</h4>
+<h4 id="component-typesignature">3.1.3. Type signature of components</h4>
 <div class="paragraph">
 <p>Every component has a <em>type signature</em> <code>(cT, cQ)</code> that is composed of</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>cT</code>: the Java type of the component class and</p>
+<p><code>cT</code>: a Java type and</p>
+</li>
+<li>
+<p><code>cQ</code>: a set of qualifiers.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In case of a <em>component class</em> these are defined as</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>cT</code>: if specified explicitly then <code>@Component.type</code> otherwise the Java type of the component class declaration and</p>
 </li>
 <li>
 <p><code>cQ</code>: the set of qualifiers the component class is annotated with.</p>
@@ -1150,7 +1168,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test()	{
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		val testComponent = module.testComponent
 		assertTrue( <i class="conum" data-value="2"></i><b>(2)</b>
 			testComponent.injectedComponent == testComponent.componentSupplier.get
@@ -1234,7 +1252,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		assertEquals(
 			#{module.doubleHandler, module.integerHandler},
 			module.testComponent.handlers.toSet
@@ -1324,7 +1342,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		assertTrue(module.integerHandler == module.testComponent.integerHandler)
 		assertTrue(
 			#{module.doubleHandler, module.integerHandler} == module.testComponent.numberHandlers.toSet
@@ -1397,7 +1415,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		val testComponent1 = module.testComponent
 		val testComponent2 = module.testComponent
 		assertTrue( <i class="conum" data-value="2"></i><b>(2)</b>
@@ -1445,7 +1463,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		val testComponent1 = module.testComponent
 		val testComponent2 = module.testComponent
 		assertTrue( <i class="conum" data-value="2"></i><b>(2)</b>
@@ -1551,7 +1569,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize <i class="conum" data-value="5"></i><b>(5)</b>
+		val module = TestModule.Peer.initialize <i class="conum" data-value="5"></i><b>(5)</b>
 		assertEquals("uninitialized", TestComponent.status) <i class="conum" data-value="6"></i><b>(6)</b>
 		module.testComponent <i class="conum" data-value="7"></i><b>(7)</b>
 		assertEquals("initialized", TestComponent.status)
@@ -1640,7 +1658,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		assertEquals( <i class="conum" data-value="3"></i><b>(3)</b>
 			"uninitialized",
 			LazyComponent.status
@@ -1894,7 +1912,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		val testComponent = module.testComponent
 		assertEquals("A", testComponent.a) <i class="conum" data-value="7"></i><b>(7)</b>
 		assertEquals("B", testComponent.b)
@@ -1951,24 +1969,15 @@ The <code>@Module</code> annotation defines the <em>component class</em>es manag
 <p>explicitly by listing the <em>component class</em>es using the <code>components</code> attribute and/or</p>
 </li>
 <li>
-<p>implicitly by specifying the attribute <code>componentScanClasses</code>.</p>
+<p>implicitly by specifying the attribute <code>componentScanClasses</code> and/or <code>componentImporters</code>.</p>
 </li>
 </ul>
 </div>
+<div class="paragraph">
+<p>Component importers specify the <em>component</em>s to be imported by using <code>@ImportComponents</code>.</p>
+</div>
 <div id="component-scan" class="paragraph">
 <p>Component scan attempts to find <em>component</em>s recursively in the package of each listed class.</p>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-Component scan is an experimental feature, use it at your own risk.
-</td>
-</tr>
-</table>
 </div>
 <div class="paragraph">
 <p>Component scan example:</p>
@@ -1994,7 +2003,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		assertEquals(2, module.instances.size) <i class="conum" data-value="2"></i><b>(2)</b>
 	}
 }</code></pre>
@@ -2009,6 +2018,18 @@ class Example {
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
 <td>Both <code>Component1</code> and <code>Component2</code> is found by component scanning.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Component scan is an experimental feature, use it at your own risk.
+</td>
 </tr>
 </table>
 </div>
@@ -2038,7 +2059,7 @@ class Example {
 	@Test
 	def void test() {
 		assertNotNull( <i class="conum" data-value="2"></i><b>(2)</b>
-			TestModule.Instance.initialize.testComponent
+			TestModule.Peer.initialize.testComponent
 		)
 	}
 }</code></pre>
@@ -2058,14 +2079,27 @@ class Example {
 </div>
 </div>
 <div class="sect3">
-<h4 id="_module_lifecycle">3.2.3. Module lifecycle</h4>
+<h4 id="_module_lifecycle_singleton_modules">3.2.3. Module lifecycle / Singleton modules</h4>
 <div class="paragraph">
-<p>A <em>module</em> must be instantiated before it can be used. Only <em>non-abstract</em> modules can be initialized.<br>
-The module <code>ModuleInterface</code> can be initialized by calling <code>ModuleInterface.Instance.initialize()</code>.</p>
+<p>A <em>module</em> must be instantiated before it can be used. Only <em>non-abstract</em> modules can be instantiated.<br></p>
 </div>
 <div class="paragraph">
-<p>Each <em>module</em> has exactly one instance, this single instance can be accessed by <code>ModuleInterface.Instance.get()</code>.<br>
-In case of module inheritance all modules in the inheritance chain share the same module instance:</p>
+<p>There are two types of modules specified by <code>@Module.singleton</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Singleton: the <em>module</em> has exactly one instance.<br>
+This singleton instance of the module <code>ModuleInterface</code> can be instantiated by calling <code>ModuleInterface.Peer.initialize()</code>.<br>
+The singleton instance is available by calling <code>ModuleInterface.Peer.get()</code>.</p>
+</li>
+<li>
+<p>Non-singleton: the module may have multiple instances, a new instance of the module <code>ModuleInterface</code> can be created by calling <code>ModuleInterface.Peer.constructInstance()</code>.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In case of inheritance of singleton modules all modules in the inheritance chain share the same module instance:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2085,11 +2119,11 @@ interface TestModule extends ParentModule {
 class Example {
 	@Test
 	def void test() {
-		TestModule.Instance.initialize <i class="conum" data-value="2"></i><b>(2)</b>
-		assertTrue(TestModule.Instance.get === ParentModule.Instance.get) <i class="conum" data-value="3"></i><b>(3)</b>
+		TestModule.Peer.initialize <i class="conum" data-value="2"></i><b>(2)</b>
+		assertTrue(TestModule.Peer.get === ParentModule.Peer.get) <i class="conum" data-value="3"></i><b>(3)</b>
 		assertTrue( <i class="conum" data-value="4"></i><b>(4)</b>
-			TestModule.Instance.get.testComponent ===
-			ParentModule.Instance.get.testComponent
+			TestModule.Peer.get.testComponent ===
+			ParentModule.Peer.get.testComponent
 		)
 	}
 }</code></pre>
@@ -2116,17 +2150,17 @@ class Example {
 </table>
 </div>
 <div id="module-close" class="paragraph">
-<p>When the <em>module instance</em> is not needed anymore (e.g. on application shutdown) it should be closed by calling <code>ModuleInterface.Instance.close()</code>.<br>
+<p>When the <em>module instance</em> is not needed anymore (e.g. on application shutdown) it should be closed by calling <code>ModuleInterface.Peer.close()</code>.<br>
 During the close operation <a href="#component-lifecycle-annotations">predestroy methods</a> are called on the corresponding <em>component instance</em>s.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="module-instantiatable">3.2.4. Abstract and non-abstract modules</h4>
+<h4 id="module-abstract">3.2.4. Abstract and non-abstract modules</h4>
 <div class="paragraph">
 <p>All <em>module</em> is <em>non-abstract</em> by default that is all <em>component references</em>s must be <a href="#component-reference-resolution">resolvable</a>, otherwise a compilation error is raised.</p>
 </div>
 <div class="paragraph">
-<p>If it is known that not all <em>component references</em>s are available (on purpose) then the <em>module</em> must be explicitly marked as <em>abstract</em> by specifying the <code>instantiatable=false</code> attribute on the <code>@Module</code> annotation.</p>
+<p>If it is known that not all <em>component references</em>s are available (on purpose) then the <em>module</em> must be explicitly marked as <em>abstract</em> by specifying the <code>@Module(isAbstract=true)</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2139,7 +2173,7 @@ class TestComponent {
 	public SomeService someService
 }
 
-@Module(components=TestComponent, instantiatable=false) <i class="conum" data-value="1"></i><b>(1)</b>
+@Module(components=TestComponent, isAbstract=true) <i class="conum" data-value="1"></i><b>(1)</b>
 interface ParentModule {
 	def TestComponent testComponent()
 }
@@ -2156,9 +2190,9 @@ interface TestModule extends ParentModule {
 class Example {
 	@Test
 	def void test() {
-		// Compile-time error: ParentModule.Instance.initialize() <i class="conum" data-value="2"></i><b>(2)</b>
-		val module = TestModule.Instance.initialize
-		assertTrue(TestModule.Instance.get === ParentModule.Instance.get) <i class="conum" data-value="3"></i><b>(3)</b>
+		// Compile-time error: ParentModule.Peer.initialize() <i class="conum" data-value="2"></i><b>(2)</b>
+		val module = TestModule.Peer.initialize
+		assertTrue(TestModule.Peer.get === ParentModule.Peer.get) <i class="conum" data-value="3"></i><b>(3)</b>
 		assertTrue(module.testComponent.someService === module.someService) <i class="conum" data-value="4"></i><b>(4)</b>
 	}
 }</code></pre>
@@ -2224,7 +2258,7 @@ interface TestModule { <i class="conum" data-value="1"></i><b>(1)</b>
 class Example {
 	@Test
 	def void test() { <i class="conum" data-value="2"></i><b>(2)</b>
-		val module = TestModule.Instance.initialize
+		val module = TestModule.Peer.initialize
 		assertTrue(module.testComponent === module.someInterface)
 		assertTrue(module.testComponent === module.someInterfaceSupplier.get)
 	}
@@ -2283,8 +2317,8 @@ interface TestModule2 {
 class Example {
 	@Test
 	def void test() {
-		val module1 = TestModule1.Instance.initialize
-		val module2 = TestModule2.Instance.initialize
+		val module1 = TestModule1.Peer.initialize
+		val module2 = TestModule2.Peer.initialize
 		val testComponent1 = module1.testComponent
 		val testComponent2 = module2.testComponent
 		assertEquals( <i class="conum" data-value="6"></i><b>(6)</b>
@@ -2346,7 +2380,8 @@ I.e. if both <code>TestModule1</code> and <code>TestModule2</code> would inherit
 <div class="sect3">
 <h4 id="component-dependency-graph">3.2.7. The component dependency graph</h4>
 <div class="paragraph">
-<p>Each <em>module</em> defines a <em>dependency graph</em> between <em>component</em>s: it is a <a href="https://en.wikipedia.org/wiki/Directed_acyclic_graph">directed acyclic graph (DAG)</a> where each node <code>Cn</code> is a <em>component</em> and each directed edge <code>C1</code>&#8594;`C2` corresponds to a <em>component reference</em> declared in <code>C1</code> and <a href="#component-reference-resolution">resolved</a> as <code>C2</code>.</p>
+<p>Each non-abstract <em>module</em> defines a <em>dependency graph</em> between <em>component</em>s: it is a <a href="https://en.wikipedia.org/wiki/Directed_acyclic_graph">directed acyclic graph (DAG)</a> where each node <code>Cn</code> is a <em>component</em> and each directed edge <code>C1</code>&#8594;`C2` corresponds to a direct <em>component reference</em> declared in <code>C1</code> and <a href="#component-reference-resolution">resolved</a> as <code>C2</code>.
+Note that indirect component references (by <code>Supplier</code> or <code>Optional</code>) are not present in the <em>dependency graph</em>.</p>
 </div>
 <div class="paragraph">
 <p>If the <em>dependency graph</em> would not be a DAG i.e. it contains a <a href="https://en.wikipedia.org/wiki/Cycle_graph#Directed_cycle_graph">directed cycle</a> then a compile-time error is raised.</p>
@@ -2370,61 +2405,11 @@ Component reference cycle detected: Component1 &#8594; Component4 &#8594; Compon
 <div class="content">
 <pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component
 class Component1 {
-	@Inject
+	@Inject <i class="conum" data-value="1"></i><b>(1)</b>
 	Component4 component4
-}
-
-@Component
-class Component2 {
-	@Inject
-	Component1 component1
-}
-
-@Component
-class Component3 {
-	@Inject
-	Component1 component1
-
-	@Inject
-	Component2 component2
-}
-
-@Component
-class Component4 {
-	@Inject
-	Component3 component3
-}
-
-@Module(components=#[Component1, Component2, Component3, Component4])
-interface TestModule {}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The cycle can be avoided by referencing one of the affected components indirectly by using a <a href="#module-level-component-references">module-level component reference</a>:</p>
-</div>
-<div id="component-dependency-graph-example-cycle-avoided" class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Module(instantiatable=false)
-interface AbstractModule {
-	def Supplier&lt;Component4&gt; component4Supplier() <i class="conum" data-value="1"></i><b>(1)</b>
-}
-
-@Component
-class Component1 {
-	// Direct injection is not allowed because it would cause two cycles in the dependency graph
-	// @Inject <i class="conum" data-value="2"></i><b>(2)</b>
-	// Component4 component4
-
-	Supplier&lt;Component4&gt; component4Supplier
-
-	@PostConstruct
-	def void initialize() {
-		component4Supplier = AbstractModule.Instance.get.component4Supplier <i class="conum" data-value="3"></i><b>(3)</b>
-		// component4Supplier.get <i class="conum" data-value="4"></i><b>(4)</b>
-	}
 
 	def boolean someBusinessMethod() {
-		!component4Supplier.get.anotherBusinessMethod <i class="conum" data-value="5"></i><b>(5)</b>
+		component4.anotherBusinessMethod
 	}
 }
 
@@ -2454,7 +2439,66 @@ class Component4 {
 }
 
 @Module(components=#[Component1, Component2, Component3, Component4])
-interface TestModule extends AbstractModule <i class="conum" data-value="6"></i><b>(6)</b>
+interface TestModule
+{
+	def Component1 component1()
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Injecting <code>Component4</code> directly causes compile-time errors.</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The cycle can be avoided by referencing one of the affected components indirectly using a <code>Supplier</code>:</p>
+</div>
+<div id="component-dependency-graph-example-cycle-avoided" class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-xtend" data-lang="xtend">@Component
+class Component1 {
+	// Direct injection is not allowed because it would cause two cycles in the dependency graph.
+	// @Inject
+	// Component4 component4
+
+	@Inject <i class="conum" data-value="1"></i><b>(1)</b>
+	Supplier&lt;Component4&gt; component4Supplier
+
+	def boolean someBusinessMethod() {
+		!component4Supplier.get.anotherBusinessMethod <i class="conum" data-value="2"></i><b>(2)</b>
+	}
+}
+
+@Component
+class Component2 {
+	@Inject
+	public Component1 component1
+}
+
+@Component
+class Component3 {
+	@Inject
+	public Component1 component1
+
+	@Inject
+	public Component2 component2
+}
+
+@Component
+class Component4 {
+	@Inject
+	public Component3 component3
+
+	def anotherBusinessMethod() {
+		true
+	}
+}
+
+@Module(components=#[Component1, Component2, Component3, Component4])
+interface TestModule
 {
 	def Component1 component1()
 }
@@ -2462,8 +2506,8 @@ interface TestModule extends AbstractModule <i class="conum" data-value="6"></i>
 class AvoidDependencyGraphCycleTest {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize
-		assertFalse(module.component1.someBusinessMethod) <i class="conum" data-value="7"></i><b>(7)</b>
+		val module = TestModule.Peer.initialize
+		assertFalse(module.component1.someBusinessMethod)
 	}
 }</code></pre>
 </div>
@@ -2472,32 +2516,23 @@ class AvoidDependencyGraphCycleTest {
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>Declare abstract module having an indirect component reference to <code>Component4</code>.</td>
+<td>Injection is done indirectly by <code>Supplier&lt;Component4&gt;</code>.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>The direct injection is not working because it causes a dependency graph cycle.</td>
+<td>The component instance is referenced indirectly using <code>Supplier.get()</code>.</td>
 </tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
 <tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>Get the supplier of <code>Component4</code> from <code>AbstractModule</code>.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>The instance of <code>Component4</code> is not yet available in the <code>@PostConstruct</code> method.<br>
-Calling <code>component4Supplier.get</code> would raise an <code>IllegalStateException</code> with message <code>Recursion detected during component initialization.</code>.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="5"></i><b>5</b></td>
-<td>After component initialization the <code>Component4</code> instance is available.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="6"></i><b>6</b></td>
-<td>Declare a module inheriting from <code>AbstractModule</code>.</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="7"></i><b>7</b></td>
-<td>After module initialization the business method executes as expected.</td>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<a href="#component-providers">Component providers</a> reference their enclosing component directly.
+</td>
 </tr>
 </table>
 </div>
@@ -2580,25 +2615,33 @@ Currently graph rendering is very slow (done with <a href="https://github.com/md
 </table>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_gwt_support">3.2.9. GWT support</h4>
+<div class="paragraph">
+<p>If the <em>module</em> <code>ModuleInterface</code> is annotated with <code>@GwtEntryPoint</code> then a special class named <code>ModuleInterfaceEntryPoint</code> is generated.<br>
+This class implements <code>com.google.gwt.core.client.EntryPoint</code> and the implementation instantiates the module.<br>
+<em>Component</em>s with post-construct methods may be used to implement bootstrap code like UI construction.</p>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_module_local_event_dispatching">3.3. Module-local event dispatching</h3>
 <div class="paragraph">
 <p>Events allow simple communication between <em>component instance</em>s in a <em>module</em> instance:</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
+<div class="paragraph">
 <p>Event classes are simple POJOs.</p>
-</li>
-<li>
-<p>Events can be fired using a special built-in component type <code>Event&lt;EventClass&gt;</code> that can be injected as usual.</p>
-</li>
-<li>
-<p>Events can be observed by declaring instance methods in <em>component</em>s annotated with <code>@EventObserver</code>.
-The observed event type can be specified by a method parameter or by <code>@EventObserver.value</code> (if the event object is not used).</p>
-</li>
-</ul>
+</div>
+<div class="paragraph">
+<p>Events can be fired by invoking the <code>fire()</code> method of a special built-in component type <code>Event&lt;EventClass&gt;</code> that can be injected as usual.</p>
+</div>
+<div class="paragraph">
+<p>Events can be observed by declaring instance methods in <em>component</em>s annotated with <code>@EventObserver</code>.<br>
+The observed event type can be specified implicitly by a method parameter or explicitly by <code>@EventObserver.type</code> (in the latter case the event object is not available in the method).</p>
+</div>
+<div class="paragraph">
+<p>An observer method receives all subtypes of its declared event type by default.
+This can be changed by specifying the annotation attribute <code>rejectSubtypes=true</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2619,7 +2662,7 @@ class EventSourceComponent {
 		fireEvent("C") <i class="conum" data-value="4"></i><b>(4)</b>
 	}
 
-	@EventObserver(ModuleInitializedEvent) <i class="conum" data-value="5"></i><b>(5)</b>
+	@EventObserver(eventType=ModuleInitializedEvent) <i class="conum" data-value="5"></i><b>(5)</b>
 	def void moduleInitialize() {
 		fireEvent("M") <i class="conum" data-value="6"></i><b>(6)</b>
 	}
@@ -2655,7 +2698,7 @@ interface TestModule {
 class Example {
 	@Test
 	def void test() {
-		val module = TestModule.Instance.initialize <i class="conum" data-value="10"></i><b>(10)</b>
+		val module = TestModule.Peer.initialize <i class="conum" data-value="10"></i><b>(10)</b>
 		assertEquals("M", module.observer.messages) <i class="conum" data-value="11"></i><b>(11)</b>
 		module.source.fireEvent("1") <i class="conum" data-value="12"></i><b>(12)</b>
 		assertEquals("M,1", module.observer.messages) <i class="conum" data-value="13"></i><b>(13)</b>
@@ -2797,7 +2840,7 @@ class Injectable3 {
 class Example {
 	@Test
 	def void test() {
-		TestModule.Instance.initialize <i class="conum" data-value="5"></i><b>(5)</b>
+		TestModule.Peer.initialize <i class="conum" data-value="5"></i><b>(5)</b>
 		assertEquals("a", new Injectable1().value) <i class="conum" data-value="6"></i><b>(6)</b>
 		assertEquals("a", new Injectable2().value) <i class="conum" data-value="7"></i><b>(7)</b>
 		assertEquals("a", new Injectable3(1).value) <i class="conum" data-value="8"></i><b>(8)</b>
@@ -2891,6 +2934,10 @@ Altough it would be possible to implement most <em>xtend-ioc</em> features using
 <p>There is a cycle in the component dependency graph therefore the correct order of component instantiation cannot be resolved.
 See the section about the <a href="#component-dependency-graph">component dependency graph</a> how this error could be avoided.</p>
 </dd>
+<dt class="hdlist1">[E005] Component class should be non-generic: CLASS</dt>
+<dd>
+<p>Only component classes with not type parameters may be referenced by modules.</p>
+</dd>
 </dl>
 </div>
 </div>
@@ -2899,7 +2946,7 @@ See the section about the <a href="#component-dependency-graph">component depend
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2015-10-14 21:52:29 Central Europe Daylight Time
+Last updated 2015-11-06 19:50:17 Central Europe Standard Time
 </div>
 </div>
 </body>
