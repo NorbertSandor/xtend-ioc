@@ -4,7 +4,6 @@ import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
 import com.google.common.base.Supplier
-import javax.annotation.PostConstruct
 import org.junit.Test
 
 import static org.junit.Assert.*
@@ -14,27 +13,17 @@ import static org.junit.Assert.*
 //
 
 // tag::Example[]
-@Module(isAbstract=true)
-interface AbstractModule {
-	def Supplier<Component4> component4Supplier() // <1>
-}
-
 @Component
 class Component1 {
-	// Direct injection is not allowed because it would cause two cycles in the dependency graph 
-	// @Inject // <2>
+	// Direct injection is not allowed because it would cause two cycles in the dependency graph.
+	// @Inject
 	// Component4 component4
 	
+	@Inject // <1>
 	Supplier<Component4> component4Supplier
 
-	@PostConstruct
-	def void initialize() {
-		component4Supplier = AbstractModule.Peer.get.component4Supplier // <3>
-		// component4Supplier.get <4>
-	}
-
 	def boolean someBusinessMethod() {
-		!component4Supplier.get.anotherBusinessMethod // <5>
+		!component4Supplier.get.anotherBusinessMethod // <2>
 	}
 }
 
@@ -64,7 +53,7 @@ class Component4 {
 }
 
 @Module(components=#[Component1, Component2, Component3, Component4])
-interface TestModule extends AbstractModule // <6>
+interface TestModule
 {
 	def Component1 component1()
 }
@@ -73,7 +62,7 @@ class AvoidDependencyGraphCycleTest {
 	@Test
 	def void test() {
 		val module = TestModule.Peer.initialize
-		assertFalse(module.component1.someBusinessMethod) // <7>
+		assertFalse(module.component1.someBusinessMethod)
 	}
 }
 // end::Example[]
