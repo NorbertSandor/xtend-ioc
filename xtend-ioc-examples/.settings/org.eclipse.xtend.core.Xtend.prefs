@@ -1,5 +1,6 @@
 //outlet.DEFAULT_OUTPUT.sourceFolder.src/main/java.directory=target/generated-sources/xtend
 //outlet.DEFAULT_OUTPUT.sourceFolder.src/test/java.directory=target/generated-test-sources/xtend
+//outlet.DEFAULT_OUTPUT.sourceFolder.target/generated-test-sources/xtend.directory=target/generated-test-sources/xtend
 BuilderConfiguration.is_project_specific=true
 blank.line.around.expressions=0
 blank.lines.after.imports=1
