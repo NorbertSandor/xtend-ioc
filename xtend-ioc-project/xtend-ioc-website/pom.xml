@@ -1,0 +1,124 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.erinors</groupId>
+		<artifactId>xtend-ioc-project</artifactId>
+		<version>0.2.0-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>xtend-ioc-website</artifactId>
+	<packaging>pom</packaging>
+
+	<properties>
+		<github.global.server>github</github.global.server>
+	</properties>
+
+	<distributionManagement>
+		<site>
+			<id>github-pages-site</id>
+			<name>xtend-ioc-website / ghpages</name>
+			<url>${project.version}</url>
+		</site>
+	</distributionManagement>
+
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.asciidoctor</groupId>
+						<artifactId>asciidoctor-maven-plugin</artifactId>
+						<version>1.5.2</version>
+						<configuration>
+							<backend>html</backend>
+							<attributes>
+								<docVersion>${project.version}</docVersion>
+							</attributes>
+						</configuration>
+						<executions>
+							<execution>
+								<id>generate-versioned-documentation</id>
+								<configuration>
+									<sourceDirectory>src/main/asciidoc</sourceDirectory>
+									<outputDirectory>${project.build.directory}/ghpages/${project.version}</outputDirectory>
+								</configuration>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>process-asciidoc</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>generate-latest-documentation</id>
+								<configuration>
+									<sourceDirectory>src/main/asciidoc</sourceDirectory>
+									<outputDirectory>${project.build.directory}/ghpages/latest</outputDirectory>
+								</configuration>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>process-asciidoc</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>generate-index</id>
+								<configuration>
+									<sourceDirectory>src/main/asciidoc-unversioned</sourceDirectory>
+									<outputDirectory>${project.build.directory}/ghpages</outputDirectory>
+								</configuration>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>process-asciidoc</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>com.github.github</groupId>
+						<artifactId>site-maven-plugin</artifactId>
+						<version>0.12</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>site</goal>
+								</goals>
+								<phase>deploy</phase>
+								<configuration>
+									<noJekyll>true</noJekyll>
+									<server>github</server>
+									<outputDirectory>${project.build.directory}/ghpages</outputDirectory>
+									<message><![CDATA[Generated documentation for xtend-ioc v${project.version}]]></message>
+									<merge>true</merge>
+									<path></path>
+									<repositoryOwner>NorbertSandor</repositoryOwner>
+									<repositoryName>xtend-ioc</repositoryName>
+									<dryRun>false</dryRun>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<configuration>
+					<skipCheckLicense>true</skipCheckLicense>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

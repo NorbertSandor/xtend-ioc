@@ -1,0 +1,7 @@
+xtend-ioc:
+- allow method injection
+- implement component override
+
+build:
+- single license file
+- license file as ftl template

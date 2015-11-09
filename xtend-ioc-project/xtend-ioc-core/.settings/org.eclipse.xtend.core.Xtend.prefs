@@ -1,0 +1,15 @@
+//outlet.DEFAULT_OUTPUT.sourceFolder.src/main/java.directory=target/generated-sources/xtend
+//outlet.DEFAULT_OUTPUT.sourceFolder.src/main/resources.directory=target/generated-resources/xtend
+//outlet.DEFAULT_OUTPUT.sourceFolder.src/main/resources.ignore=false
+//outlet.DEFAULT_OUTPUT.sourceFolder.src/test/java.directory=target/generated-test-sources/xtend
+//outlet.DEFAULT_OUTPUT.sourceFolder.src/test/resources.directory=target/generated-test-resources/xtend
+//outlet.DEFAULT_OUTPUT.sourceFolder.src/test/resources.ignore=false
+//outlet.DEFAULT_OUTPUT.sourceFolder.target/generated-test-sources/xtend.directory=target/generated-test-sources/xtend
+BuilderConfiguration.is_project_specific=true
+eclipse.preferences.version=1
+generateSuppressWarnings=true
+org.eclipse.xtend.core.Xtend.useProjectSettings=true
+outlet.DEFAULT_OUTPUT.directory=target/generated-sources/xtend
+outlet.DEFAULT_OUTPUT.hideLocalSyntheticVariables=true
+outlet.DEFAULT_OUTPUT.installDslAsPrimarySource=false
+outlet.DEFAULT_OUTPUT.userOutputPerSourceFolder=true

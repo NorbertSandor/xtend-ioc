@@ -1,0 +1,261 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.erinors</groupId>
+	<artifactId>xtend-ioc-project</artifactId>
+	<version>0.2.0-SNAPSHOT</version>
+
+	<packaging>pom</packaging>
+
+	<name>xtend-ioc</name>
+	<description>IOC framework implemented in Xtend language</description>
+	<url>https://github.com/NorbertSandor/xtend-ioc</url>
+	<inceptionYear>2015</inceptionYear>
+
+	<licenses>
+		<license>
+			<name>Mozilla Public License, version 2.0</name>
+			<url>https://www.mozilla.org/en-US/MPL/2.0/</url>
+		</license>
+	</licenses>
+
+	<organization>
+		<name>Erinors</name>
+	</organization>
+
+	<developers>
+		<developer>
+			<name>Norbert Sándor</name>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:https://github.com/NorbertSandor/xtend-ioc.git</connection>
+		<developerConnection>scm:git:https://github.com/NorbertSandor/xtend-ioc.git</developerConnection>
+		<url>https://github.com/NorbertSandor/xtend-ioc.git</url>
+	</scm>
+
+	<properties>
+
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+		<dependency.xtend.version>2.9.0.beta6</dependency.xtend.version>
+
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.erinors</groupId>
+				<artifactId>xtend-ioc-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.eclipse.xtend</groupId>
+				<artifactId>org.eclipse.xtend.lib</artifactId>
+				<version>${dependency.xtend.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.xtend</groupId>
+				<artifactId>org.eclipse.xtend.core</artifactId>
+				<version>${dependency.xtend.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.oehme.xtend</groupId>
+				<artifactId>xtend-contrib</artifactId>
+				<version>0.6.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jgrapht</groupId>
+				<artifactId>jgrapht-core</artifactId>
+				<version>0.9.1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jgrapht</groupId>
+				<artifactId>jgrapht-ext</artifactId>
+				<version>0.9.1</version>
+			</dependency>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.12</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.sonatype.plugins</groupId>
+					<artifactId>nexus-staging-maven-plugin</artifactId>
+					<version>1.6.6</version>
+					<extensions>true</extensions>
+					<configuration>
+						<serverId>ossrh</serverId>
+						<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+						<autoReleaseAfterClose>false</autoReleaseAfterClose>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.xtend</groupId>
+				<artifactId>xtend-maven-plugin</artifactId>
+				<version>${dependency.xtend.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compile</goal>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/generated-sources/xtend</outputDirectory>
+							<testOutputDirectory>${project.build.directory}/generated-test-sources/xtend</testOutputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-toolchains-plugin</artifactId>
+				<version>1.1</version>
+				<configuration>
+					<toolchains>
+						<jdk>
+							<version>1.7</version>
+						</jdk>
+					</toolchains>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>toolchain</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<excludes>
+						<exclude>**/*._trace</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>release</id>
+
+			<distributionManagement>
+				<snapshotRepository>
+					<id>ossrh</id>
+					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+				</snapshotRepository>
+				<repository>
+					<id>ossrh</id>
+					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+				</repository>
+			</distributionManagement>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>license-maven-plugin</artifactId>
+						<version>1.8</version>
+						<configuration>
+							<licenseName>mplv2</licenseName>
+							<licenseResolver>${project.baseUri}src/license</licenseResolver>
+							<aggregate>true</aggregate>
+							<organizationName>Norbert Sándor</organizationName>
+							<extraExtensions>
+								<xtend>java</xtend>
+							</extraExtensions>
+							<includes>
+								<include>**/*.java</include>
+								<include>**/*.xtend</include>
+								<include>**/*.xml</include>
+							</includes>
+						</configuration>
+						<executions>
+							<execution>
+								<id>check-license</id>
+								<phase>initialize</phase>
+								<goals>
+									<goal>check-file-header</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.10.3</version>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<inherited>false</inherited>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<modules>
+		<module>xtend-ioc-core</module>
+		<module>xtend-ioc-examples</module>
+		<module>xtend-ioc-test</module>
+		<module>xtend-ioc-website</module>
+	</modules>
+
+</project>

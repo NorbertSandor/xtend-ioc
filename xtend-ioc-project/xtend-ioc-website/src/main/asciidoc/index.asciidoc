@@ -1,0 +1,796 @@
+= xtend-ioc
+:toc: right
+:toclevels: 5
+:sectnums:
+:icons: font
+:revnumber: {docVersion}
+
+== Introduction
+
+_xtend-ioc_ is a compile-time inversion of control framework for http://www.eclipse.org/xtend/[Xtend]. +
+Its main features are
+
+* component instantiation and lifecycle management,
+* dependency injection, and
+* event dispatching between component instances.
+
+=== Xtend
+
+_xtend-ioc_ is built on http://www.eclipse.org/xtend/[Xtend]:
+
+[quote, by the Xtend website]
+____
+Xtend is a statically-typed programming language which translates to comprehensible Java source code. Syntactically and semantically Xtend has its roots in the Java programming language but improves on many aspects.
+____
+
+Xtend has lots of useful features compared to Java, and it has fairly good IDE support.
+Its advanced http://www.eclipse.org/xtend/documentation/204_activeannotations.html[compile-time metaprogramming facilities] make it the perfect basis of _xtend-ioc_. +
+_xtend-ioc_ does not support Java directly, only indirectly via Xtend.
+
+NOTE: Although this documentation sometimes refers to "Java classes", in most cases this means "Java classes translated from Xtend". +
+Similarly, "Java objects" mean instances of "Java classes translated from Xtend".
+
+=== Inversion of control and dependency injection
+
+[quote, 'https://en.wikipedia.org/wiki/Inversion_of_control[by Wikipedia]']
+____
+In software engineering, inversion of control (IoC) describes a design in which custom-written portions of a computer program receive the flow of control from a generic, reusable library. A software architecture with this design inverts control as compared to traditional procedural programming: in traditional programming, the custom code that expresses the purpose of the program calls into reusable libraries to take care of generic tasks, but with inversion of control, it is the reusable code that calls into the custom, or task-specific, code.
+____
+
+In this definition _xtend-ioc_ is the "generic, reusable library" that
+
+creates and manages instances of classes:: instead of the classes would be instantiated using the `new` operator in user code,
+injects dependencies into objects:: instead of each object would look up them manually, and
+dispatches events between objects:: instead of calling methods directly on other objects.
+
+=== Compile-time vs runtime IOC frameworks
+
+_xtend-ioc_ is a purely compile-time IOC framework. +
+It means that all validation and code generation is performed during the Xtend to Java source code translation phase. +
+This design decision has major advantages like
+
+* most errors are detected in compile-time
+* the generated Java code is completely static so e.g. http://gwtproject.org/[GWT] is supported
+
+Although there are disadvantages as well compared to runtime IOC frameworks, for example component lookup using runtime classpath scanning cannot be supported. +
+Note that a simple compile-time <<component-scan, component scanning>> is supported.
+
+== Status
+
+The _xtend-ioc_ project is not released to the public yet. +
+Although all features and examples presented in this documentation are working (they are indeed unit tests), the framework source code needs some cleanup...
+
+== Building blocks
+
+The main building blocks of _xtend-ioc_ are:
+
+* A _component_ is a definition that specifies how instances of it should be created and managed by __module__s.
+* A _component instance_ is a Java object, instance of a _component_.
+* A _module_ is a definition that specifies the __component__s contained by it.
+* A _module instance_ manages the life-cycle of its contained __component instance__s, provides additional services for them, and may optionally provide external access to them.
+
+Let's see an example just to taste the syntax:
+
+[[showcase-example-first]]
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/chattymodule1/Example.xtend[tags=ChattyModule]
+----
+<1> Define a service interface to "say hello".
+<2> Annotate classes with `@Component` to turn them to components.
+<3> Another component with `@Inject`-ed depedency
+<4> Annotate an interface with `@Module` to turn it to a module.
+<5> Specify the components contained in the module.
+<6> Declare a method for accessing the `EnglishHelloServiceImpl` component.
+<7> Declare a method for accessing the `HungarianHelloServiceImpl` component.
+<8> Declare a method for accessing all components implementing `HelloService`
+<9> Initialize the module, ie. instantiate it.
+<10> Say hello in English.
+<11> Say hello in Hungarian.
+<12> Count the components implementing `HelloService` - not surprisingly the result is 2.
+<13> By default components are "singletons" which means that all references point to the same component instance.
+
+=== Components
+
+There are two ways to define a _component_:
+
+* <<component-class, component classes>> and
+* <<component-providers, component providers>>.
+
+[[component-class]]
+==== @Component / component classes
+
+[[component-class-requirements]]
+A Java class is a _component class_ if
+
+* it is annotated with `@Component` and
+* it has a valid component constructor, that is
+** either the class has exactly one constructor annotated with `@Inject`
+** or none of its constructors is annotated with `@Inject` and a no-args constructor exits (even the default constructor or an explicitly defined one).
+
+When a new instance of a _component class_ is requested then it is instantiated by using its _component constructor_.
+
+__Component class__es may have superclasses. If a _component_'s superclass is itself a _component class_ then dependency injection is performed as expected.
+
+TIP: Components should be focused in functionality.
+
+[[component-qualifiers]]
+==== @Qualifier / qualifiers
+
+Programming against interfaces is considered a good practice therefore components should be referenced by interfaces instead of concrete classes.
+When multiple _component classes_ implement the same interface, the component classes can be identified by labeling them with _qualifiers_.
+
+A _qualifier_ is an annotation marked with `@Qualifier`:
+
+[source,xtend]
+----
+@Qualifier
+annotation English {}
+----
+
+Let's rewrite our <<showcase-example-first, first example>> using qualifiers and interface references:
+
+[[showcase-example-with-qualifiers]]
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/chattymodule2/Example.xtend[tags=ChattyModule]
+----
+<1> Define qualifier `@English`.
+<2> Define qualifier `@Hungarian`.
+<3> Qualify `EnglishHelloServiceImpl` with `@English`.
+<4> Qualify `HungarianHelloServiceImpl` with `@Hungarian`.
+<5> `AnotherComponent` depends on a component implementing `HelloService` and qualified with `@English` (that will be resolved as `EnglishHelloServiceImpl`).
+<6> Declare a method for accessing the component implementing `HelloService` and qualified with `@English` (that will be resolved as `EnglishHelloServiceImpl`).
+<7> Declare a method for accessing the component implementing `HelloService` and qualified with `@Hungarian` (that will be resolved as `HungarianHelloServiceImpl`).
+
+Of course a component may have multiple qualifiers like:
+
+[source,xtend]
+----
+@Qualifier
+annotation ThreadSafe {}
+
+@Qualifier
+annotation Production {}
+
+@Component
+@ThreadSafe
+@Production
+class SomeComponent {}
+----
+
+Qualifiers may have attributes of any supported type:
+
+* primitive value
+* String
+* enum
+* class literal
+* annotation (any annotation is supported, even annotations not marked with `@Qualifier`)
+* array of any of the above types
+
+Example:
+
+[source,xtend]
+----
+@Qualifier
+annotation Language {
+  String value
+}
+
+@Component
+@Language("english")
+class SomeComponent {}
+----
+
+[[component-typesignature]]
+==== Type signature of components
+
+Every component has a _type signature_ `(cT, cQ)` that is composed of
+
+* `cT`: a Java type and
+* `cQ`: a set of qualifiers.
+
+In case of a _component class_ these are defined as
+
+* `cT`: if specified explicitly then `@Component.type` otherwise the Java type of the component class declaration and
+* `cQ`: the set of qualifiers the component class is annotated with.
+
+[[component-reference]]
+Components can be referenced by a _component reference_ `rT, rQ` where
+
+* `rT`: a Java type
+* `rQ`: a set of qualifiers
+
+[[component-reference-resolution]]
+A component with `(cT, cQ)` type signature satisfies a component reference `(rT, rQ)` if
+
+* `cT` is assignable to `rT` (using the typing rules of the Java language) and
+* the set `cQ` contains all elements of set `rQ`.
+
+The operation of finding all components in a module satisfying a given component reference is called _component reference resolution_. +
+_Component reference resolution_ may result in zero or more components.
+
+The most common _component reference_ is the _injection point_: a _component reference_ defined by an Xtend field, method or parameter declaration.
+
+[[dependency-injection]]
+==== @Inject / dependency injection
+
+The most important feature of _xtend-ioc_ is dependency injection i.e. the process of resolving a __component__'s references to other __component__s. +
+In practice this means the <<component-reference-resolution, resolution>> of __injection point__s.
+
+There are two types of __injection point__s in __component__s:
+
+* Field: the _component reference_ is defined by a field declaration of the _component class_
+* Constructor: the __component reference__s are defined by the parameter declarations of a _component constructor_
+
+Different types of __injection point__s canbe mixed in the same _component_.
+
+In case of _optional_ dependencies the _injection point_ should be annotated with `@NotRequired`. If the _component reference_ cannot be resolved then `null` is injected.
+
+TIP: To ensure null-safety it is recommended to use <<indirect-component-references, indirect component references>> instead of directly injected __component instance__s.
+
+TIP: In this documentation `@Inject` refers to `@com.erinors.ioc.shared.api.Inject`. +
+But `@javax.inject.Inject` is supported as well and their behaviour is currently identical.
+
+===== Field injection
+
+Injected fields are marked with `@Inject`:
+
+[source,xtend]
+----
+@Component
+class SomeComponent {
+  @Inject
+  ReferenceToAnotherComponent anotherComponent
+}
+----
+
+Component reference resolution is performed using
+
+* `rT` = type of the field declaration
+* `rQ` = qualifiers the field is annotated with
+
+===== Constructor injection
+
+Injected constructors are marked with `@Inject`:
+
+[source,xtend]
+----
+@Component
+class SomeComponent {
+  @Inject
+  new(AnotherComponent anotherComponent) {}
+}
+----
+
+Component reference resolution is performed for each constructor parameter with
+
+* `rT` = type of the parameter declaration
+* `rQ` = qualifiers the parameter is annotated with
+
+[[indirect-component-references]]
+===== Indirect component references
+
+Indirect __component reference__s are useful if
+
+* more than one instance of the _component_ is required (this is useful for <<component-scope-prototype, prototype scoped components>>)
+* instantiation of the referenced _component_ should be delayed for some reason
+
+Indirect __component reference__s are supported by injecting a _component supplier_:
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/supplier/Example.xtend[tags=Example]
+----
+<1> Inject supplier.
+<2> The directly injected and the indirectly supplied component instances are the same because `AnotherComponent` is <<component-scope-singleton, singleton>>.
+
+NOTE: Currently only `com.google.common.base.Supplier` is supported as _component supplier_ but there are plans to support others (eg. `java.util.function.Supplier`).
+
+TIP: Indirect __component reference__s are supported by annotating the _injection point_ with `@NotRequired`. In this case the supplier returns `null`.
+
+===== References to multiple components
+
+When a <<component-reference, component reference>> is <<component-reference-resolution, resolved>> to multiple __component__s they can be injected as type `List` or `Iterable`:
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/injectmultiple/Example.xtend[tags=Example]
+----
+<1> Inject list of __component reference__s by type `List<? extends Handler>`.
+<2> Inject list of __component reference__s by type `Iterable<Handler>`.
+
+TIP: Of course the _component reference_ can be injected as a `List` even if it is _resolved_ to only one _component instance_.
+
+TIP: If no __component__s are compatible with the _component reference_ then an empty `List` would be injected. +
+This is valid only if _injection point_ is annotated with `@Optional` otherwise a compilation error is raised.
+
+===== Generic component references
+
+Generic components can be referenced as expected:
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/genericcomponents/Example.xtend[tags=Example]
+----
+<1> Both `List<Handler<? extends Number>>` and `List<? extends Handler<? extends Number>>` are valid. `Iterable` could be used as well instead of `List`. +
+But `List<Handler<Number>>` would not be valid because there is no component implementing `Handler<Number>` (note that because of Java typing rules, `Handler<Integer>` is not assignable to `Handler<Number>`, only to `Handler<? extends Number>`).
+
+[[component-scope]]
+==== @Scope / component scope
+
+By default every component has only one instance. When the _component_ is <<component-reference, referenced>> multiple times the same instance is returned always. +
+This behaviour is defined by the _scope_ of the _component_ which defines whether a new instance of the _component_ should be created or an existing instance should be used when the _component_ is referenced. +
+The built-in scopes are:
+
+* _singleton_ and
+* _prototype_.
+
+The _scope_ of a _component_ can be specified by the _scope annotation_. +
+If a _component_ does not have an explicit _scope annotation_ then its scope will be the default <<component-scope-singleton, singleton scope>>.
+
+NOTE: Custom scopes can be added by implementing a `ScopeManager`.
+
+[[component-scope-singleton]]
+===== @Singleton / singleton scope
+
+_Components_ with _singleton scope_ have never more than one instance. +
+Multiple references to the same _component_ are <<component-reference-resolution, resolved>> to the same component instance.
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/singletons/Example.xtend[tags=Example]
+----
+<1> Define _singleton_ _component_.
+<2> All references to the _component_ returns the same _component instance_.
+
+This is the default _scope_ so usually no _scope annotation_ is specified on _singleton_ components. +
+(So although there there is a _scope annotation_ `@Singleton`, it is rarely used.)
+
+[[component-scope-prototype]]
+===== @Prototype / prototype scope
+
+_Components_ annotated with `@Prototype` have _prototype scope_. +
+Each reference to a _prototype_ scoped _component_ <<component-reference-resolution, resolves>> to a new instance of the _component_.
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/prototype/Example.xtend[tags=Example]
+----
+<1> Define _prototype_ _component_.
+<2> Each references to the _component_ returns a new _component instance_.
+
+[[component-lifecycle-annotations]]
+==== @PostConstruct and @PreDestroy / lifecycle callbacks
+
+Methods in __component class__es are _lifecycle callbacks_ if they are annotated with _lifecycle annotations_:
+
+|===
+| Lifecycle annotation | Description
+
+| `@PostConstruct` | The method is called after the given _component instance_ is created and its dependencies are injected.
+| `@PreDestroy` | The method is called when the given _component instance_ is in the process of being disposed.
+|===
+
+NOTE: The `@PreDestroy` _lifecycle annotation_ is not supported by all __scope__s. +
+For example the _singleton scope_ supports it but the _prototype scope_ does not.
+
+NOTE: `@PreDestroy` methods are called by the _scope manager_ before the _component instance_ is being disposed. +
+In case of _singleton_ _components_ this happens only when their _module_ is <<module-close, closed>>.
+
+Example:
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/lifecycle/Example.xtend[tags=Example]
+----
+<1> Declare `TestComponent` of _scope_ _singleton_. +
+(Adding `@Prototype` to this class would result in a compile-time error because the _prototype scope_ does not support `@PreDestroy` methods.)
+<2> Declare static status field (the unit test will use it).
+<3> Declare `@PostConstruct` callback method.
+<4> Declare `@PreDestroy` callback method.
+<5> Initialize module.
+<6> The _component_ is not initialized yet (because it is not <<component-eager, eager>>).
+<7> The _component_ is intialized when first referenced (i.e. after the single instance of it is created), `@PostConstruct` callbacks are called in this phase.
+<8> The _component_ is unintialized when the _module_ is closed, `@PreDestroy` callbacks are called in this phase.
+
+[[component-eager]]
+==== @Eager / eager components
+
+By default __component__s are instantiated only when they are first referenced. +
+To force the eager instantiation of a _component_ it should be annotated with `@Eager`.
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/eager/Example.xtend[tags=Example]
+----
+<1> __Component__s are lazy by default.
+<2> Define _eager_ component.
+<3> The _lazy_ _component_ is not instantiated when the _module_ is created.
+<4> The _eager_ _component_ is instantiated right after the _module_ is created.
+<5> Force instantiation of the _lazy_ _component_.
+<6> The _lazy_ _component instance_ is now initialized.
+
+TIP: `@Eager` is usually used on _singleton_ __component__s.
+
+TIP: The intended initialization order of eager components can be specified by `@Priority`.
+
+NOTE: If a __prototype scope__d _component_ is marked as `@Eager` then right after the _component instance_ is created, it is immediately dereferenced by the _module instance_.
+
+[[component-providers]]
+==== @Provider / components instantiated by user code
+
+There are cases when we would like to use instances of a Java class as components but the class does not comply with the <<component-class-requirements, requirements of component classes>>. +
+In most cases it is possible to create a subclass with a valid component constructor but usually it is not practical.
+Besides if the class is final - like `String` (yes, any Java object can be a component, even a string) - then there is no way to turn it into a component class.
+
+To overcome these limitations, component classes can provide other component instances by __provider method__s.
+
+NOTE: __Provider method__s must have an explicit return type, type inference is not supported.
+
+===== Simple component providers
+
+Simple component providers are no-args instance methods defined in normal components and annotated with `@Provider`.
+
+[source,xtend]
+----
+class ProvidedComponent { // <1>
+}
+
+@Component
+class MainComponent {
+  @Provider
+  def ProvidedComponent provider() {
+    new ProvidedComponent() // <2>
+  }
+}
+----
+<1> The provided component's class is not annotated with `@Component`, it's a simple POJO.
+<2> Create a new instance of the provided component using the `new` operator.
+
+Altough in this case the _provided_ component is instantiated directly using the `new` operator, its lifecycle is managed by the module, and similar rules apply to them as to normal components:
+
+* they can have <<component-qualifiers, qualifiers>> (declared on the _provider method_)
+* they are <<component-scope-singleton, singleton>> by default but can have a <<component-scope, custom scope>> (declared on the _provider method_)
+
+There are important differences as well:
+
+* A _provided component_'s <<component-typesignature, type signature>> is composed of
+** the return type of the _provider method_ and
+** the qualifiers statically declared on the _provider method_ and the parameterized qualifiers supported by the _provider method_ (see <<parameterized-component-providers>>).
+* <<component-lifecycle-annotations, lifecycle annotations>> are not supported.
+* They usually don't have `@Inject`-ed dependencies but use the injected dependencies of the enclosing component. +
+  (They may have injected dependencies like <<dependency-injection-for-non-components, any POJOs>> but the resulting code is more readable if the dependecies are passed explicitly to the constructor of the implementing class.)
+
+[[parameterized-component-providers]]
+===== Parameterized component providers
+
+Parameterized component providers are very similar to <<component-providers, simple component providers>>, the only difference is that they can provide __component instance__s for multiple __qualifier__s.
+
+WARNING: _Parameterized component providers_ is an experimental feature, use it at your own risk.
+
+NOTE: As all features of _xtend-ioc_, _parameterized component providers_ is a compile-time feature.
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/parameterizedproviders/Example.xtend[tags=Example]
+----
+<1> Declare qualifier annotation with attributes.
+<2> Declare parameterized provider.
+<3> Specify the qualifier annotation supported by the provider.
+<4> Specify the annotation attribute name.
+<5> Specify the method parameter name the annotation attribute value is mapped to.
+<6> Declare component with injected fields.
+<7> Test injected values.
+
+=== Modules
+
+[[module-declaration]]
+==== @Module / defining modules
+A _module_ is defined by a Java interface annotated with `@Module`. +
+The `@Module` annotation defines the __component class__es managed by the module
+
+* explicitly by listing the __component class__es using the `components` attribute and/or
+* implicitly by specifying the attribute `componentScanClasses` and/or `componentImporters`.
+
+[[component-importer]]
+Component importers specify the __component__s to be imported by using `@ImportComponents`.
+
+[[component-scan]]
+Component scan attempts to find __component__s recursively in the package of each listed class.
+
+Component scan example:
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/componentscan/Example.xtend[tags=Example]
+----
+<1> Define component scan root packages.
+<2> Both `Component1` and `Component2` is found by component scanning.
+
+WARNING: Component scan is an experimental feature, use it at your own risk.
+
+==== Module inheritance
+
+A _module_ can inherit other __module__s by extending the their interface. +
+When module `M1` inherits module `M2` then all components contained by `M2` will be managed by `M1` as well. This rule is recursive.
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/moduleinheritance/Example.xtend[tags=Example]
+----
+<1> `TestModule` inherits `ParentModule`.
+<2> The inherited _component_ is available in `TestModule`.
+
+[[module-singleton]]
+==== Module lifecycle / Singleton modules
+
+A _module_ must be instantiated before it can be used. Only _non-abstract_ modules can be instantiated. +
+
+There are two types of modules specified by `@Module.singleton`:
+
+* Singleton: the _module_ has exactly one instance. +
+This singleton instance of the module `ModuleInterface` can be instantiated by calling `ModuleInterface.Peer.initialize()`. +
+The singleton instance is available by calling `ModuleInterface.Peer.get()`.
+* Non-singleton: the module may have multiple instances, a new instance of the module `ModuleInterface` can be created by calling `ModuleInterface.Peer.constructInstance()`.
+
+In case of inheritance of singleton modules all modules in the inheritance chain share the same module instance:
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/moduleinheritance2/Example.xtend[tags=Example]
+----
+<1> `TestModule` inherits `ParentModule`.
+<2> Initialize `TestModule`.
+<3> Both `TestModule` and `ParentModule` share the same runtime instance.
+<4> `TestComponent` is available from both _module_ instances.
+
+[[module-close]]
+When the _module instance_ is not needed anymore (e.g. on application shutdown) it should be closed by calling `ModuleInterface.Peer.close()`. +
+During the close operation <<component-lifecycle-annotations, predestroy methods>> are called on the corresponding __component instance__s.
+
+[[module-abstract]]
+==== Abstract and non-abstract modules
+
+All _module_ is _non-abstract_ by default that is all __component references__s must be <<component-reference-resolution, resolvable>>, otherwise a compilation error is raised.
+
+If it is known that not all __component references__s are available (on purpose) then the _module_ must be explicitly marked as _abstract_ by specifying the `@Module(isAbstract=true)`.
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/abstractmodule/Example.xtend[tags=Example]
+----
+<1> `ParentModule` is declared as _abstract_ because the `TestComponent.someService` _component reference_ is not resolvable.
+<2> `ParentModule` is _abstract_ therefore no `initialize()` method is available on it.
+<3> Both `TestModule` and `ParentModule` share the same runtime instance. There is no  difference compared to _non-abstract_ __module__s.
+<4> Dependency injection works between __module__s as expected.
+
+[[module-level-component-references]]
+==== Module-level component references
+
+_Module_ interfaces may declare <<component-reference, component references>>:
+
+* rT: the return type of the method declaration
+* rQ: the qualifiers the method declaration is annotated with
+
+These methods can be called on the _module_ instance from "external" code:
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/modulelevelreferences/Example.xtend[tags=Example]
+----
+<1> Declare _module_ with module-level __component reference__s.
+<2> All declared __component reference__s refer to the same _singleton_ `TestComponent` instance.
+
+==== The relation of modules and component classes
+
+The same _component class_ can be contained by multiple __module__s. +
+In this case component dependency resolutions happens independently in each module, so it is possible that a __component reference__ is resolved to different __component instance__s.
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/multiplemodules/Example.xtend[tags=Example]
+----
+<1> Declare _component_ `TestComponent` with injected dependency.
+<2> Declare _component provider_ `Provider1` with value `"1"`.
+<3> Declare _component provider_ `Provider2` with value `"2"`.
+<4> `TestModule1` contains `TestComponent` and `Provider1`.
+<5> `TestModule2` contains `TestComponent` and `Provider2`.
+<6> `TestComponent`'s dependency is resolved using `Provider1` in `TestModule1`.
+<7> `TestComponent`'s dependency is resolved using `Provider2` in `TestModule2`.
+
+WARNING: Because each _module_ may have only one instance, inheritance is not supported with a common parent _module_. +
+I.e. if both `TestModule1` and `TestModule2` would inherit from the same parent _module_, only `module1` could be initialized, the initialization of `module2` would fail.
+
+[[component-dependency-graph]]
+==== The component dependency graph
+
+Each non-abstract _module_ defines a _dependency graph_ between __component__s: it is a https://en.wikipedia.org/wiki/Directed_acyclic_graph[directed acyclic graph (DAG)] where each node `Cn` is a _component_ and each directed edge `C1`->`C2` corresponds to a direct _component reference_ declared in `C1` and <<component-reference-resolution, resolved>> as `C2`.
+Note that indirect component references (by `Supplier` or `Optional`) are not present in the _dependency graph_.
+
+If the _dependency graph_ would not be a DAG i.e. it contains a https://en.wikipedia.org/wiki/Cycle_graph#Directed_cycle_graph[directed cycle] then a compile-time error is raised.
+
+The following example does not compile, there are two compile-time errors:
+
+* Error message #1:
+include::../../../../xtend-ioc-core/src/test/java/com/erinors/ioc/impl/CycleDetectionTest.xtend[tags=ErrorMessage1]
+* Error message #2:
+include::../../../../xtend-ioc-core/src/test/java/com/erinors/ioc/impl/CycleDetectionTest.xtend[tags=ErrorMessage2]
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-core/src/test/java/com/erinors/ioc/impl/CycleDetectionTest.xtend[tags=Example]
+----
+<1> Injecting `Component4` directly causes compile-time errors.
+
+The cycle can be avoided by referencing one of the affected components indirectly using a `Supplier`:
+
+[[component-dependency-graph-example-cycle-avoided]]
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/avoiddependencygraphcycle/Example.xtend[tags=Example]
+----
+<1> Injection is done indirectly by `Supplier<Component4>`.
+<2> The component instance is referenced indirectly using `Supplier.get()`.
+
+NOTE: <<component-providers, Component providers>> reference their enclosing component directly.
+
+==== Module report
+
+If the _module_ `ModuleName` is compiled without errors, two additional files are generated next to the module interface declaration:
+
+* `ModuleName.dot`: the _dependency graph_ in GraphViz format
+* `ModuleName.html`: a HTML report that contains some information about the _module_ like module properties, declared __component__s, the _dependency graph_, etc.
+
+E.g. the <<component-dependency-graph-example-cycle-avoided, example above>> has the following graph:
+
+++++
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" viewBox="0.00 0.00 209.20 260.00" height="260pt" width="209pt">
+<g transform="scale(1 1) rotate(0) translate(4 256)" class="graph" id="graph0">
+<title>G</title>
+<polygon points="-4,4 -4,-256 205.205,-256 205.205,4 -4,4" stroke="none" fill="white"></polygon>
+<!-- 1 -->
+<g class="node" id="node1"><title>1</title>
+<ellipse ry="18" rx="74.7049" cy="-18" cx="74.6024" stroke="black" fill="none"></ellipse>
+<text font-size="14.00" font-family="Times,serif" y="-13.8" x="74.6024" text-anchor="middle">Component1 [1]</text>
+</g>
+<!-- 2 -->
+<g class="node" id="node2"><title>2</title>
+<ellipse ry="18" rx="74.7049" cy="-90" cx="126.602" stroke="black" fill="none"></ellipse>
+<text font-size="14.00" font-family="Times,serif" y="-85.8" x="126.602" text-anchor="middle">Component2 [2]</text>
+</g>
+<!-- 2&#45;&gt;1 -->
+<g class="edge" id="edge1"><title>2-&gt;1</title>
+<path d="M114.015,-72.055C107.755,-63.6287 100.067,-53.2798 93.1488,-43.9663" stroke="black" fill="none"></path>
+<polygon points="95.8471,-41.7293 87.0742,-35.789 90.2279,-45.9036 95.8471,-41.7293" stroke="black" fill="black"></polygon>
+</g>
+<!-- 3 -->
+<g class="node" id="node3"><title>3</title>
+<ellipse ry="18" rx="74.7049" cy="-162" cx="74.6024" stroke="black" fill="none"></ellipse>
+<text font-size="14.00" font-family="Times,serif" y="-157.8" x="74.6024" text-anchor="middle">Component3 [3]</text>
+</g>
+<!-- 3&#45;&gt;1 -->
+<g class="edge" id="edge2"><title>3-&gt;1</title>
+<path d="M61.0381,-143.972C54.0443,-134.09 46.2356,-121.047 42.6024,-108 38.3101,-92.5865 38.3101,-87.4135 42.6024,-72 45.2705,-62.4189 50.1905,-52.8397 55.3859,-44.5128" stroke="black" fill="none"></path>
+<polygon points="58.407,-46.2908 61.0381,-36.0279 52.5812,-42.41 58.407,-46.2908" stroke="black" fill="black"></polygon>
+</g>
+<!-- 3&#45;&gt;2 -->
+<g class="edge" id="edge3"><title>3-&gt;2</title>
+<path d="M87.1901,-144.055C93.4496,-135.629 101.137,-125.28 108.056,-115.966" stroke="black" fill="none"></path>
+<polygon points="110.977,-117.904 114.131,-107.789 105.358,-113.729 110.977,-117.904" stroke="black" fill="black"></polygon>
+</g>
+<!-- 4 -->
+<g class="node" id="node4"><title>4</title>
+<ellipse ry="18" rx="74.7049" cy="-234" cx="74.6024" stroke="black" fill="none"></ellipse>
+<text font-size="14.00" font-family="Times,serif" y="-229.8" x="74.6024" text-anchor="middle">Component4 [4]</text>
+</g>
+<!-- 4&#45;&gt;3 -->
+<g class="edge" id="edge4"><title>4-&gt;3</title>
+<path d="M74.6024,-215.697C74.6024,-207.983 74.6024,-198.712 74.6024,-190.112" stroke="black" fill="none"></path>
+<polygon points="78.1025,-190.104 74.6024,-180.104 71.1025,-190.104 78.1025,-190.104" stroke="black" fill="black"></polygon>
+</g>
+</g>
+</svg>
+++++
+
+NOTE: The module report is a work in progress. +
+Currently graph rendering is very slow (done with https://github.com/mdaines/viz.js/[viz.js]).
+
+[module-gwtentrypoint]
+==== GWT support
+
+If the _module_ `ModuleInterface` is annotated with `@GwtEntryPoint` then a special class named `ModuleInterfaceEntryPoint` is generated. +
+This class implements `com.google.gwt.core.client.EntryPoint` and the implementation instantiates the module. +
+__Component__s with post-construct methods may be used to implement bootstrap code like UI construction.
+
+=== Module-local event dispatching
+
+Events allow simple communication between __component instance__s in a _module_ instance:
+
+Event classes are simple POJOs.
+
+Events can be fired by invoking the `fire()` method of a special built-in component type `Event<EventClass>` that can be injected as usual.
+
+Events can be observed by declaring instance methods in __component__s annotated with `@EventObserver`. +
+The observed event type can be specified implicitly by a method parameter or explicitly by `@EventObserver.type` (in the latter case the event object is not available in the method).
+
+An observer method receives all subtypes of its declared event type by default.
+This can be changed by specifying the annotation attribute `rejectSubtypes=true`.
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/events/Example.xtend[tags=Example]
+----
+<1> Declare event class.
+<2> `EventSourceComponent` is eagerly initialized before `EventObserverComponent`.
+<3> Inject event.
+<4> Fire event `"C"` when the _component instance_ is initialized.
+<5> Declare event observer method without parameters.
+<6> Fire event `"M"` when the _module instance_ is initialized.
+<7> `Event.fire()` can be used to fire __event__s.
+<8> `EventObserverComponent` is eagerly initialized after `EventSourceComponent`.
+<9> Declare event observer method receiving the _event object_.
+<10> `EventSourceComponent` fires event `"C"` during component initialization and `"M"` during module initialization.
+<11> `EventObserverComponent` received only `"M"` because it was initialized only after `EventSourceComponent`.
+<12> Fire event `"1"`.
+<13> `EventObserverComponent` received message `"1"`.
+
+[[dependency-injection-for-non-components]]
+=== Dependency injection for non-components
+
+Dependency injection is supported for simple POJOs annotated with `@Injectable`. The _module_ specified in this annotation will be used for <<component-reference-resolution, component reference resolution>>. +
+Both field and constructor injection is supported. Besides, the injection of individual constructor parameters is supported as well, see the example below.
+
+Component reference resolution works differently for abstract and non-abstract modules:
+
+* For non-abstract modules it works the same as in case of normal components.
+* However resolution is limited for abstract modules: a _component reference_ can be resolved only if there is a compatible <<module-level-component-references, module-level component reference>> declared.
+
+WARNING: Event dispatch is not supported for non-components.
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/injectionforpojos/Example.xtend[tags=Example]
+----
+<1> Declare module with provider component.
+<2> Declare injectable class `Injectable1` with field injection.
+<3> Declare injectable class `Injectable2` with constructor injection.
+<4> Declare injectable class `Injectable3` with constructor parameter injection.
+<5> Explicit module initialization is required before the `@Injectable` class is instantiated.
+<6> Instantiate `Injectable1`.
+<7> Instantiate `Injectable2`. Note that because the constructor is injected therefore the object is created using a generated no-args constructor.
+<8> Instantiate `Injectable3`. Note that because the declared 2-args constructor is injected therefore the object is created using a generated 1-arg constructor.
+
+== FAQ
+
+[qanda]
+What is the license for _xtend-ioc_?::
+All sources code is licensed under https://www.mozilla.org/en-US/MPL/2.0/[MPL v2]. +
+All documentation is licensed under image:https://i.creativecommons.org/l/by-nc-nd/4.0/80x15.png[link="http://creativecommons.org/licenses/by-nc-nd/4.0/"]
+
+Is Java supported?::
+No, only Xtend is supported. +
+Altough it would be possible to implement most _xtend-ioc_ features using https://docs.oracle.com/javase/8/docs/api/javax/annotation/processing/package-summary.html[Java Annotation Processing], it is not planned currently.
+
+Is Google Web Toolkit supported?::
+Yes, the generated code is http://gwtproject.org/[GWT] compatible.
+
+== Appendix
+
+=== Message codes
+
+[E001] @Module is supported only for interface declarations.::
+Only interfaces may be annotated with `@Module`.
+
+[E002] @Component is supported only for class declarations.::
+Only classes may be annotated with `@Component`.
+
+[E003] @Injectable is supported only for class declarations.::
+Only classes may be annotated with `@Injectable`.
+
+[E004] Component reference cycle detected: ComponentX -> ... -> ComponentX::
+There is a cycle in the component dependency graph therefore the correct order of component instantiation cannot be resolved.
+See the section about the <<component-dependency-graph, component dependency graph>> how this error could be avoided.
+
+[E005] Component class should be non-generic: CLASS::
+Only component classes with not type parameters may be referenced by modules.

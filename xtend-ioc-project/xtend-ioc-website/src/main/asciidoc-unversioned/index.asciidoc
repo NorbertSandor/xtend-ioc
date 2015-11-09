@@ -1,0 +1,24 @@
+= xtend-ioc
+:icons: font
+
+== Introduction
+
+_xtend-ioc_ is a compile-time inversion of control framework for http://www.eclipse.org/xtend/[Xtend]. +
+Its main features are
+
+* component instantiation and lifecycle management,
+* dependency injection, and
+* event dispatching between component instances.
+
+For more details see
+
+* the link:latest/index.html[latest documentation] or
+* the https://github.com/NorbertSandor/xtend-ioc[GitHub page].
+
+== History
+
+=== 0.1.0
+
+Initial release.
+
+Documentation: link:0.1.0/index.html[0.1.0]
