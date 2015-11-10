@@ -71,13 +71,13 @@ class ModuleModelBuilder
 		val allComponentModels = processModule(moduleInterface, componentClassModels, moduleDependencies)
 
 		val moduleAnnotation = moduleInterface.findAnnotation(Module.findTypeGlobally)
-		val nonAbstract = !moduleAnnotation.getBooleanValue("isAbstract")
+		val abstract = moduleAnnotation.getBooleanValue("isAbstract")
 
 		val singleton = moduleInterface.isSingletonModule(context)
 
 		val gwtEntryPoint = moduleInterface.isGwtEntryPoint()
 
-		new StaticModuleModel(moduleInterface, nonAbstract, singleton, gwtEntryPoint, inheritedModules, allComponentModels,
+		new StaticModuleModel(moduleInterface, abstract, singleton, gwtEntryPoint, inheritedModules, allComponentModels,
 			moduleDependencies)
 	}
 

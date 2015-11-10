@@ -80,7 +80,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 		val moduleModel = moduleModels.get(annotatedInterface.qualifiedName)
 		if (moduleModel !== null)
 		{
-			val dependencyGraphValid = moduleModel.staticModuleModel.nonAbstract && try
+			val dependencyGraphValid = !moduleModel.staticModuleModel.abstract && try
 			{
 				moduleModel.dependencyGraph
 				true
@@ -138,18 +138,18 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 					<dl>
 						<dt>Interface</dt>
 						<dd>«moduleModel.staticModuleModel.moduleInterfaceDeclaration.qualifiedName»</dd>
-						<dt>«IF moduleModel.staticModuleModel.isNonAbstract»Non-abstract«ELSE»Abstract«ENDIF»</dt>
+						<dt>«IF moduleModel.staticModuleModel.abstract»Abstract«ELSE»Non-abstract«ENDIF»</dt>
 						<dd></dd>
 						<dt>Inherited modules</dt>
 						<dd>«IF moduleModel.staticModuleModel.inheritedModules.empty»-«ELSE»«moduleModel.staticModuleModel.inheritedModules»«ENDIF»</dd>
 					</dl>
 					
-					«IF moduleModel.staticModuleModel.isNonAbstract»
+					«IF !moduleModel.staticModuleModel.abstract»
 						<h2>Components</h2>
 						«FOR componentModel : moduleModel.staticModuleModel.components»«componentModel.asHtml(3, componentIds.get(componentModel))»«ENDFOR»
 					«ENDIF»
 					
-					«IF moduleModel.staticModuleModel.isNonAbstract»
+					«IF !moduleModel.staticModuleModel.abstract»
 						«IF dependencyGraphValid»
 							<h2>Dependency graph</h2>
 							<div id="graph"></div>
@@ -223,7 +223,11 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 
 			try
 			{
-				if (moduleModel.isNonAbstract)
+				if (moduleModel.abstract)
+				{
+					generateModulePeer(annotatedInterface, moduleModel, context, false)
+				}
+				else
 				{
 					// Resolve module
 					val resolvedModuleModel = moduleModel.resolve
@@ -236,10 +240,6 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 					// Generate module classes
 					generateModulePeer(annotatedInterface, moduleModel, context, true)
 					generateModuleImplementation(annotatedInterface, resolvedModuleModel, context)
-				}
-				else
-				{
-					generateModulePeer(annotatedInterface, moduleModel, context, false)
 				}
 			}
 			catch (Exception e)
@@ -584,7 +584,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 									'''
 								])
 
-								if (moduleModel.nonAbstract)
+								if (!moduleModel.abstract)
 								{
 									peerClass.addMethod("initialize", [
 										static = true
@@ -615,7 +615,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 							}
 							else
 							{
-								if (moduleModel.nonAbstract)
+								if (!moduleModel.abstract)
 								{
 									// TODO elég nagy a hasonlóság ez és a singleton initialize() között
 									peerClass.addMethod("constructInstance", [

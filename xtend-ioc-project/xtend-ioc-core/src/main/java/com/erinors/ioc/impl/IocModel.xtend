@@ -371,7 +371,8 @@ class StaticModuleModel
 {
 	InterfaceDeclaration moduleInterfaceDeclaration
 
-	boolean nonAbstract // TODO isAbstract
+	boolean isAbstract
+	
 	boolean singleton
 
 	boolean gwtEntryPoint
@@ -389,7 +390,7 @@ class StaticModuleModel
 	 */
 	def ResolvedModuleModel resolve()
 	{
-		if (!nonAbstract)
+		if (abstract)
 		{
 			throw new IllegalStateException
 		}

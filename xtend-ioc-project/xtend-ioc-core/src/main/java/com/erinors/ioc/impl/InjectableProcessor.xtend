@@ -145,26 +145,10 @@ package class InjectableClassModelBuilder
 				}
 				else
 				{
-					injectedField -> // FIXME component resolution csak akkor működik jól, ha a modul final! egyébként simán lehet, hogy egy leszármazott modul további komponenseket ad hozzá, amik módosítják a resolution eredményét.
-//						if (moduleModel.isNonAbstract)
-//						{
-//							if (moduleModel.graphValid)
-//							{
-//								new ResolvedInjectionModel(injectedField,
-//									createDependencyReference(injectedField, injectedField.type, context).resolve(
-//										moduleModel))
-//							}
-//							else
-//							{
-//								new UnresolvedInjectionModel(injectedField)
-//							}
-//						}
-//						else
-//						{
-					new ComponentReferenceInjectionModel(injectedField,
-						createDependencyReference(injectedField, injectedField.type, context),
-						findCompatibleExplicitModuleDependency(moduleModel, injectedField, injectedField.type))
-//						}
+					injectedField ->
+						new ComponentReferenceInjectionModel(injectedField,
+							createDependencyReference(injectedField, injectedField.type, context),
+							findCompatibleExplicitModuleDependency(moduleModel, injectedField, injectedField.type))
 				}
 			].pairsToMap
 
