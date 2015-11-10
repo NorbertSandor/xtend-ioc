@@ -427,14 +427,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_status">2. Status</a></li>
-<li><a href="#_building_blocks">3. Building blocks</a>
+<li><a href="#_usage">3. Usage</a></li>
+<li><a href="#_building_blocks">4. Building blocks</a>
 <ul class="sectlevel2">
-<li><a href="#_components">3.1. Components</a>
+<li><a href="#_components">4.1. Components</a>
 <ul class="sectlevel3">
-<li><a href="#component-class">3.1.1. @Component / component classes</a></li>
-<li><a href="#component-qualifiers">3.1.2. @Qualifier / qualifiers</a></li>
-<li><a href="#component-typesignature">3.1.3. Type signature of components</a></li>
-<li><a href="#dependency-injection">3.1.4. @Inject / dependency injection</a>
+<li><a href="#component-class">4.1.1. @Component / component classes</a></li>
+<li><a href="#component-qualifiers">4.1.2. @Qualifier / qualifiers</a></li>
+<li><a href="#component-typesignature">4.1.3. Type signature of components</a></li>
+<li><a href="#dependency-injection">4.1.4. @Inject / dependency injection</a>
 <ul class="sectlevel4">
 <li><a href="#_field_injection">Field injection</a></li>
 <li><a href="#_constructor_injection">Constructor injection</a></li>
@@ -443,15 +444,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_generic_component_references">Generic component references</a></li>
 </ul>
 </li>
-<li><a href="#component-scope">3.1.5. @Scope / component scope</a>
+<li><a href="#component-scope">4.1.5. @Scope / component scope</a>
 <ul class="sectlevel4">
 <li><a href="#component-scope-singleton">@Singleton / singleton scope</a></li>
 <li><a href="#component-scope-prototype">@Prototype / prototype scope</a></li>
 </ul>
 </li>
-<li><a href="#component-lifecycle-annotations">3.1.6. @PostConstruct and @PreDestroy / lifecycle callbacks</a></li>
-<li><a href="#component-eager">3.1.7. @Eager / eager components</a></li>
-<li><a href="#component-providers">3.1.8. @Provider / components instantiated by user code</a>
+<li><a href="#component-lifecycle-annotations">4.1.6. @PostConstruct and @PreDestroy / lifecycle callbacks</a></li>
+<li><a href="#component-eager">4.1.7. @Eager / eager components</a></li>
+<li><a href="#component-providers">4.1.8. @Provider / components instantiated by user code</a>
 <ul class="sectlevel4">
 <li><a href="#_simple_component_providers">Simple component providers</a></li>
 <li><a href="#parameterized-component-providers">Parameterized component providers</a></li>
@@ -459,27 +460,27 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ul>
 </li>
-<li><a href="#_modules">3.2. Modules</a>
+<li><a href="#_modules">4.2. Modules</a>
 <ul class="sectlevel3">
-<li><a href="#module-declaration">3.2.1. @Module / defining modules</a></li>
-<li><a href="#_module_inheritance">3.2.2. Module inheritance</a></li>
-<li><a href="#module-singleton">3.2.3. Module lifecycle / Singleton modules</a></li>
-<li><a href="#module-abstract">3.2.4. Abstract and non-abstract modules</a></li>
-<li><a href="#module-level-component-references">3.2.5. Module-level component references</a></li>
-<li><a href="#_the_relation_of_modules_and_component_classes">3.2.6. The relation of modules and component classes</a></li>
-<li><a href="#component-dependency-graph">3.2.7. The component dependency graph</a></li>
-<li><a href="#_module_report">3.2.8. Module report</a></li>
-<li><a href="#_gwt_support">3.2.9. GWT support</a></li>
+<li><a href="#module-declaration">4.2.1. @Module / defining modules</a></li>
+<li><a href="#_module_inheritance">4.2.2. Module inheritance</a></li>
+<li><a href="#module-singleton">4.2.3. Module lifecycle / Singleton modules</a></li>
+<li><a href="#module-abstract">4.2.4. Abstract and non-abstract modules</a></li>
+<li><a href="#module-level-component-references">4.2.5. Module-level component references</a></li>
+<li><a href="#_the_relation_of_modules_and_component_classes">4.2.6. The relation of modules and component classes</a></li>
+<li><a href="#component-dependency-graph">4.2.7. The component dependency graph</a></li>
+<li><a href="#_module_report">4.2.8. Module report</a></li>
+<li><a href="#_gwt_support">4.2.9. GWT support</a></li>
 </ul>
 </li>
-<li><a href="#_module_local_event_dispatching">3.3. Module-local event dispatching</a></li>
-<li><a href="#dependency-injection-for-non-components">3.4. Dependency injection for non-components</a></li>
+<li><a href="#_module_local_event_dispatching">4.3. Module-local event dispatching</a></li>
+<li><a href="#dependency-injection-for-non-components">4.4. Dependency injection for non-components</a></li>
 </ul>
 </li>
-<li><a href="#_faq">4. FAQ</a></li>
-<li><a href="#_appendix">5. Appendix</a>
+<li><a href="#_faq">5. FAQ</a></li>
+<li><a href="#_appendix">6. Appendix</a>
 <ul class="sectlevel2">
-<li><a href="#_message_codes">5.1. Message codes</a></li>
+<li><a href="#_message_codes">6.1. Message codes</a></li>
 </ul>
 </li>
 </ul>
@@ -600,13 +601,42 @@ Note that a simple compile-time <a href="#component-scan">component scanning</a>
 <h2 id="_status">2. Status</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <em>xtend-ioc</em> project is not released to the public yet.<br>
-Although all features and examples presented in this documentation are working (they are indeed unit tests), the framework source code needs some cleanup&#8230;&#8203;</p>
+<p><em>xtend-ioc</em> is in early-access phase.<br>
+Source code is available on <a href="https://github.com/NorbertSandor/xtend-ioc">GitHub</a>, compiled binaries are uploaded to <a href="http://search.maven.org/#search|ga|1|a%3A%22xtend-ioc-core%22">Central Repository</a>.</p>
+</div>
+<div class="paragraph">
+<p>Although all features and examples presented in this documentation are working (the examples are unit tests indeed), the framework source code still needs some cleanup&#8230;&#8203;</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_building_blocks">3. Building blocks</h2>
+<h2 id="_usage">3. Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="http://www.eclipse.org/downloads/">Eclipse</a> with the <a href="http://www.eclipse.org/xtend/download.html">Xtend plugin</a> is the recommended development environment for <em>xtend-ioc</em> applications.<br>
+After installing Eclipse and the Xtend plugin, follow these steps to create an <em>xtend-ioc</em> application:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a new Maven project by selecting "File&#8594;New&#8594;Project.." and "Maven Project" (a "simple project" is sufficient, no archetype is required).</p>
+</li>
+<li>
+<p>Add Xtext nature to the project (by selecting "Configure &#8594; Add Xtext Nature").</p>
+</li>
+<li>
+<p>Add the dependecy <code>com.erinors:xtend-ioc-core:0.1.0</code> to the project.</p>
+</li>
+<li>
+<p>Create a new Xtend class and start implementing your components and modules.<br>
+See an <a href="#showcase-example-first">example</a> to quickly learn the basics!</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building_blocks">4. Building blocks</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The main building blocks of <em>xtend-ioc</em> are:</p>
@@ -737,7 +767,7 @@ class ChattyModuleTest {
 </table>
 </div>
 <div class="sect2">
-<h3 id="_components">3.1. Components</h3>
+<h3 id="_components">4.1. Components</h3>
 <div class="paragraph">
 <p>There are two ways to define a <em>component</em>:</p>
 </div>
@@ -752,7 +782,7 @@ class ChattyModuleTest {
 </ul>
 </div>
 <div class="sect3">
-<h4 id="component-class">3.1.1. @Component / component classes</h4>
+<h4 id="component-class">4.1.1. @Component / component classes</h4>
 <div id="component-class-requirements" class="paragraph">
 <p>A Java class is a <em>component class</em> if</p>
 </div>
@@ -796,7 +826,7 @@ Components should be focused in functionality.
 </div>
 </div>
 <div class="sect3">
-<h4 id="component-qualifiers">3.1.2. @Qualifier / qualifiers</h4>
+<h4 id="component-qualifiers">4.1.2. @Qualifier / qualifiers</h4>
 <div class="paragraph">
 <p>Programming against interfaces is considered a good practice therefore components should be referenced by interfaces instead of concrete classes.
 When multiple <em>component classes</em> implement the same interface, the component classes can be identified by labeling them with <em>qualifiers</em>.</p>
@@ -967,7 +997,7 @@ class SomeComponent {}</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="component-typesignature">3.1.3. Type signature of components</h4>
+<h4 id="component-typesignature">4.1.3. Type signature of components</h4>
 <div class="paragraph">
 <p>Every component has a <em>type signature</em> <code>(cT, cQ)</code> that is composed of</p>
 </div>
@@ -1029,7 +1059,7 @@ class SomeComponent {}</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="dependency-injection">3.1.4. @Inject / dependency injection</h4>
+<h4 id="dependency-injection">4.1.4. @Inject / dependency injection</h4>
 <div class="paragraph">
 <p>The most important feature of <em>xtend-ioc</em> is dependency injection i.e. the process of resolving a <em>component</em>'s references to other <em>component</em>s.<br>
 In practice this means the <a href="#component-reference-resolution">resolution</a> of <em>injection point</em>s.</p>
@@ -1372,7 +1402,7 @@ But <code>List&lt;Handler&lt;Number&gt;&gt;</code> would not be valid because th
 </div>
 </div>
 <div class="sect3">
-<h4 id="component-scope">3.1.5. @Scope / component scope</h4>
+<h4 id="component-scope">4.1.5. @Scope / component scope</h4>
 <div class="paragraph">
 <p>By default every component has only one instance. When the <em>component</em> is <a href="#component-reference">referenced</a> multiple times the same instance is returned always.<br>
 This behaviour is defined by the <em>scope</em> of the <em>component</em> which defines whether a new instance of the <em>component</em> should be created or an existing instance should be used when the <em>component</em> is referenced.<br>
@@ -1497,7 +1527,7 @@ class Example {
 </div>
 </div>
 <div class="sect3">
-<h4 id="component-lifecycle-annotations">3.1.6. @PostConstruct and @PreDestroy / lifecycle callbacks</h4>
+<h4 id="component-lifecycle-annotations">4.1.6. @PostConstruct and @PreDestroy / lifecycle callbacks</h4>
 <div class="paragraph">
 <p>Methods in <em>component class</em>es are <em>lifecycle callbacks</em> if they are annotated with <em>lifecycle annotations</em>:</p>
 </div>
@@ -1627,7 +1657,7 @@ class Example {
 </div>
 </div>
 <div class="sect3">
-<h4 id="component-eager">3.1.7. @Eager / eager components</h4>
+<h4 id="component-eager">4.1.7. @Eager / eager components</h4>
 <div class="paragraph">
 <p>By default <em>component</em>s are instantiated only when they are first referenced.<br>
 To force the eager instantiation of a <em>component</em> it should be annotated with <code>@Eager</code>.</p>
@@ -1751,7 +1781,7 @@ If a <em>prototype scope</em>d <em>component</em> is marked as <code>@Eager</cod
 </div>
 </div>
 <div class="sect3">
-<h4 id="component-providers">3.1.8. @Provider / components instantiated by user code</h4>
+<h4 id="component-providers">4.1.8. @Provider / components instantiated by user code</h4>
 <div class="paragraph">
 <p>There are cases when we would like to use instances of a Java class as components but the class does not comply with the <a href="#component-class-requirements">requirements of component classes</a>.<br>
 In most cases it is possible to create a subclass with a valid component constructor but usually it is not practical.
@@ -1965,9 +1995,9 @@ class Example {
 </div>
 </div>
 <div class="sect2">
-<h3 id="_modules">3.2. Modules</h3>
+<h3 id="_modules">4.2. Modules</h3>
 <div class="sect3">
-<h4 id="module-declaration">3.2.1. @Module / defining modules</h4>
+<h4 id="module-declaration">4.2.1. @Module / defining modules</h4>
 <div class="paragraph">
 <p>A <em>module</em> is defined by a Java interface annotated with <code>@Module</code>.<br>
 The <code>@Module</code> annotation defines the <em>component class</em>es managed by the module</p>
@@ -2044,7 +2074,7 @@ Component scan is an experimental feature, use it at your own risk.
 </div>
 </div>
 <div class="sect3">
-<h4 id="_module_inheritance">3.2.2. Module inheritance</h4>
+<h4 id="_module_inheritance">4.2.2. Module inheritance</h4>
 <div class="paragraph">
 <p>A <em>module</em> can inherit other <em>module</em>s by extending the their interface.<br>
 When module <code>M1</code> inherits module <code>M2</code> then all components contained by <code>M2</code> will be managed by <code>M1</code> as well. This rule is recursive.</p>
@@ -2088,7 +2118,7 @@ class Example {
 </div>
 </div>
 <div class="sect3">
-<h4 id="module-singleton">3.2.3. Module lifecycle / Singleton modules</h4>
+<h4 id="module-singleton">4.2.3. Module lifecycle / Singleton modules</h4>
 <div class="paragraph">
 <p>A <em>module</em> must be instantiated before it can be used. Only <em>non-abstract</em> modules can be instantiated.<br></p>
 </div>
@@ -2164,7 +2194,7 @@ During the close operation <a href="#component-lifecycle-annotations">predestroy
 </div>
 </div>
 <div class="sect3">
-<h4 id="module-abstract">3.2.4. Abstract and non-abstract modules</h4>
+<h4 id="module-abstract">4.2.4. Abstract and non-abstract modules</h4>
 <div class="paragraph">
 <p>All <em>module</em> is <em>non-abstract</em> by default that is all <em>component references</em>s must be <a href="#component-reference-resolution">resolvable</a>, otherwise a compilation error is raised.</p>
 </div>
@@ -2229,7 +2259,7 @@ class Example {
 </div>
 </div>
 <div class="sect3">
-<h4 id="module-level-component-references">3.2.5. Module-level component references</h4>
+<h4 id="module-level-component-references">4.2.5. Module-level component references</h4>
 <div class="paragraph">
 <p><em>Module</em> interfaces may declare <a href="#component-reference">component references</a>:</p>
 </div>
@@ -2288,7 +2318,7 @@ class Example {
 </div>
 </div>
 <div class="sect3">
-<h4 id="_the_relation_of_modules_and_component_classes">3.2.6. The relation of modules and component classes</h4>
+<h4 id="_the_relation_of_modules_and_component_classes">4.2.6. The relation of modules and component classes</h4>
 <div class="paragraph">
 <p>The same <em>component class</em> can be contained by multiple <em>module</em>s.<br>
 In this case component dependency resolutions happens independently in each module, so it is possible that a <em>component reference</em> is resolved to different <em>component instance</em>s.</p>
@@ -2387,7 +2417,7 @@ I.e. if both <code>TestModule1</code> and <code>TestModule2</code> would inherit
 </div>
 </div>
 <div class="sect3">
-<h4 id="component-dependency-graph">3.2.7. The component dependency graph</h4>
+<h4 id="component-dependency-graph">4.2.7. The component dependency graph</h4>
 <div class="paragraph">
 <p>Each non-abstract <em>module</em> defines a <em>dependency graph</em> between <em>component</em>s: it is a <a href="https://en.wikipedia.org/wiki/Directed_acyclic_graph">directed acyclic graph (DAG)</a> where each node <code>Cn</code> is a <em>component</em> and each directed edge <code>C1</code>&#8594;`C2` corresponds to a direct <em>component reference</em> declared in <code>C1</code> and <a href="#component-reference-resolution">resolved</a> as <code>C2</code>.
 Note that indirect component references (by <code>Supplier</code> or <code>Optional</code>) are not present in the <em>dependency graph</em>.</p>
@@ -2547,7 +2577,7 @@ class AvoidDependencyGraphCycleTest {
 </div>
 </div>
 <div class="sect3">
-<h4 id="_module_report">3.2.8. Module report</h4>
+<h4 id="_module_report">4.2.8. Module report</h4>
 <div class="paragraph">
 <p>If the <em>module</em> <code>ModuleName</code> is compiled without errors, two additional files are generated next to the module interface declaration:</p>
 </div>
@@ -2625,7 +2655,7 @@ Currently graph rendering is very slow (done with <a href="https://github.com/md
 </div>
 </div>
 <div class="sect3">
-<h4 id="_gwt_support">3.2.9. GWT support</h4>
+<h4 id="_gwt_support">4.2.9. GWT support</h4>
 <div class="paragraph">
 <p>If the <em>module</em> <code>ModuleInterface</code> is annotated with <code>@GwtEntryPoint</code> then a special class named <code>ModuleInterfaceEntryPoint</code> is generated.<br>
 This class implements <code>com.google.gwt.core.client.EntryPoint</code> and the implementation instantiates the module.<br>
@@ -2634,7 +2664,7 @@ This class implements <code>com.google.gwt.core.client.EntryPoint</code> and the
 </div>
 </div>
 <div class="sect2">
-<h3 id="_module_local_event_dispatching">3.3. Module-local event dispatching</h3>
+<h3 id="_module_local_event_dispatching">4.3. Module-local event dispatching</h3>
 <div class="paragraph">
 <p>Events allow simple communication between <em>component instance</em>s in a <em>module</em> instance:</p>
 </div>
@@ -2773,7 +2803,7 @@ class Example {
 </div>
 </div>
 <div class="sect2">
-<h3 id="dependency-injection-for-non-components">3.4. Dependency injection for non-components</h3>
+<h3 id="dependency-injection-for-non-components">4.4. Dependency injection for non-components</h3>
 <div class="paragraph">
 <p>Dependency injection is supported for simple POJOs annotated with <code>@Injectable</code>. The <em>module</em> specified in this annotation will be used for <a href="#component-reference-resolution">component reference resolution</a>.<br>
 Both field and constructor injection is supported. Besides, the injection of individual constructor parameters is supported as well, see the example below.</p>
@@ -2897,7 +2927,7 @@ class Example {
 </div>
 </div>
 <div class="sect1">
-<h2 id="_faq">4. FAQ</h2>
+<h2 id="_faq">5. FAQ</h2>
 <div class="sectionbody">
 <div class="qlist qanda">
 <ol>
@@ -2920,10 +2950,10 @@ Altough it would be possible to implement most <em>xtend-ioc</em> features using
 </div>
 </div>
 <div class="sect1">
-<h2 id="_appendix">5. Appendix</h2>
+<h2 id="_appendix">6. Appendix</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_message_codes">5.1. Message codes</h3>
+<h3 id="_message_codes">6.1. Message codes</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">[E001] @Module is supported only for interface declarations.</dt>
@@ -2949,6 +2979,16 @@ See the section about the <a href="#component-dependency-graph">component depend
 </dd>
 </dl>
 </div>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-69896656-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
 </div>
 </div>
 </div>
@@ -2956,7 +2996,7 @@ See the section about the <a href="#component-dependency-graph">component depend
 <div id="footer">
 <div id="footer-text">
 Version 0.1.0<br>
-Last updated 2015-11-09 19:24:30 CET
+Last updated 2015-11-10 20:15:59 CET
 </div>
 </div>
 </body>
