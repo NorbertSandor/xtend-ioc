@@ -57,8 +57,21 @@ Note that a simple compile-time <<component-scan, component scanning>> is suppor
 
 == Status
 
-The _xtend-ioc_ project is not released to the public yet. +
-Although all features and examples presented in this documentation are working (they are indeed unit tests), the framework source code needs some cleanup...
+_xtend-ioc_ is in early-access phase. +
+Source code is available on https://github.com/NorbertSandor/xtend-ioc[GitHub], compiled binaries are uploaded to http://search.maven.org/#search|ga|1|a%3A%22xtend-ioc-core%22[Central Repository].
+
+Although all features and examples presented in this documentation are working (the examples are unit tests indeed), the framework source code still needs some cleanup...
+
+== Usage
+
+http://www.eclipse.org/downloads/[Eclipse] with the http://www.eclipse.org/xtend/download.html[Xtend plugin] is the recommended development environment for _xtend-ioc_ applications. +
+After installing Eclipse and the Xtend plugin, follow these steps to create an _xtend-ioc_ application:
+
+* Create a new Maven project by selecting "File->New->Project.." and "Maven Project" (a "simple project" is sufficient, no archetype is required).
+* Add Xtext nature to the project (by selecting "Configure -> Add Xtext Nature").
+* Add the dependecy `com.erinors:xtend-ioc-core:{docVersion}` to the project.
+* Create a new Xtend class and start implementing your components and modules. +
+See an <<showcase-example-first, example>> to quickly learn the basics!  
 
 == Building blocks
 
