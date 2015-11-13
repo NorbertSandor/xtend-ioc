@@ -9,7 +9,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  * #L%
  */
-package com.erinors.ioc.test.integration.case009
+package com.erinors.ioc.test.integration.case010
 
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Inject
@@ -30,18 +30,42 @@ annotation ConfigurationValue {
 	String value
 }
 
+@Qualifier
+@Documented
+@Retention(RUNTIME)
+annotation Production {
+}
+
+@Qualifier
+@Documented
+@Retention(RUNTIME)
+annotation Development {
+}
+
 @Component
 class ServiceImpl {
 	@Inject
 	@ConfigurationValue("c")
-	public String configurationC
+	@Production
+	public String productionConfigurationC
+
+	@Inject
+	@ConfigurationValue("c")
+	@Development
+	public String developmentConfigurationC
 }
 
 @Component
 class ConfigurationValueProvider {
 	@Provider(parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterName="name"))
-	def String provideConfigurationValue(String name) {
-		'''configuration.«name»'''
+	@Production
+	def String provideProductionConfigurationValue(String name) {
+		'''production.configuration.«name»'''
+	}
+	@Provider(parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterName="name"))
+	@Development
+	def String provideDevelopmentConfigurationValue(String name) {
+		'''development.configuration.«name»'''
 	}
 }
 
@@ -50,18 +74,21 @@ interface TestModule {
 	def ServiceImpl service()
 
 	@ConfigurationValue("a")
-	def String configurationA()
+	@Development
+	def String developmentConfigurationA()
 
-	@ConfigurationValue("b")
-	def String configurationB()
+	@ConfigurationValue("a")
+	@Production
+	def String productionConfigurationA()
 }
 
-class ParametrizedProviderTest {
+class ParameterizedProviderWithAdditionalQualifierTest {
 	@Test
 	def void test() {
 		val module = TestModule.Peer.initialize
-		assertEquals("configuration.a", module.configurationA)
-		assertEquals("configuration.b", module.configurationB)
-		assertEquals("configuration.c", module.service.configurationC)
+		assertEquals("production.configuration.a", module.productionConfigurationA)
+		assertEquals("development.configuration.a", module.developmentConfigurationA)
+		assertEquals("production.configuration.c", module.service.productionConfigurationC)
+		assertEquals("development.configuration.c", module.service.developmentConfigurationC)
 	}
 }

@@ -12,10 +12,9 @@
 package com.erinors.ioc.impl
 
 import java.lang.annotation.Annotation
-
 import java.util.List
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
-import org.eclipse.xtend.lib.macro.AbstractInterfaceProcessor
+import org.eclipse.xtend.lib.macro.AbstractMethodProcessor
 import org.eclipse.xtend.lib.macro.CodeGenerationContext
 import org.eclipse.xtend.lib.macro.CodeGenerationParticipant
 import org.eclipse.xtend.lib.macro.RegisterGlobalsContext
@@ -25,16 +24,15 @@ import org.eclipse.xtend.lib.macro.TransformationParticipant
 import org.eclipse.xtend.lib.macro.ValidationContext
 import org.eclipse.xtend.lib.macro.ValidationParticipant
 import org.eclipse.xtend.lib.macro.declaration.Declaration
-import org.eclipse.xtend.lib.macro.declaration.InterfaceDeclaration
+import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableDeclaration
-import org.eclipse.xtend.lib.macro.declaration.MutableInterfaceDeclaration
+import org.eclipse.xtend.lib.macro.declaration.MutableMethodDeclaration
 import org.eclipse.xtend.lib.macro.services.ProblemSupport
-import static extension com.erinors.ioc.impl.ListUtils.*
 
 @FinalFieldsConstructor
-class AbstractSafeInterfaceProcessor implements RegisterGlobalsParticipant<Declaration>, TransformationParticipant<MutableDeclaration>, CodeGenerationParticipant<Declaration>, ValidationParticipant<Declaration>
+class AbstractSafeMethodProcessor implements RegisterGlobalsParticipant<Declaration>, TransformationParticipant<MutableDeclaration>, CodeGenerationParticipant<Declaration>, ValidationParticipant<Declaration>
 {
-	val AbstractInterfaceProcessor delegate
+	val AbstractMethodProcessor delegate
 
 	val Class<? extends Annotation> annotationClass
 
@@ -43,57 +41,53 @@ class AbstractSafeInterfaceProcessor implements RegisterGlobalsParticipant<Decla
 	override doRegisterGlobals(List<? extends Declaration> annotatedSourceElements,
 		extension RegisterGlobalsContext context)
 	{
-		val validSourceElements = annotatedSourceElements.removeNullElements
-		if (check(validSourceElements, null))
+		if (check(annotatedSourceElements, null))
 		{
-			delegate.doRegisterGlobals(validSourceElements as List<? extends InterfaceDeclaration>, context)
+			delegate.doRegisterGlobals(annotatedSourceElements as List<? extends MethodDeclaration>, context)
 		}
 	}
 
 	override doTransform(List<? extends MutableDeclaration> annotatedTargetElements,
 		extension TransformationContext context)
 	{
-		val validTargetElements = annotatedTargetElements.removeNullElements
-		if (check(validTargetElements, context))
+		if (check(annotatedTargetElements, context))
 		{
-			delegate.doTransform(validTargetElements as List<? extends MutableInterfaceDeclaration>, context)
+			delegate.doTransform(annotatedTargetElements as List<? extends MutableMethodDeclaration>, context)
 		}
 	}
 
 	override doGenerateCode(List<? extends Declaration> annotatedSourceElements,
 		extension CodeGenerationContext context)
 	{
-		val validSourceElements = annotatedSourceElements.removeNullElements
-		if (check(validSourceElements, null))
+		if (check(annotatedSourceElements, null))
 		{
-			delegate.doGenerateCode(validSourceElements as List<? extends InterfaceDeclaration>, context)
+			delegate.doGenerateCode(annotatedSourceElements as List<? extends MethodDeclaration>, context)
 		}
 	}
 
 	override doValidate(List<? extends Declaration> annotatedTargetElements, extension ValidationContext context)
 	{
-		val validTargetElements = annotatedTargetElements.removeNullElements
-		if (check(validTargetElements, null))
+		if (check(annotatedTargetElements, null))
 		{
-			delegate.doValidate(validTargetElements as List<? extends InterfaceDeclaration>, context)
+			delegate.doValidate(annotatedTargetElements as List<? extends MethodDeclaration>, context)
 		}
 	}
 
 	def private check(List<? extends Declaration> declarations, ProblemSupport problemSupport)
 	{
-		val invalidDeclarations = declarations.filter[!(it instanceof InterfaceDeclaration)]
+		val invalidDeclarations = declarations.filter[!(it instanceof MethodDeclaration)]
 		invalidDeclarations.forEach [
 			if (problemSupport !== null)
 			{
 				if (annotationClass !== null)
 				{
 					problemSupport.addError(
-						it, '''@«annotationClass.simpleName» is supported only for interface declarations. [«errorCode»]''')
+						it, '''@«annotationClass.simpleName» is supported only for method declarations. [«errorCode»]''')
 				}
 				else
 				{
 					problemSupport.addError(
-						it, '''Annotation is supported only for interface declarations. [«errorCode»]''')
+						it, '''Annotation is supported only for method declarations. [«errorCode»]''')
 				}
 			}
 		]

@@ -1,3 +1,11 @@
+0.2.0:
+- docs
+	- update status
+	- interceptor examples
+	- provider examples and explanation
+- fix safe processors
+- fix parameterized providers 
+
 xtend-ioc:
 - allow method injection
 - implement component override

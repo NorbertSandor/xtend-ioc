@@ -19,8 +19,9 @@ import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
 import org.eclipse.xtend.lib.macro.TransformationContext
+import org.eclipse.xtend.lib.macro.declaration.AnnotationReference
 import org.eclipse.xtend.lib.macro.declaration.ClassDeclaration
-import org.eclipse.xtend.lib.macro.declaration.ConstructorDeclaration
+import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 import org.eclipse.xtend.lib.macro.declaration.TypeReference
 import org.eclipse.xtend.lib.macro.services.Problem.Severity
 
@@ -31,6 +32,30 @@ import static extension com.erinors.ioc.impl.ProcessorUtils.*
 class ComponentClassModelBuilder
 {
 	val extension TransformationContext context
+
+	def private findInterceptedMethods(TypeReference componentClassTypeReference)
+	{
+		// TODO skip provider methods
+		componentClassTypeReference.declaredResolvedMethods.filter [
+			!declaration.annotations.filter[isInterceptorAnnotation].empty
+		].map [ resolvedMethod |
+			resolvedMethod.declaration -> resolvedMethod.declaration.annotations.filter[isInterceptorAnnotation]
+		]
+	}
+
+	def private findGeneratedComponentReferences(TypeReference componentClassTypeReference)
+	{
+		componentClassTypeReference.findInterceptedMethods.map [
+			val methodDeclaration = key
+			val interceptorAnnotations = value
+
+			interceptorAnnotations.map [
+				val handlerTypeReference = interceptorInvocationHandler
+				// FIXME do not process qualifiers and other annotations of the method declaration!!!
+				createDependencyReference(methodDeclaration, handlerTypeReference, context)
+			]
+		].flatten.toList
+	}
 
 	def private findConstructorComponentReferences(TypeReference componentClassTypeReference)
 	{
@@ -63,11 +88,13 @@ class ComponentClassModelBuilder
 		}
 		else
 		{
-			throw new IocProcessingException(new ProcessingMessage(
-				Severity.ERROR,
-				componentClassTypeReference,
-				'''Component class must be declared before any module that references it.'''
-			))
+			throw new CancelOperationException
+			// TODO incorrect if the component is declared in the same file but after the module
+//			throw new IocProcessingException(new ProcessingMessage(
+//				Severity.ERROR,
+//				componentClassTypeReference,
+//				'''Component class is not transformed yet. Declare the component class before the module and/or fix the errors on the component class.'''
+//			))
 		}
 	}
 
@@ -91,7 +118,9 @@ class ComponentClassModelBuilder
 					else
 						null,
 					componentClassTypeReference.findFieldComponentReferences,
-					componentClassTypeReference.findConstructorComponentReferences
+					componentClassTypeReference.findConstructorComponentReferences,
+					componentClassTypeReference.findGeneratedComponentReferences,
+					#[] // FIXME
 				)
 			}
 		}
@@ -130,8 +159,7 @@ class ComponentClassModelBuilder
 				throw new IocProcessingException(
 					new ProcessingMessage(
 						Severity.
-							ERROR
-						,
+							ERROR,
 						componentClassDeclaration,
 						'''Component should have an @Inject-ed constructor (because it has one or more constructors declared).'''
 					))
@@ -158,11 +186,29 @@ class ComponentClassModelBuilder
 		].toList.immutableCopy
 	}
 
-	def private findConstructorComponentReferences(ConstructorDeclaration declaredComponentConstructor)
+	def private findInterceptedMethods(ClassDeclaration componentClassDeclaration)
 	{
-		declaredComponentConstructor.parameters.map [
-			createDependencyReference(it, type, context)
+		// TODO skip provider methods
+		componentClassDeclaration.declaredMethods.filter [
+			!annotations.filter[isInterceptorAnnotation].empty
+		].map [ declaredMethod |
+			declaredMethod -> declaredMethod.annotations.filter[isInterceptorAnnotation]
 		]
+	}
+
+	def private findGeneratedComponentReferences(ClassDeclaration componentClassDeclaration)
+	{
+		// TODO skip provider methods
+		componentClassDeclaration.findInterceptedMethods.map [
+			val methodDeclaration = key
+			val interceptorAnnotations = value
+
+			interceptorAnnotations.map [
+				val handlerTypeReference = interceptorInvocationHandler
+				// FIXME do not process qualifiers and other annotations of the method declaration!!!
+				createDependencyReference(methodDeclaration, handlerTypeReference, context)
+			]
+		].flatten.toList
 	}
 
 	def private findConstructorComponentReferences(ClassDeclaration componentClassDeclaration)
@@ -170,7 +216,9 @@ class ComponentClassModelBuilder
 		val declaredComponentConstructor = componentClassDeclaration.findComponentConstructor
 
 		if (declaredComponentConstructor !== null)
-			declaredComponentConstructor.findConstructorComponentReferences.toList.immutableCopy
+			declaredComponentConstructor.parameters.map [
+				createDependencyReference(it, type, context)
+			].toList.immutableCopy
 		else
 			#[]
 	}
@@ -191,10 +239,108 @@ class ComponentClassModelBuilder
 			componentClassTypeReference.findResolvedComponentConstructor?.declaration,
 			componentClassTypeReference.findFieldComponentReferences,
 			componentClassTypeReference.findConstructorComponentReferences,
+			componentClassTypeReference.findGeneratedComponentReferences,
 			componentClassDeclaration.findPostConstructMethods,
 			findPreDestroyMethods(componentClassDeclaration),
-			componentClassDeclaration.hasAnnotation(Eager.findTypeGlobally)
+			componentClassDeclaration.hasAnnotation(Eager.findTypeGlobally),
+			componentClassTypeReference.findInterceptedMethods.map [
+				createInterceptedMethod(key, value)
+			].toList
 		)
+	}
+
+	def createInterceptedMethod(MethodDeclaration methodDeclaration,
+		Iterable<? extends AnnotationReference> interceptorAnnotationReferences)
+	{
+		new InterceptedMethod(methodDeclaration, interceptorAnnotationReferences.map [ interceptorAnnotationReference |
+			val interceptorDefinitionModel = try
+			{
+				new InterceptorDefinitionModelBuilder(context).build(
+					interceptorAnnotationReference.annotationTypeDeclaration)
+			}
+			catch (IocProcessingException e)
+			{
+				throw new CancelOperationException
+			}
+
+			val interceptorArguments = interceptorDefinitionModel.parameters.map [ parameter |
+				val parameterType = parameter.type
+				switch (parameterType)
+				{
+					BasicInterceptorParameterType:
+						new BasicInterceptorArgument(parameterType,
+							interceptorAnnotationReference.getValue(parameter.name))
+					MethodReferenceInterceptorParameterType:
+					{
+						val methodName = interceptorAnnotationReference.getStringValue(parameter.name)
+
+						val matchingMethods = methodDeclaration.declaringType.declaredMethods.filter [
+							simpleName == methodName
+						]
+						if (matchingMethods.empty)
+						{
+							throw new IocProcessingException(new ProcessingMessage(
+								Severity.ERROR,
+								methodDeclaration,
+								'''Referenced method not found: «methodName»''' // TODO more info
+							))
+						}
+
+						val matchingMethod = matchingMethods.filter [
+							// TODO why does not work without toList?
+							parameters.map[type].toList == parameterType.parameterTypes.toList
+						].head
+						if (matchingMethod == null)
+						{
+							throw new IocProcessingException(
+								new ProcessingMessage(
+									Severity.
+										ERROR,
+									methodDeclaration,
+									'''
+										Method parameter type mismatch, expected: «parameterType.parameterTypes.map[name]»
+										See the documentation of @«interceptorDefinitionModel.interceptorAnnotation.simpleName».«parameter.name» for more details.
+									''' // TODO more info
+								))
+						}
+
+						if (matchingMethod.returnType.inferred)
+						{
+							throw new IocProcessingException(new ProcessingMessage(
+								Severity.ERROR,
+								methodDeclaration,
+								'''
+									Inferred return type is not supported on methods referenced by interceptor annotations.
+								''' // TODO more info
+							))
+						}
+
+						if (!matchingMethod.returnType.isAssignableFrom(parameterType.returnType))
+						{
+							throw new IocProcessingException(
+								new ProcessingMessage(
+									Severity.
+										ERROR,
+									methodDeclaration,
+									'''
+										Method return type mismatch, expected: «parameterType.returnType.name»
+										See the documentation of @«interceptorDefinitionModel.interceptorAnnotation.simpleName».«parameter.name» for more details.
+									''' // TODO more info
+								))
+						}
+
+						new MethodReferenceInterceptorArgument(parameterType, methodName)
+					}
+				}
+			]
+
+			new InterceptorInvocationModel(
+				interceptorDefinitionModel,
+				createDependencyReference(methodDeclaration,
+					interceptorAnnotationReference.interceptorInvocationHandler, context), // FIXME createDependencyReference called with wrong declaration
+				interceptorArguments
+			)
+		].toList)
 	}
 
 	def ComponentClassModel build(ClassDeclaration componentClassDeclaration)
@@ -209,8 +355,7 @@ class ComponentClassModelBuilder
 			predestroyMethods.map [
 				new ProcessingMessage(
 					Severity.
-						ERROR
-					,
+						ERROR,
 					it,
 					'''Scope @«componentClassDeclaration.getComponentScopeAnnotation(context).simpleName» does not support @PreDestroy methods.'''
 				)
@@ -230,9 +375,13 @@ class ComponentClassModelBuilder
 			componentClassDeclaration.findComponentConstructor,
 			componentClassDeclaration.findFieldComponentReferences,
 			componentClassDeclaration.findConstructorComponentReferences,
+			componentClassDeclaration.findGeneratedComponentReferences,
 			componentClassDeclaration.findPostConstructMethods,
 			predestroyMethods,
-			componentClassDeclaration.hasAnnotation(Eager.findTypeGlobally)
+			componentClassDeclaration.hasAnnotation(Eager.findTypeGlobally),
+			componentClassDeclaration.findInterceptedMethods.map [
+				createInterceptedMethod(key, value)
+			].toList
 		)
 	}
 

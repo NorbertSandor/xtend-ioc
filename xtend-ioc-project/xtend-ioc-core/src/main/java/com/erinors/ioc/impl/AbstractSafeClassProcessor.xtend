@@ -32,7 +32,7 @@ import java.lang.annotation.Annotation
 @FinalFieldsConstructor
 class AbstractSafeClassProcessor implements RegisterGlobalsParticipant<Declaration>, TransformationParticipant<MutableDeclaration>, CodeGenerationParticipant<Declaration>, ValidationParticipant<Declaration>
 {
-	val AbstractClassProcessor abstractComponentProcessor
+	val AbstractClassProcessor delegate
 
 	val Class<? extends Annotation> annotationClass
 
@@ -43,8 +43,7 @@ class AbstractSafeClassProcessor implements RegisterGlobalsParticipant<Declarati
 	{
 		if (check(annotatedSourceElements, null))
 		{
-			abstractComponentProcessor.doRegisterGlobals(annotatedSourceElements as List<? extends ClassDeclaration>,
-				context)
+			delegate.doRegisterGlobals(annotatedSourceElements as List<? extends ClassDeclaration>, context)
 		}
 	}
 
@@ -53,8 +52,7 @@ class AbstractSafeClassProcessor implements RegisterGlobalsParticipant<Declarati
 	{
 		if (check(annotatedTargetElements, context))
 		{
-			abstractComponentProcessor.doTransform(annotatedTargetElements as List<? extends MutableClassDeclaration>,
-				context)
+			delegate.doTransform(annotatedTargetElements as List<? extends MutableClassDeclaration>, context)
 		}
 	}
 
@@ -63,8 +61,7 @@ class AbstractSafeClassProcessor implements RegisterGlobalsParticipant<Declarati
 	{
 		if (check(annotatedSourceElements, null))
 		{
-			abstractComponentProcessor.doGenerateCode(annotatedSourceElements as List<? extends ClassDeclaration>,
-				context)
+			delegate.doGenerateCode(annotatedSourceElements as List<? extends ClassDeclaration>, context)
 		}
 	}
 
@@ -72,7 +69,7 @@ class AbstractSafeClassProcessor implements RegisterGlobalsParticipant<Declarati
 	{
 		if (check(annotatedTargetElements, null))
 		{
-			abstractComponentProcessor.doValidate(annotatedTargetElements as List<? extends ClassDeclaration>, context)
+			delegate.doValidate(annotatedTargetElements as List<? extends ClassDeclaration>, context)
 		}
 	}
 
@@ -80,11 +77,18 @@ class AbstractSafeClassProcessor implements RegisterGlobalsParticipant<Declarati
 	{
 		val invalidDeclarations = declarations.filter[!(it instanceof ClassDeclaration)]
 		invalidDeclarations.forEach [
-			if (problemSupport != null)
+			if (problemSupport !== null)
 			{
-				problemSupport.
-					addError(
+				if (annotationClass !== null)
+				{
+					problemSupport.addError(
 						it, '''@«annotationClass.simpleName» is supported only for class declarations. [«errorCode»]''')
+				}
+				else
+				{
+					problemSupport.addError(
+						it, '''Annotation is supported only for class declarations. [«errorCode»]''')
+				}
 			}
 		]
 		return invalidDeclarations.empty

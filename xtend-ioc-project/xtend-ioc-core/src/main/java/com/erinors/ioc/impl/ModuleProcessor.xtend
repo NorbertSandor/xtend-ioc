@@ -210,11 +210,33 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 
 	override doTransform(MutableInterfaceDeclaration annotatedInterface, extension TransformationContext context)
 	{
-		transformModuleInterface(annotatedInterface, context)
+		try
+		{
+			annotatedInterface.extendedInterfaces
+		}
+		catch (Exception e)
+		{
+			return
+		}
 
 		try
 		{
+			transformModuleInterface(annotatedInterface, context)
+
 			val moduleModel = new ModuleModelBuilder(context).build(annotatedInterface)
+
+			annotatedInterface.docComment = '''
+				«IF annotatedInterface.docComment !== null»«annotatedInterface.docComment»
+				«ENDIF»
+				<p>
+				«IF moduleModel.components.empty»
+					Module contains no components.
+				«ELSE»
+					Components:
+					«FOR component : moduleModel.components BEFORE "<ul><li>" SEPARATOR "</li><li>" AFTER "</li></ul>"»«component.typeSignature.asHtml(1)»«ENDFOR»
+				«ENDIF»
+				</p>
+			'''
 
 			if (moduleModel.gwtEntryPoint)
 			{
@@ -235,7 +257,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 					moduleModels.put(annotatedInterface.qualifiedName, resolvedModuleModel)
 
 					// Build initialization graph
-					resolvedModuleModel?.dependencyGraph
+					resolvedModuleModel.dependencyGraph
 
 					// Generate module classes
 					generateModulePeer(annotatedInterface, moduleModel, context, true)
@@ -334,7 +356,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						{
 							'''
 								«componentModel.classDeclaration.qualifiedName» o = new «componentModel.classDeclaration.qualifiedName»(«moduleImplementationClass.simpleName».this«FOR componentReferenceSignature : componentModel.constructorParameters BEFORE ", " SEPARATOR ", "»
-																																																	«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
+																																																						«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
 								«ENDFOR»);
 								«FOR postConstructMethod : componentModel.postConstructMethods»
 									o.«postConstructMethod.simpleName»();

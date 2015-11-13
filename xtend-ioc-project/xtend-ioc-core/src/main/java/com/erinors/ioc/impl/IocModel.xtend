@@ -31,6 +31,9 @@ import org.jgrapht.alg.cycle.SzwarcfiterLauerSimpleCycles
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph
 import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.graph.DefaultEdge
+import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
+import static extension com.erinors.ioc.impl.MapUtils.*
+import org.eclipse.xtend.lib.macro.declaration.AnnotationTypeDeclaration
 
 // TODO @Optional az Option<>-ön legyen warning, mivel redundáns
 // FIXME @Component nem működik class szintű @Accessors-sal!!!! com.erinors.ioc.examples.docs.events.EventObserver nem fordul, ha @Accessors van a class-on
@@ -104,7 +107,7 @@ class ComponentTypeSignature
 	}
 
 	def asString()
-	'''«typeReference.name»/«qualifiers.map[asString]»'''
+	'''«typeReference.name»«IF !qualifiers.empty»/«qualifiers.map[asString]»«ENDIF»'''
 }
 
 @Data
@@ -190,19 +193,24 @@ class DeclaredComponentDependencyReference<T extends Declaration> implements Com
 				throw new IocProcessingException(new ProcessingMessage(
 					Severity.ERROR,
 					declaration,
-					'''Component reference resolution error, no compatible components found.'''
+					'''
+						Component reference resolution error in module: «moduleModel»
+						No component is compatible with: «signature.componentTypeSignature»
+					'''
 				))
 			}
 		}
 		else if (signature.cardinality == CardinalityType.SINGLE && resolvedComponents.size > 1)
 		{
-			throw new IocProcessingException(
-				new ProcessingMessage(
-					Severity.
-						ERROR,
-					declaration,
-					'''Component reference resolution error, multiple compatible components found: «resolvedComponents.map[it.getTypeSignature]»'''
-				))
+			throw new IocProcessingException(new ProcessingMessage(
+				Severity.ERROR,
+				declaration,
+				'''
+					Component reference resolution error in module: «moduleModel»
+					Multiple components are compatible with «signature.componentTypeSignature» but expected only one. 
+					Compatible components: «resolvedComponents»
+				''' // TODO test if the output is readable
+			))
 		}
 
 		new ResolvedComponentReference(this, resolvedComponents)
@@ -290,9 +298,13 @@ class ComponentProviderModel extends ComponentModel
 	{
 		parameterizedQualifiers.filter[parameterNameToAttributeMap.containsKey(parameterName)].map [
 			it -> parameterNameToAttributeMap.get(parameterName)
-		].map [ parameterizedQualifierInfo |
-			getTypeSignature.qualifiers.findFirst[name == parameterizedQualifierInfo.key.name].attributes.get(
-				parameterizedQualifierInfo.value)
+		].map [ parameterizedQualifierModel |
+			val qualifierModel = typeSignature.qualifiers.findFirst[name == parameterizedQualifierModel.key.name]
+			if (qualifierModel === null)
+			{
+				throw new IllegalStateException('''«typeSignature», «parameterizedQualifierModel», «ownerComponentModel», «providerMethodDeclaration.simpleName»''')
+			}
+			qualifierModel.attributes.get(parameterizedQualifierModel.value)
 		].head
 	}
 }
@@ -318,9 +330,13 @@ class ComponentSuperclassModel
 
 	List<? extends ComponentReference<? extends ParameterDeclaration>> constructorComponentReferences
 
+	List<? extends ComponentReference<? extends Declaration>> generatedComponentReferences
+
+	List<? extends InterceptedMethod> interceptedMethods
+
 	def private getDeclaredComponentReferences()
 	{
-		(fieldComponentReferences + constructorComponentReferences)
+		(fieldComponentReferences + constructorComponentReferences + generatedComponentReferences)
 	}
 
 	def Iterable<? extends ComponentReference<? extends Declaration>> getComponentReferences()
@@ -343,15 +359,19 @@ class ComponentClassModel extends ComponentModel
 
 	List<? extends ComponentReference<? extends ParameterDeclaration>> constructorComponentReferences
 
+	List<? extends ComponentReference<? extends Declaration>> generatedComponentReferences
+
 	List<? extends MethodDeclaration> postConstructMethods
 
 	List<? extends MethodDeclaration> preDestroyMethods
 
 	boolean eager
 
+	List<? extends InterceptedMethod> interceptedMethods
+
 	def getDeclaredComponentReferences()
 	{
-		(fieldComponentReferences + constructorComponentReferences)
+		(fieldComponentReferences + constructorComponentReferences + generatedComponentReferences)
 	}
 
 	override List<? extends ComponentReference<?>> getComponentReferences()
@@ -364,6 +384,18 @@ class ComponentClassModel extends ComponentModel
 	{
 		componentReferences.groupBy[signature].keySet.immutableCopy // TODO ne feltétlenül signature szerint, lehetne esetleg komolyabb szűkítést?
 	}
+
+	def String getGeneratedComponentReferenceFieldName(
+		ComponentReference<? extends Declaration> generatedComponentReference)
+	{
+		if (!generatedComponentReferences.contains(generatedComponentReference))
+		{
+			throw new IllegalArgumentException('''Not a generated component reference: «generatedComponentReference»''')
+		}
+
+		// TODO use random name
+		return '''_generated_«generatedComponentReferences.indexOf(generatedComponentReference)»'''
+	}
 }
 
 @Data
@@ -372,7 +404,7 @@ class StaticModuleModel
 	InterfaceDeclaration moduleInterfaceDeclaration
 
 	boolean isAbstract
-	
+
 	boolean singleton
 
 	boolean gwtEntryPoint
@@ -420,6 +452,9 @@ class StaticModuleModel
 
 		return new ResolvedModuleModel(this, componentFieldNames)
 	}
+
+	override toString()
+	'''«moduleInterfaceDeclaration.qualifiedName»'''
 }
 
 // TODO átalakítani, hogy @Data legyen, és kell egy másik külön class a plusz adatoknak, amire erre hivatkozik
@@ -524,3 +559,154 @@ class DependencyGraphNode
 		componentModel.getTypeSignature.typeReference.name
 	}
 }
+
+interface InterceptorParameterType
+{
+	def TypeReference getApiType(TypeReferenceProvider typeReferenceProvider)
+}
+
+@Data
+class BasicInterceptorParameterType implements InterceptorParameterType
+{
+	TypeReference typeReference
+
+	override getApiType(TypeReferenceProvider typeReferenceProvider)
+	{
+		typeReference
+	}
+}
+
+@Data
+class MethodReferenceInterceptorParameterType implements InterceptorParameterType
+{
+	TypeReference returnType
+
+	Iterable<TypeReference> parameterTypes
+
+	override getApiType(extension TypeReferenceProvider typeReferenceProvider)
+	{
+		switch (parameterTypes.length)
+		{
+			case 0:
+				Functions.Function0.newTypeReference(returnType)
+			case 1:
+				Functions.Function1.newTypeReference(parameterTypes.get(0), returnType)
+			case 2:
+				Functions.Function2.newTypeReference(parameterTypes.get(0), parameterTypes.get(1), returnType)
+			case 3:
+				Functions.Function3.newTypeReference(parameterTypes.get(0), parameterTypes.get(1),
+					parameterTypes.get(2), returnType)
+			case 4:
+				Functions.Function4.newTypeReference(parameterTypes.get(0), parameterTypes.get(1),
+					parameterTypes.get(2), parameterTypes.get(3), returnType)
+			case 5:
+				Functions.Function5.newTypeReference(parameterTypes.get(0), parameterTypes.get(1),
+					parameterTypes.get(2), parameterTypes.get(3), parameterTypes.get(4), returnType)
+			case 6:
+				Functions.Function6.newTypeReference(parameterTypes.get(0), parameterTypes.get(1),
+					parameterTypes.get(2), parameterTypes.get(3), parameterTypes.get(4), parameterTypes.get(5),
+					returnType)
+				default:
+					throw new IllegalStateException // FIXME
+			}
+		}
+	}
+
+	@Data
+	class InterceptorParameterModel<T extends InterceptorParameterType>
+	{
+		String name
+
+		T type
+	}
+
+	@Data
+	class InterceptorDefinitionModel
+	{
+		AnnotationTypeDeclaration interceptorAnnotation
+
+		String invocationPointConfigurationClassName
+
+		List<? extends InterceptorParameterModel<?>> parameters
+	}
+
+	@Data
+	abstract class InterceptorArgumentModel<T extends InterceptorParameterType>
+	{
+		T parameter
+
+		def abstract CharSequence generateSourceCode(TypeReferenceProvider typeReferenceProvider)
+	}
+
+	@Data
+	class BasicInterceptorArgument extends InterceptorArgumentModel<BasicInterceptorParameterType>
+	{
+		Object value
+
+		override generateSourceCode(TypeReferenceProvider typeReferenceProvider)
+		{
+			ProcessorUtils.valueToSourceCode(value)
+		}
+	}
+
+	@Data
+	class MethodReferenceInterceptorArgument extends InterceptorArgumentModel<MethodReferenceInterceptorParameterType>
+	{
+		String methodName
+
+		// FIXME more correct implementation
+		override generateSourceCode(extension TypeReferenceProvider typeReferenceProvider)
+		{
+			val parameterCount = parameter.parameterTypes.length
+			val functionTypeReference = switch (parameterCount)
+			{
+				case 0:
+					Functions.Function0
+				case 1:
+					Functions.Function1
+				case 2:
+					Functions.Function2
+				case 3:
+					Functions.Function3
+				case 4:
+					Functions.Function4
+				case 5:
+					Functions.Function5
+				case 6:
+					Functions.Function6
+			}.newTypeReference(parameter.parameterTypes + #[parameter.returnType])
+
+			val functionParameters = parameter.parameterTypes.indexed.map['''p«key»''' -> value].
+				pairsToMap
+
+			// TODO typeReference source name
+			'''
+				new «functionTypeReference.name.replace('$', '.')»() {
+					public «parameter.returnType.wrapperIfPrimitive» apply(«FOR functionParameter : functionParameters.entrySet SEPARATOR ", "»«functionParameter.value.wrapperIfPrimitive.name» «functionParameter.key»«ENDFOR») {
+						«IF !parameter.returnType.void»return «ENDIF»«methodName»(«FOR functionParameter : functionParameters.entrySet SEPARATOR ", "»«functionParameter.key»«ENDFOR»);
+						«IF parameter.returnType.void»return null;«ENDIF»
+					}
+				}
+			'''
+		}
+	}
+
+	@Data
+	class InterceptorInvocationModel
+	{
+		InterceptorDefinitionModel definitionModel
+
+		ComponentReference<? extends Declaration> invocationHandlerReference
+
+		List<? extends InterceptorArgumentModel<?>> arguments
+	}
+
+	@Data
+	class InterceptedMethod
+	{
+		MethodDeclaration methodDeclaration
+
+		List<? extends InterceptorInvocationModel> interceptorInvocations
+	}
+
+	

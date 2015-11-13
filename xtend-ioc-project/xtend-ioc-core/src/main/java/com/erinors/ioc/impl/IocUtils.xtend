@@ -46,6 +46,8 @@ import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 
 import static extension com.erinors.ioc.impl.MapUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
+import com.erinors.ioc.shared.api.Interceptor
+import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 
 @FinalFieldsConstructor
 class IocProcessingContext
@@ -152,7 +154,8 @@ package class IocUtils
 
 	def static isInjected(AnnotationTarget annotationTarget, extension TransformationContext context)
 	{
-		annotationTarget.hasAnnotation(Inject.findTypeGlobally) || annotationTarget.hasAnnotation(javax.inject.Inject.findTypeGlobally)
+		annotationTarget.hasAnnotation(Inject.findTypeGlobally) ||
+			annotationTarget.hasAnnotation(javax.inject.Inject.findTypeGlobally)
 	}
 
 	def static findInjectedConstructors(ClassDeclaration classDeclaration, extension TransformationContext context)
@@ -440,5 +443,33 @@ package class IocUtils
 		interfaces += declaredSupertypes
 
 		declaredSupertypes.forEach[collectAssignableInterfaces(interfaces)]
+	}
+
+	def static hasInterceptorAnnotation(MethodDeclaration methodDeclaration)
+	{
+		methodDeclaration.annotations.exists[isInterceptorAnnotation]
+	}
+
+	def static isInterceptorAnnotation(AnnotationReference annotationReference)
+	{
+		annotationReference.getInterceptorMetaAnnotation !== null
+	}
+
+	def private static getInterceptorMetaAnnotation(AnnotationReference annotationReference)
+	{
+		annotationReference.annotationTypeDeclaration.annotations.filter [
+			annotationTypeDeclaration.qualifiedName == Interceptor.name
+		].head
+	}
+
+	def static getInterceptorInvocationHandler(AnnotationReference annotationReference)
+	{
+		val result = annotationReference.interceptorMetaAnnotation.getClassValue("value")
+		
+		if (result === null) {
+			throw new CancelOperationException
+		}
+		
+		result
 	}
 }

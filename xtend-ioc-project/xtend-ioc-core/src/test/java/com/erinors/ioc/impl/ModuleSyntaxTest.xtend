@@ -36,4 +36,23 @@ class ModuleSyntaxTest
 				problems.get(0).message)
 		])
 	}
+
+	@Test
+	def void testSyntaxError()
+	{
+		compilerTester.compile('''
+			@«Module.name»
+			class
+		''', [])
+	}
+
+	// TODO create similar tests for components
+	@Test
+	def void testNonExistingInheritedModule()
+	{
+		compilerTester.compile('''
+			@«Module.name»
+			interface TestModule extends NonExistingModule {}
+		''', [])
+	}
 }

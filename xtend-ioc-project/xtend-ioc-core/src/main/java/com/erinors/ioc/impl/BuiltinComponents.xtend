@@ -21,6 +21,9 @@ import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
 import org.eclipse.xtend.lib.macro.TransformationContext
 import org.eclipse.xtend.lib.macro.declaration.ClassDeclaration
 import org.eclipse.xtend.lib.macro.services.Problem.Severity
+import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
+
+import static extension com.erinors.ioc.impl.IocUtils.*
 
 class BuiltinComponentManagers
 {
@@ -33,7 +36,8 @@ class BuiltinComponentManagers
 
 	private new(TransformationContext context)
 	{
-		componentManagers = #[new ModuleInstanceComponentManager(context), new EventComponentManager(context)]
+		componentManagers = #[new ModuleInstanceComponentManager(context), new EventComponentManager(context),
+			new InterceptorHandlerComponentManager(context)]
 	}
 
 	def findFor(ModuleModelBuilderContext context, ComponentReference<?> componentReference)
@@ -61,13 +65,38 @@ interface ComponentManager
 		ComponentReference<?> reference)
 }
 
-@Data
-abstract class BuiltinComponentModel extends ComponentModel
+@FinalFieldsConstructor
+class InterceptorHandlerComponentManager implements ComponentManager
 {
+	val extension TransformationContext context
+
+	override supports(ModuleModelBuilderContext context, ComponentReference<?> componentReference)
+	{
+		// TODO skip provider methods
+		val declaration = componentReference.declaration
+		declaration instanceof MethodDeclaration && (declaration as MethodDeclaration).hasInterceptorAnnotation
+	}
+
+	override processComponentReference(ModuleModelBuilderContext context, ComponentClassModel componentModel,
+		ComponentReference<?> reference)
+	{
+		// FIXME másképp, valszeg külön ComponentReference subclass-szal
+		val interceptorInvocationHandlerTypeReference = (reference.declaration as MethodDeclaration).annotations.filter [
+			isInterceptorAnnotation
+		].findFirst [
+			interceptorInvocationHandler == reference.typeReference
+		]?.interceptorInvocationHandler
+
+		if (interceptorInvocationHandlerTypeReference !== null)
+		{
+			// TODO check
+			context.addComponentClass(interceptorInvocationHandlerTypeReference)
+		}
+	}
 }
 
 @Data
-class ModuleInstanceComponentModel extends BuiltinComponentModel
+class ModuleInstanceComponentModel extends ComponentModel
 {
 	override getComponentReferences()
 	{
@@ -101,7 +130,7 @@ class ModuleInstanceComponentManager implements ComponentManager
 	}
 
 	@Data
-	class EventComponentModel extends BuiltinComponentModel
+	class EventComponentModel extends ComponentModel
 	{
 		override getComponentReferences()
 		{

@@ -29,6 +29,7 @@ import org.eclipse.xtend.lib.macro.declaration.TypeReference
 import org.eclipse.xtend.lib.macro.services.Problem
 import org.eclipse.xtend.lib.macro.services.Tracability
 import com.erinors.ioc.shared.api.GwtEntryPoint
+import org.eclipse.xtend.lib.macro.declaration.EnumerationValueDeclaration
 
 @Data
 class ProcessingMessage
@@ -165,13 +166,42 @@ class ProcessorUtils
 
 	def static generateRandomMethodName(TypeDeclaration typeDeclaration)
 	{
+		return generateRandomName(typeDeclaration.declaredMethods)
+	}
+
+	def static generateRandomFieldName(TypeDeclaration typeDeclaration)
+	{
+		return generateRandomName(typeDeclaration.declaredFields)
+	}
+
+	def private static generateRandomName(Iterable<? extends Declaration> declarations)
+	{
 		var String randomName
 		do
 		{
 			randomName = "_" + Long.toHexString(Double.doubleToLongBits(Math.random()));
 		}
-		while (typeDeclaration.declaredMethods.map[simpleName].toSet.contains(randomName))
+		while (declarations.map[simpleName].toSet.contains(randomName))
 
 		return randomName
+	}
+	
+	def static valueToSourceCode(Object value) {
+		if (value === null)
+		{
+			"null"
+		}
+		else
+		{
+			// TODO support arrays
+			switch (value)
+			{
+				String: '''"«value»"'''
+				Number: value.toString
+				EnumerationValueDeclaration: '''«value.declaringType.qualifiedName».«value.simpleName»'''
+				TypeReference: value.name
+				default: throw new AssertionError('''Unsupported value: «value»''')
+			}
+		}
 	}
 }

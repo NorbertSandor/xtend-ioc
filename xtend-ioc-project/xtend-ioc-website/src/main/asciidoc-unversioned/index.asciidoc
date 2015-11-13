@@ -17,9 +17,10 @@ For more details see
 
 == History
 
-=== 0.1.0
+=== 0.1.0 (2015-11-09)
 
 Initial release.
+(Development was started on 2015-09-02.)
 
 Documentation: link:0.1.0/index.html[0.1.0]
 

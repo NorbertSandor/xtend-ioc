@@ -13,6 +13,7 @@ package com.erinors.ioc.shared.api
 
 import com.erinors.ioc.impl.ComponentProcessor
 import com.erinors.ioc.impl.InjectableProcessor
+import com.erinors.ioc.impl.InterceptorProcessor
 import com.erinors.ioc.impl.ModuleProcessor
 import com.erinors.ioc.shared.impl.ModuleImplementor
 import com.erinors.ioc.shared.impl.PrototypeComponentLifecycleManager
@@ -38,12 +39,12 @@ annotation Module
 	 * @see <a href="http://norbertsandor.github.io/xtend-ioc/latest/#module-abstract">Abstract and non-abstract modules</a>
 	 */
 	boolean isAbstract = false
-	
+
 	/**
 	 * Defines whether the module is singleton or not.
 	 * 
 	 * @see <a href="http://norbertsandor.github.io/xtend-ioc/latest/#module-singleton">Module lifecycle / Singleton modules</a>
-	 */	
+	 */
 	boolean singleton = true
 
 	/**
@@ -150,6 +151,7 @@ annotation Prototype
 {
 }
 
+// TODO parameterized component cannot be eager
 @Documented
 @Target(METHOD)
 annotation ParameterizedQualifier
@@ -180,6 +182,7 @@ annotation Provider
 @Target(#[ANNOTATION_TYPE])
 annotation Qualifier
 {
+	// TODO support javax.inject.Qualifier
 }
 
 interface ComponentLifecycleManager<T> extends Supplier<T>
@@ -225,9 +228,47 @@ annotation NotRequired
 }
 
 /**
- * <a href="http://norbertsandor.github.io/xtend-ioc/latest/#module-gwtentrypoint">Generates a GWT entry-point</a> for the annotated module. 
+ * <a href="http://norbertsandor.github.io/xtend-ioc/latest/#module-gwtentrypoint">Generates a GWT entry-point class</a> for the annotated module. 
  */
 @Target(TYPE)
 annotation GwtEntryPoint
 {
+}
+
+@Active(InterceptorProcessor)
+@Target(ANNOTATION_TYPE)
+annotation Interceptor
+{
+	Class<? extends InterceptorInvocationHandler> value
+}
+
+interface InvocationContext
+{
+	def Object getTarget()
+
+	def Object[] getArguments()
+
+	def Object proceed()
+
+	def Object proceed(Object[] arguments)
+}
+
+interface InvocationPointConfiguration
+{
+}
+
+interface InterceptorInvocationHandler<T extends InvocationPointConfiguration>
+{
+	def Object handle(T invocationPointConfiguration, InvocationContext context)
+}
+
+annotation MethodReference
+{
+	Class<?> returnType = Object
+
+	Class<?>[] parameterTypes = #[]
+	
+	Class<?> sampleDeclaringType = Object
+	
+	String sampleDeclaredMethodName = ""
 }
