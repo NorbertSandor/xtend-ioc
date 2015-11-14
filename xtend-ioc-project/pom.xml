@@ -41,7 +41,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<dependency.xtend.version>2.9.0.beta6</dependency.xtend.version>
+		<dependency.xtend.version>2.9.0.rc1</dependency.xtend.version>
 
 	</properties>
 
