@@ -36,7 +36,7 @@ package class InterceptorProcessorImplementation<T extends Annotation> extends A
 				annotatedAnnotationType)
 
 			val generatedClass = findClass(interceptorDefinitionModel.invocationPointConfigurationClassName)
-			generatedClass.implementedInterfaces = #[InvocationPointConfiguration.newTypeReference]
+			generatedClass.extendedClass = InvocationPointConfiguration.newTypeReference
 
 			val accessorsUtils = new AccessorsProcessor.Util(context)
 			interceptorDefinitionModel.parameters.forEach [ interceptorParameter |
@@ -52,10 +52,13 @@ package class InterceptorProcessorImplementation<T extends Annotation> extends A
 			// val constructorUtils = new FinalFieldsConstructorProcessor.Util(context)
 			// constructorUtils.addFinalFieldsConstructor(generatedClass)
 			generatedClass.addConstructor [ constructor |
+				constructor.addParameter("methodName", string)
+				
 				interceptorDefinitionModel.parameters.forEach [ interceptorParameter |
 					constructor.addParameter(interceptorParameter.name, interceptorParameter.type.getApiType(context))
 				]
 				constructor.body = '''
+					super(methodName);
 					«FOR parameter : interceptorDefinitionModel.parameters»
 						this.«parameter.name» = «parameter.name»;
 					«ENDFOR»

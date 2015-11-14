@@ -5,6 +5,7 @@ import de.oehme.xtend.contrib.SignatureHelper
 import org.eclipse.xtend.lib.macro.TransformationContext
 import org.eclipse.xtend.lib.macro.declaration.AnnotationTypeDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableMethodDeclaration
+import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 
 class InterceptorUtils
 {
@@ -13,13 +14,13 @@ class InterceptorUtils
 		Iterable<? extends InterceptorInvocationModel> interceptorInvocationModels, TransformationContext context)
 	{
 		return transformMethod(componentModel, annotatedMethod, interceptorInvocationModels, context,
-			new SignatureHelper(context))
+			new SignatureHelper(context), annotatedMethod)
 	}
 
 	def private static MutableMethodDeclaration transformMethod(ComponentClassModel componentModel,
 		MutableMethodDeclaration annotatedMethod,
 		Iterable<? extends InterceptorInvocationModel> interceptorInvocationModels, TransformationContext context,
-		SignatureHelper signatureHelper)
+		SignatureHelper signatureHelper, MethodDeclaration interceptedMethodDeclaration)
 	{
 		if (interceptorInvocationModels.empty)
 		{
@@ -27,15 +28,16 @@ class InterceptorUtils
 		}
 
 		var addedMethod = transformMethod(componentModel, annotatedMethod, interceptorInvocationModels.head, context,
-			signatureHelper)
+			signatureHelper, interceptedMethodDeclaration)
 		addedMethod.markAsRead
 
-		return transformMethod(componentModel, addedMethod, interceptorInvocationModels.tail, context, signatureHelper)
+		return transformMethod(componentModel, addedMethod, interceptorInvocationModels.tail, context, signatureHelper,
+			interceptedMethodDeclaration)
 	}
 
 	def private static MutableMethodDeclaration transformMethod(ComponentClassModel componentModel,
 		MutableMethodDeclaration annotatedMethod, InterceptorInvocationModel interceptorInvocationModel,
-		TransformationContext context, SignatureHelper signatureHelper)
+		TransformationContext context, SignatureHelper signatureHelper, MethodDeclaration interceptedMethodDeclaration)
 	{
 		annotatedMethod.markAsRead
 
@@ -47,7 +49,7 @@ class InterceptorUtils
 			methodName, '''
 				final Object[] inputArguments = new Object[] {«FOR parameter : annotatedMethod.parameters SEPARATOR ", "»«parameter.simpleName»«ENDFOR»};
 				
-				final «interceptorInvocationModel.definitionModel.invocationPointConfigurationClassName» invocationPointConfiguration = new «interceptorInvocationModel.definitionModel.invocationPointConfigurationClassName»(«FOR argument : interceptorInvocationModel.arguments SEPARATOR ", "»«argument.generateSourceCode(context)»«ENDFOR»);
+				final «interceptorInvocationModel.definitionModel.invocationPointConfigurationClassName» invocationPointConfiguration = new «interceptorInvocationModel.definitionModel.invocationPointConfigurationClassName»("«interceptedMethodDeclaration.simpleName»"«FOR argument : interceptorInvocationModel.arguments BEFORE ", " SEPARATOR ", "»«argument.generateSourceCode(context)»«ENDFOR»);
 				
 				«IF !annotatedMethod.returnType.void»return («annotatedMethod.returnType.type.qualifiedName») «ENDIF»«handlerAccessorSourceCode».handle(invocationPointConfiguration, new «InvocationContext.name»() {
 					public Object getTarget() {

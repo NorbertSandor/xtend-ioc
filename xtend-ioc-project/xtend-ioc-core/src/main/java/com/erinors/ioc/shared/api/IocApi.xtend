@@ -23,6 +23,7 @@ import java.lang.annotation.Annotation
 import java.lang.annotation.Documented
 import java.lang.annotation.Target
 import org.eclipse.xtend.lib.macro.Active
+import org.eclipse.xtend.lib.annotations.Data
 
 /**
  * Indicates that the annotated interface is an <a href="http://norbertsandor.github.io/xtend-ioc/latest/#module-declaration">module</a>.<br>
@@ -253,8 +254,12 @@ interface InvocationContext
 	def Object proceed(Object[] arguments)
 }
 
-interface InvocationPointConfiguration
+@Data
+abstract class InvocationPointConfiguration
 {
+	// TODO declaring type, method return type and parameter types 
+	
+	String methodName
 }
 
 interface InterceptorInvocationHandler<T extends InvocationPointConfiguration>
