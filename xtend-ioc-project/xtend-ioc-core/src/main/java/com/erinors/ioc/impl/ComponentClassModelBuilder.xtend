@@ -285,7 +285,7 @@ class ComponentClassModelBuilder
 							// TODO why does not work without toList?
 							parameters.map[type].toList == parameterType.parameterTypes.toList
 						].head
-						if (matchingMethod == null)
+						if (matchingMethod === null)
 						{
 							throw new IocProcessingException(
 								new ProcessingMessage(
@@ -392,7 +392,7 @@ class ComponentClassModelBuilder
 	def private getComponentClassPriority(ClassDeclaration componentClassDeclaration)
 	{
 		val priorityAnnotation = componentClassDeclaration.findAnnotation(Priority.findTypeGlobally)
-		return if (priorityAnnotation != null) priorityAnnotation.getIntValue("value") else 0
+		return if (priorityAnnotation !== null) priorityAnnotation.getIntValue("value") else 0
 	}
 
 	def private findPostConstructMethods(ClassDeclaration componentClassDeclaration)

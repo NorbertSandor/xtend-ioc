@@ -299,7 +299,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 			case SINGLE:
 			{
 				val componentModel = resolvedComponents.head
-				if (componentModel == null)
+				if (componentModel === null)
 				{
 					generateAbsentComponentSupplierSourceCode(componentReferenceSignature, context)
 				}
@@ -552,7 +552,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 									body = '''
 										«annotatedInterface.newTypeReference» moduleInstance = «peerClass.qualifiedName».moduleInstance;
 										
-										if (moduleInstance == null) {
+										if (moduleInstance === null) {
 											throw new «IllegalStateException.name»("Module is not initialized, initialize() should be called!");
 										}
 										return moduleInstance;
@@ -570,7 +570,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 									)
 
 									body = '''
-										if («peerClass.qualifiedName».moduleInstance != null) {
+										if («peerClass.qualifiedName».moduleInstance !== null) {
 											throw new «IllegalStateException.name»("Module is already initialized by " + «peerClass.qualifiedName».moduleInstance.getModuleInitializerInfo());
 										}
 										
@@ -602,7 +602,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 											newSelfTypeReference
 										body = if (validGraph)
 										'''
-											if («peerClass.qualifiedName».moduleInstance != null) {
+											if («peerClass.qualifiedName».moduleInstance !== null) {
 												throw new «IllegalStateException.name»("Module is already initialized by " + «peerClass.qualifiedName».moduleInstance.getModuleInitializerInfo());
 											}
 											

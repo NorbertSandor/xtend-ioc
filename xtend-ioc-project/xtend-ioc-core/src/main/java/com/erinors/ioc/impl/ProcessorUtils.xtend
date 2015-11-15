@@ -58,7 +58,7 @@ class ProcessorUtils
 	{
 		val moduleAnnotation = moduleDeclaration.getAnnotation(Module.findTypeGlobally)
 
-		if (moduleAnnotation == null)
+		if (moduleAnnotation === null)
 		{
 			throw new IllegalStateException('''Not a module declaration: «moduleDeclaration.qualifiedName»''')
 		}
@@ -69,7 +69,7 @@ class ProcessorUtils
 	def static findDefaultConstructor(ClassDeclaration classDeclaration, extension Tracability tracability)
 	{
 		val constructor = classDeclaration.declaredConstructors.filter[parameters.empty].head
-		if (constructor != null && !constructor.isThePrimaryGeneratedJavaElement)
+		if (constructor !== null && !constructor.isThePrimaryGeneratedJavaElement)
 			constructor
 		else
 			null
@@ -77,7 +77,7 @@ class ProcessorUtils
 
 	def static boolean hasAnnotation(AnnotationTarget annotationTarget, Type annotationType)
 	{
-		annotationTarget.getAnnotation(annotationType) != null
+		annotationTarget.getAnnotation(annotationType) !== null
 	}
 
 	def static AnnotationReference getAnnotation(AnnotationTarget annotationTarget, Type annotationType)

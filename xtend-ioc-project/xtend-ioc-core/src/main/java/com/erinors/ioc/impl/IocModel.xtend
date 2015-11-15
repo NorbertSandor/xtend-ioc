@@ -341,7 +341,7 @@ class ComponentSuperclassModel
 
 	def Iterable<? extends ComponentReference<? extends Declaration>> getComponentReferences()
 	{
-		((if (superclassModel != null) superclassModel.componentReferences else #[]) + declaredComponentReferences).
+		((if (superclassModel !== null) superclassModel.componentReferences else #[]) + declaredComponentReferences).
 			toList.immutableCopy
 	}
 }
@@ -376,7 +376,7 @@ class ComponentClassModel extends ComponentModel
 
 	override List<? extends ComponentReference<?>> getComponentReferences()
 	{
-		((if (superclassModel != null) superclassModel.componentReferences else #[]) + declaredComponentReferences).
+		((if (superclassModel !== null) superclassModel.componentReferences else #[]) + declaredComponentReferences).
 			toList.immutableCopy
 	}
 

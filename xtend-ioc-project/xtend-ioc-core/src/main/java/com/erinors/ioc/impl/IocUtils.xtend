@@ -172,7 +172,7 @@ package class IocUtils
 //	def static findDeclaredNoargsConstructor(ClassDeclaration classDeclaration, extension Tracability tracability)
 //	{
 //		val constructor = classDeclaration.declaredConstructors.filter[parameters.empty].head
-//		if (constructor != null && constructor.isThePrimaryGeneratedJavaElement)
+//		if (constructor !== null && constructor.isThePrimaryGeneratedJavaElement)
 //			constructor
 //		else
 //			null

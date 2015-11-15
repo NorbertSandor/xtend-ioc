@@ -96,10 +96,10 @@ class ModuleModelBuilder
 
 		val moduleAnnotation = moduleInterface.findAnnotation(Module.findTypeGlobally)
 
-		if (moduleAnnotation != null)
+		if (moduleAnnotation !== null)
 		{
 			val componentClassTypeReferences = moduleAnnotation.getClassArrayValue("components")
-			if (componentClassTypeReferences == null)
+			if (componentClassTypeReferences === null)
 			{
 				throw new CancelOperationException
 			}
@@ -247,7 +247,7 @@ class ModuleModelBuilder
 		componentClassModels.forEach [ ownerComponentModel |
 			allDependencies.forEach [ componentReference |
 				val componentManager = builtinComponentManagers.findFor(moduleBuilderContext, componentReference)
-				if (componentManager != null)
+				if (componentManager !== null)
 				{
 					componentManager.processComponentReference(moduleBuilderContext, ownerComponentModel,
 						componentReference)

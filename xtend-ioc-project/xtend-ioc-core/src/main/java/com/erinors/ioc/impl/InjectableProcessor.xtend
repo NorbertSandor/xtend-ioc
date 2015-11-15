@@ -97,7 +97,7 @@ package class InjectableClassModelBuilder
 				moduleComponentReference.signature)
 		].head
 
-		if (componentReference == null)
+		if (componentReference === null)
 		{
 			throw new IocProcessingException(
 				new ProcessingMessage(
@@ -135,7 +135,7 @@ package class InjectableClassModelBuilder
 			// TODO check: events are not supported
 			val injectedFields = injectableClassDeclaration.findInjectedFields(context).castElements(
 				MutableFieldDeclaration).map [ injectedField |
-				if (injectedField.initializer != null)
+				if (injectedField.initializer !== null)
 				{
 					throw new IocProcessingException(new ProcessingMessage(
 						Severity.ERROR,
@@ -311,7 +311,7 @@ package class InjectableClassCodeGenerator
 				ComponentReference<MethodDeclaration> sourceComponentReference
 			)
 			{
-				if (componentReference != null)
+				if (componentReference !== null)
 					generateProviderConverter(componentReference,
 						sourceComponentReference, '''«moduleInterfaceDeclaration.qualifiedName».Peer.get().«sourceComponentReference.declaration.simpleName»()''',
 						context)

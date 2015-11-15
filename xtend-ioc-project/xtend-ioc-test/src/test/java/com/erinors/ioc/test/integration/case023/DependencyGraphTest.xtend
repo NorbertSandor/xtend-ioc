@@ -85,7 +85,7 @@ class DependencyGraphTest
 			val reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))
 			val lines = newArrayList
 			var String line
-			while ((line = reader.readLine) != null)
+			while ((line = reader.readLine) !== null)
 			{
 				lines.add(line)
 			}

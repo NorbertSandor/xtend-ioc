@@ -192,16 +192,16 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 					)
 				]
 
-				val superclassGeneratedComponentConstructor = if (componentModel.superclassModel != null)
+				val superclassGeneratedComponentConstructor = if (componentModel.superclassModel !== null)
 						findGeneratedComponentConstructor(componentModel.superclassModel.typeReference,
 							context)
 					else
 						null
 
 				body = '''
-					«IF declaredComponentConstructor != null»
+					«IF declaredComponentConstructor !== null»
 						this(«FOR parameter : componentModel.constructorComponentReferences SEPARATOR ", "»«generateProviderConverter(parameter, dependencyParameterNames.get(parameter.signature), context)»«ENDFOR»);
-					«ELSEIF superclassGeneratedComponentConstructor != null»
+					«ELSEIF superclassGeneratedComponentConstructor !== null»
 						super(moduleInstance«IF !componentModel.superclassModel.componentReferences.empty», «ENDIF»«FOR parameter : componentModel.superclassModel.componentReferences SEPARATOR ", "»«dependencyParameterNames.get(parameter.signature)»«ENDFOR»);
 					«ENDIF»
 					this.«MODULE_IMPLEMENTOR_FIELD_NAME» = («ModuleImplementor.newTypeReference»)moduleInstance;
@@ -212,7 +212,7 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 						this.«componentModel.getGeneratedComponentReferenceFieldName(generatedComponentReference)» = «generateProviderConverter(generatedComponentReference, dependencyParameterNames.get(generatedComponentReference.signature), context)»;
 					«ENDFOR»
 					
-					«FOR observerMethod : annotatedClass.declaredMethods.filter[findAnnotation(EventObserver.findTypeGlobally) != null]»
+					«FOR observerMethod : annotatedClass.declaredMethods.filter[findAnnotation(EventObserver.findTypeGlobally) !== null]»
 						«val eventTypeReference = if (observerMethod.parameters.empty) observerMethod.findAnnotation(EventObserver.findTypeGlobally).getClassValue("eventType") else observerMethod.parameters.get(0).type»
 						«val rejectSubtypes = observerMethod.findAnnotation(EventObserver.findTypeGlobally).getBooleanValue("rejectSubtypes")»
 						this.«MODULE_IMPLEMENTOR_FIELD_NAME».getModuleEventBus().registerListener(«generateEventMatcherSourceCode(eventTypeReference, rejectSubtypes, context)», («Procedure1.newTypeReference») new «Procedure1.newTypeReference(eventTypeReference)»() {
@@ -233,7 +233,7 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 			{
 				'''new «EventMatcher.newTypeReference.name»() {
 					public boolean matches(Object event) {
-						return event != null && event.getClass() == «reference.type.qualifiedName».class;
+						return event !== null && event.getClass() == «reference.type.qualifiedName».class;
 					}
 				}'''
 			}
