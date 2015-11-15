@@ -194,6 +194,7 @@ class ProcessorUtils
 		else
 		{
 			// TODO support arrays
+			// TODO raise error on annotations
 			switch (value)
 			{
 				String: '''"«value»"'''
