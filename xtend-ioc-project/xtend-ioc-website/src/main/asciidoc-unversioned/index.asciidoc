@@ -8,7 +8,8 @@ Its main features are
 
 * component instantiation and lifecycle management,
 * dependency injection, and
-* event dispatching between component instances.
+* event dispatching between component instances and
+* aspect-oriented programming using method interceptors.
 
 For more details see
 
@@ -16,6 +17,14 @@ For more details see
 * the https://github.com/NorbertSandor/xtend-ioc[GitHub page].
 
 == History
+
+=== 0.2.0 (2015-11-15)
+
+First implementation of interceptors.
+Upgrade xtend to 2.9.0.rc1.
+Many bug fixes.
+
+Documentation: link:0.2.0/index.html[0.2.0]
 
 === 0.1.0 (2015-11-09)
 

@@ -37,11 +37,11 @@ class ProfiledInvocationHandler implements InterceptorInvocationHandler<Profiled
 		InvocationContext context
 	) {
 		val start = System.currentTimeMillis
-		logger.log("Started profiling")
+		logger.log("test", "Started profiling")
 		try {
 			context.proceed
 		} finally {
-			logger.log('''Elapsed «System.currentTimeMillis-start»ms''')
+			logger.log("test", '''Elapsed «System.currentTimeMillis-start»ms''')
 		}
 	}
 }
@@ -70,10 +70,10 @@ class ProfiledExample {
 		m.someComponent.sleep(300)
 
 		assertTrue(m.logger.buffer.matches('''
-			Started profiling
-			Elapsed 1..ms
-			Started profiling
-			Elapsed 3..ms
+			\[test\] Started profiling
+			\[test\] Elapsed 1..ms
+			\[test\] Started profiling
+			\[test\] Elapsed 3..ms
 		'''))
 	}
 }

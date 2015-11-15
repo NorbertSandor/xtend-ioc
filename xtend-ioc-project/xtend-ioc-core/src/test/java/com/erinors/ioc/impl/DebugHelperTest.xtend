@@ -34,12 +34,14 @@ import com.erinors.ioc.shared.api.ParameterizedQualifier
 import java.lang.annotation.Documented
 import java.lang.annotation.Retention
 import com.erinors.ioc.shared.api.Provider
+import org.junit.Ignore
 
 class DebugHelperTest
 {
 	extension XtendCompilerTester compilerTester = XtendCompilerTester.newXtendCompilerTester(class.classLoader)
 
 	@Test
+	@Ignore
 	def void test()
 	{
 		'''

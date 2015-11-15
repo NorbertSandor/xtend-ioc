@@ -10,9 +10,10 @@
 _xtend-ioc_ is a compile-time inversion of control framework for http://www.eclipse.org/xtend/[Xtend]. +
 Its main features are
 
-* component instantiation and lifecycle management,
-* dependency injection, and
-* event dispatching between component instances.
+* component instantiation and life-cycle management,
+* dependency injection,
+* event dispatching between component instances and
+* aspect-oriented programming using method interceptors.
 
 === Xtend
 
@@ -57,10 +58,10 @@ Note that a simple compile-time <<component-scan, component scanning>> is suppor
 
 == Status
 
-_xtend-ioc_ is in early-access phase. +
-Source code is available on https://github.com/NorbertSandor/xtend-ioc[GitHub], compiled binaries are uploaded to http://search.maven.org/#search|ga|1|a%3A%22xtend-ioc-core%22[Central Repository].
-
+_xtend-ioc_ is in early-access phase, it is not feature-complete yet and is not recommended for production. +
 Although all features and examples presented in this documentation are working (the examples are unit tests indeed), the framework source code still needs some cleanup...
+
+Source code is available on https://github.com/NorbertSandor/xtend-ioc[GitHub], compiled binaries are uploaded to http://search.maven.org/#search|ga|1|a%3A%22xtend-ioc-core%22[Central Repository].
 
 == Usage
 
@@ -747,6 +748,53 @@ include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/d
 <11> `EventObserverComponent` received only `"M"` because it was initialized only after `EventSourceComponent`.
 <12> Fire event `"1"`.
 <13> `EventObserverComponent` received message `"1"`.
+
+[[interceptors]]
+=== Interceptors / Aspect-oriented programming support
+
+An interceptor is a class used to interpose in _component_ method invocations. +
+Interceptors implement cross-cutting tasks, such as logging or auditing, that are separate from the business logic of the _component_.
+
+An interceptor is defined by an _interceptor annotation_ that is an annotation marked with `@Interceptor`. +
+An interceptor can be applied by annotating a method of a _component_ with the _interceptor annotation_.
+
+Let's implement a method entry/exit logger interceptor:
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/interceptor/logged/Example.xtend[tags=Example]
+----
+<1> __Interceptor annotation__s are annotated with `@Interceptor`, specifying the interceptor implementation class, the "interceptor invocation handler" (that is a class implementing `InterceptorInvocationHandler`).
+<2> __Interceptor annotation__s may have attributes, the actual values of these are made available for the invocation handler.
+<3> Interceptor invocation handlers must be __component__s.
+<4> The invocation handler class of `@Logged` must implement `InterceptorInvocationHandler<LoggedInvocationPointConfiguration>`, where the `LoggedInvocationPointConfiguration` is generated automatically.
+<5> Invocation handlers are normal __component__s, they may e.g. inject dependencies.
+<6> The `LoggedInvocationPointConfiguration` gives access to the static properties of the invocation point, like the method name or the actual attribute values of the _interceptor annotation_.
+<7> The `InvocationContext` type gives access to the dynamic properties of the invocation point (like the actual method arguments), and allows calling the original method.
+<8> The actual annotation attribute values are available in the `LoggedInvocationPointConfiguration` class.
+<9> The interceptor can and usually should call the original method...
+<10> ... and return the return value of it.
+<11> A simple logger implementation.
+<12> The `@Logged` interceptor annotation is applied to the method.
+<13> The interceptors invocation handler component is added to a module automatically if an _interceptor annotation_ requires it.
+
+Another example is a simple method profiler:
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/interceptor/profiled/Example.xtend[tags=Example]
+----
+
+A method may have multiple interceptors, the interceptor handlers are called in the order of the interceptor annotations:
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/interceptor/multiple/Example.xtend[tags=Example]
+----
+<1> Method `sleep1()` has interceptors: `@Profiled`, `@Logged`
+<2> Method `sleep2()` has interceptors: `@Logged`, `@Profiled`
+<3> When calling `sleep1()`, invocation order is: `ProfiledInvocationHandler` -> `LoggedInvocationHandler` -> the method itself -> `LoggedInvocationHandler` -> `ProfiledInvocationHandler`
+<4> When calling `sleep2()`, invocation order is: `LoggedInvocationHandler` -> `ProfiledInvocationHandler` -> the method itself -> `ProfiledInvocationHandler` -> `LoggedInvocationHandler`
 
 [[dependency-injection-for-non-components]]
 === Dependency injection for non-components

@@ -23,37 +23,41 @@ import org.junit.Test
 // tag::Example[]
 @Interceptor(LoggedInvocationHandler) // <1>
 annotation Logged {
+	String loggerName = "test" // <2>
 }
 
-@Component // <2>
-class LoggedInvocationHandler implements InterceptorInvocationHandler<LoggedInvocationPointConfiguration> // <3>
+@Component // <3>
+class LoggedInvocationHandler implements InterceptorInvocationHandler<LoggedInvocationPointConfiguration> // <4>
 {
-	@Inject // <4>
+	@Inject // <5>
 	Logger logger
 
 	override handle(
-		LoggedInvocationPointConfiguration invocationPointConfiguration, // <5>
-		InvocationContext context // <6>
+		LoggedInvocationPointConfiguration invocationPointConfiguration, // <6>
+		InvocationContext context // <7>
 	) {
-		logger.log('''>> «invocationPointConfiguration.methodName»(«context.arguments.join(", ")»)''')
+		val loggerName = invocationPointConfiguration.loggerName // <8>
+		logger.log(loggerName, '''>> «invocationPointConfiguration.methodName»(«context.arguments.join(", ")»)''')
 		try {
-			val returned = context.proceed // <7>
-			logger.log('''<< «invocationPointConfiguration.methodName»: «returned»''')
-			return returned // <8>
+			val returned = context.proceed // <9>
+			logger.log(loggerName, '''<< «invocationPointConfiguration.methodName»: «returned»''')
+			return returned // <10>
 		} catch (Exception e) {
-			logger.log('''!! «invocationPointConfiguration.methodName»: «e.message»''')
+			logger.log(loggerName, '''!! «invocationPointConfiguration.methodName»: «e.message»''')
 			throw e
 		}
 	}
 }
 
-@Component // <9>
+@Component // <11>
 class Logger {
 	val buffer = new StringBuilder
 
-	def void log(String message) {
-		buffer.append(message)
-		buffer.append(System.lineSeparator)
+	def void log(String loggerName, String message) {
+		buffer.append(
+		'''
+			[«loggerName»] «message»
+		''')
 	}
 
 	def String getBuffer() {
@@ -63,7 +67,7 @@ class Logger {
 
 @Component
 class SomeComponent {
-	@Logged // <10>
+	@Logged // <12>
 	def int method(int value, boolean fail) {
 		if (fail)
 			throw new IllegalStateException("Failed!")
@@ -72,7 +76,7 @@ class SomeComponent {
 	}
 }
 
-@Module(components=#[SomeComponent, Logger]) // <11>
+@Module(components=#[SomeComponent, Logger]) // <13>
 interface TestModule {
 	def SomeComponent someComponent()
 
@@ -93,10 +97,10 @@ class LoggedExample {
 		}
 
 		assertEquals('''
-			>> method(3, false)
-			<< method: 6
-			>> method(3, true)
-			!! method: Failed!
+			[test] >> method(3, false)
+			[test] << method: 6
+			[test] >> method(3, true)
+			[test] !! method: Failed!
 		'''.toString, m.logger.buffer)
 	}
 }

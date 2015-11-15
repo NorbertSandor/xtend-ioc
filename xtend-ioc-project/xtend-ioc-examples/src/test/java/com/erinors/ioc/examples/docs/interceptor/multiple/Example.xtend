@@ -51,11 +51,12 @@ class MultipleInterceptorsExample {
 		m.someComponent.sleep1(100)
 
 		assertTrue(m.logger.buffer.matches('''
-			Started profiling
-			>> sleep1\(100\)
-			<< sleep1: 
-			Elapsed 1..ms
+			\[test\] Started profiling
+			\[test\] >> sleep1\(100\)
+			\[test\] << sleep1: 
+			\[test\] Elapsed 1..ms
 		''')) // <3>
+		
 		TestModule.Peer.close
 	}
 
@@ -66,11 +67,12 @@ class MultipleInterceptorsExample {
 		m.someComponent.sleep2(100)
 
 		assertTrue(m.logger.buffer.matches('''
-			>> sleep2\(100\)
-			Started profiling
-			Elapsed 1.?.?ms
-			<< sleep2: 
+			\[test\] >> sleep2\(100\)
+			\[test\] Started profiling
+			\[test\] Elapsed 1.?.?ms
+			\[test\] << sleep2: 
 		''')) // <4>
+		
 		TestModule.Peer.close
 	}
 }

@@ -18,12 +18,14 @@ import org.eclipse.xtend.lib.macro.services.Problem.Severity
 import org.junit.Test
 
 import static org.junit.Assert.*
+import org.junit.Ignore
 
 class ComponentClassIsNotTransformedYetTest
 {
 	extension XtendCompilerTester compilerTester = XtendCompilerTester.newXtendCompilerTester(class.classLoader)
 
 	@Test
+	@Ignore
 	def void testBadDeclarationOrder()
 	{
 		compilerTester.compile('''
