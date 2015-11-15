@@ -263,7 +263,7 @@ package class IocUtils
 					)
 				]
 			}
-			else if (!componentType.hasAnnotation(Component.findTypeGlobally))
+			else if (!componentType.isComponentClass)
 			{
 				#[
 					new ProcessingMessage(
@@ -465,11 +465,25 @@ package class IocUtils
 	def static getInterceptorInvocationHandler(AnnotationReference annotationReference)
 	{
 		val result = annotationReference.interceptorMetaAnnotation.getClassValue("value")
-		
-		if (result === null) {
+
+		if (result === null)
+		{
 			throw new CancelOperationException
 		}
-		
+
 		result
+	}
+
+	def static isComponentClass(TypeReference typeReference)
+	{
+		isComponentClass(typeReference.type)
+	}
+
+	def static isComponentClass(Type type)
+	{
+		if (type instanceof ClassDeclaration)
+			type.hasAnnotation(Component.name)
+		else
+			false
 	}
 }

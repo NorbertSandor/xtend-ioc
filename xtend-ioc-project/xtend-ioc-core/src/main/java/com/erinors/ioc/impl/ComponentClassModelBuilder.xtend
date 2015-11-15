@@ -89,7 +89,7 @@ class ComponentClassModelBuilder
 		else
 		{
 			throw new CancelOperationException
-			// TODO incorrect if the component is declared in the same file but after the module
+		// TODO incorrect if the component is declared in the same file but after the module
 //			throw new IocProcessingException(new ProcessingMessage(
 //				Severity.ERROR,
 //				componentClassTypeReference,
@@ -104,12 +104,7 @@ class ComponentClassModelBuilder
 
 		if (componentClassDeclaration instanceof ClassDeclaration)
 		{
-			val componentAnnotation = componentClassDeclaration.findAnnotation(Component.findTypeGlobally)
-			if (componentAnnotation == null)
-			{
-				null
-			}
-			else
+			if (componentClassDeclaration.isComponentClass)
 			{
 				new ComponentSuperclassModel(
 					componentClassTypeReference,
@@ -385,17 +380,16 @@ class ComponentClassModelBuilder
 		)
 	}
 
-	def getComponentClassType(ClassDeclaration componentClassDeclaration)
+	def private getComponentClassType(ClassDeclaration componentClassDeclaration)
 	{
 		val componentAnnotation = componentClassDeclaration.findAnnotation(Component.findTypeGlobally)
-		val type = if (componentAnnotation == null || componentAnnotation.getClassValue("type") == object)
-				componentClassDeclaration.newTypeReference
-			else
-				componentAnnotation.getClassValue("type")
-		type
+		if (componentAnnotation.getClassValue("type") == object)
+			componentClassDeclaration.newTypeReference
+		else
+			componentAnnotation.getClassValue("type")
 	}
 
-	def getComponentClassPriority(ClassDeclaration componentClassDeclaration)
+	def private getComponentClassPriority(ClassDeclaration componentClassDeclaration)
 	{
 		val priorityAnnotation = componentClassDeclaration.findAnnotation(Priority.findTypeGlobally)
 		return if (priorityAnnotation != null) priorityAnnotation.getIntValue("value") else 0

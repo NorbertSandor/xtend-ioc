@@ -22,6 +22,7 @@ import static extension com.erinors.ioc.impl.ProcessorUtils.*
 import com.erinors.ioc.shared.api.Interceptor
 import org.eclipse.xtend.lib.macro.declaration.TypeDeclaration
 import com.erinors.ioc.shared.api.Component
+import static extension com.erinors.ioc.impl.IocUtils.*
 
 @FinalFieldsConstructor
 class InterceptorDefinitionModelBuilder
@@ -33,14 +34,13 @@ class InterceptorDefinitionModelBuilder
 		val interceptorAnnotation = annotationTypeDeclaration.getAnnotation(Interceptor.findTypeGlobally)
 
 		val handlerTypeReference = interceptorAnnotation.getClassValue("value")
-		
+
 		if (handlerTypeReference === null)
 		{
 			throw new CancelOperationException
 		}
-		
-		// TODO must be non-abstract class
-		if (!(handlerTypeReference.type as TypeDeclaration).hasAnnotation(Component.findTypeGlobally))
+
+		if (!handlerTypeReference.isComponentClass)
 		{
 			throw new IocProcessingException(
 				new ProcessingMessage(Severity.ERROR,
