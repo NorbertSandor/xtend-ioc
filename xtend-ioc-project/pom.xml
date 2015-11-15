@@ -4,7 +4,7 @@
 
 	<groupId>com.erinors</groupId>
 	<artifactId>xtend-ioc-project</artifactId>
-	<version>0.3.0-SNAPSHOT</version>
+	<version>0.2.1-SNAPSHOT</version>
 
 	<packaging>pom</packaging>
 
