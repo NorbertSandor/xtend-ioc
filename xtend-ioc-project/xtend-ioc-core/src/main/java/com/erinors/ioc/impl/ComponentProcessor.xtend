@@ -233,7 +233,7 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 			{
 				'''new «EventMatcher.newTypeReference.name»() {
 					public boolean matches(Object event) {
-						return event !== null && event.getClass() == «reference.type.qualifiedName».class;
+						return event != null && event.getClass() == «reference.type.qualifiedName».class;
 					}
 				}'''
 			}
