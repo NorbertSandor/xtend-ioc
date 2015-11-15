@@ -9,7 +9,8 @@
 	</parent>
 
 	<artifactId>xtend-ioc-core</artifactId>
-
+	<version>0.2.1-SNAPSHOT</version>
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.eclipse.xtend</groupId>

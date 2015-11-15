@@ -9,7 +9,8 @@
 	</parent>
 
 	<artifactId>xtend-ioc-test</artifactId>
-
+	<version>0.2.1-SNAPSHOT</version>
+	
 	<dependencies>
 		<dependency>
 			<groupId>com.erinors</groupId>
