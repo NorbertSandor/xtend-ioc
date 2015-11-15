@@ -171,13 +171,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 		}
 	}
 
-	def asHtml(ComponentReference<?> componentReference,
-		int level)
-	{
-		'''<h«level»>«IF componentReference.optional»optional «ENDIF»«IF componentReference.signature.cardinality == CardinalityType.MULTIPLE»list of«ENDIF»«componentReference.signature.componentTypeSignature.asHtml(level+1)»</h«level»>'''
-	}
-
-	def asHtml(ComponentModel componentModel, int level, String componentId)
+	def private asHtml(ComponentModel componentModel, int level, String componentId)
 	{
 		'''<h«level»>''' + switch (componentModel)
 		{
@@ -194,7 +188,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 			'''
 	}
 
-	def asHtml(ComponentTypeSignature componentTypeSignature, int level)
+	def private asHtml(ComponentTypeSignature componentTypeSignature, int level)
 	{
 		'''
 			<div>«componentTypeSignature.typeReference.name»</div>
@@ -202,7 +196,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 		'''
 	}
 
-	def asHtml(Iterable<? extends QualifierModel> qualifiers,
+	def private asHtml(Iterable<? extends QualifierModel> qualifiers,
 		int level)
 	{
 		'''«FOR qualifier : qualifiers BEFORE "<h"+ level +">Qualifiers</h"+level+"><div>" AFTER "</div>"»<pre>«qualifier.asString»</pre>«ENDFOR»'''
@@ -276,7 +270,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 		}
 	}
 
-	def generateGwtEntryPointClass(InterfaceDeclaration moduleInterfaceDeclaration,
+	def private generateGwtEntryPointClass(InterfaceDeclaration moduleInterfaceDeclaration,
 		extension TransformationContext context)
 	{
 		val gwtEntryPointDeclaration = findClass(moduleInterfaceDeclaration.gwtEntryPointClassName)

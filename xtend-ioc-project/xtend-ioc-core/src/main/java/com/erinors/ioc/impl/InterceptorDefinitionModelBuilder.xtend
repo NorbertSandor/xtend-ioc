@@ -11,6 +11,7 @@
  */
 package com.erinors.ioc.impl
 
+import com.erinors.ioc.shared.api.Interceptor
 import com.erinors.ioc.shared.api.MethodReference
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
 import org.eclipse.xtend.lib.macro.TransformationContext
@@ -18,11 +19,8 @@ import org.eclipse.xtend.lib.macro.declaration.AnnotationTypeDeclaration
 import org.eclipse.xtend.lib.macro.declaration.TypeReference
 import org.eclipse.xtend.lib.macro.services.Problem.Severity
 
-import static extension com.erinors.ioc.impl.ProcessorUtils.*
-import com.erinors.ioc.shared.api.Interceptor
-import org.eclipse.xtend.lib.macro.declaration.TypeDeclaration
-import com.erinors.ioc.shared.api.Component
 import static extension com.erinors.ioc.impl.IocUtils.*
+import static extension com.erinors.ioc.impl.ProcessorUtils.*
 
 @FinalFieldsConstructor
 class InterceptorDefinitionModelBuilder

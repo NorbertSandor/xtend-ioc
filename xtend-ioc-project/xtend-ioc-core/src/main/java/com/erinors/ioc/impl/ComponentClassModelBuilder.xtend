@@ -244,7 +244,7 @@ class ComponentClassModelBuilder
 		)
 	}
 
-	def createInterceptedMethod(MethodDeclaration methodDeclaration,
+	def private createInterceptedMethod(MethodDeclaration methodDeclaration,
 		Iterable<? extends AnnotationReference> interceptorAnnotationReferences)
 	{
 		new InterceptedMethod(methodDeclaration, interceptorAnnotationReferences.map [ interceptorAnnotationReference |
