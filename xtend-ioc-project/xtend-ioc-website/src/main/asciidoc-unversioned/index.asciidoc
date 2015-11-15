@@ -18,6 +18,10 @@ For more details see
 
 == History
 
+=== 0.2.1 (2015-11-15)
+
+* Build system improvements.
+
 === 0.2.0 (2015-11-15)
 
 * First implementation of interceptors.
