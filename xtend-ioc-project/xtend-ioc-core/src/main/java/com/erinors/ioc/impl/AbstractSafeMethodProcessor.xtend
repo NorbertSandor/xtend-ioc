@@ -28,6 +28,7 @@ import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableMethodDeclaration
 import org.eclipse.xtend.lib.macro.services.ProblemSupport
+import static extension com.erinors.ioc.impl.ListUtils.*
 
 @FinalFieldsConstructor
 class AbstractSafeMethodProcessor implements RegisterGlobalsParticipant<Declaration>, TransformationParticipant<MutableDeclaration>, CodeGenerationParticipant<Declaration>, ValidationParticipant<Declaration>
@@ -41,35 +42,39 @@ class AbstractSafeMethodProcessor implements RegisterGlobalsParticipant<Declarat
 	override doRegisterGlobals(List<? extends Declaration> annotatedSourceElements,
 		extension RegisterGlobalsContext context)
 	{
-		if (check(annotatedSourceElements, null))
+		val validSourceElements = annotatedSourceElements.removeNullElements
+		if (check(validSourceElements, null))
 		{
-			delegate.doRegisterGlobals(annotatedSourceElements as List<? extends MethodDeclaration>, context)
+			delegate.doRegisterGlobals(validSourceElements as List<? extends MethodDeclaration>, context)
 		}
 	}
 
 	override doTransform(List<? extends MutableDeclaration> annotatedTargetElements,
 		extension TransformationContext context)
 	{
-		if (check(annotatedTargetElements, context))
+		val validTargetElements = annotatedTargetElements.removeNullElements
+		if (check(validTargetElements, context))
 		{
-			delegate.doTransform(annotatedTargetElements as List<? extends MutableMethodDeclaration>, context)
+			delegate.doTransform(validTargetElements as List<? extends MutableMethodDeclaration>, context)
 		}
 	}
 
 	override doGenerateCode(List<? extends Declaration> annotatedSourceElements,
 		extension CodeGenerationContext context)
 	{
-		if (check(annotatedSourceElements, null))
+		val validSourceElements = annotatedSourceElements.removeNullElements
+		if (check(validSourceElements, null))
 		{
-			delegate.doGenerateCode(annotatedSourceElements as List<? extends MethodDeclaration>, context)
+			delegate.doGenerateCode(validSourceElements as List<? extends MethodDeclaration>, context)
 		}
 	}
 
 	override doValidate(List<? extends Declaration> annotatedTargetElements, extension ValidationContext context)
 	{
-		if (check(annotatedTargetElements, null))
+		val validTargetElements = annotatedTargetElements.removeNullElements
+		if (check(validTargetElements, context))
 		{
-			delegate.doValidate(annotatedTargetElements as List<? extends MethodDeclaration>, context)
+			delegate.doValidate(validTargetElements as List<? extends MethodDeclaration>, context)
 		}
 	}
 

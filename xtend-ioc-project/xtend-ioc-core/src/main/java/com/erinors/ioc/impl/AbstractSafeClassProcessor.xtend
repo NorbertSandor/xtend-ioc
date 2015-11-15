@@ -28,6 +28,7 @@ import org.eclipse.xtend.lib.macro.declaration.MutableClassDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableDeclaration
 import org.eclipse.xtend.lib.macro.services.ProblemSupport
 import java.lang.annotation.Annotation
+import static extension com.erinors.ioc.impl.ListUtils.*
 
 @FinalFieldsConstructor
 class AbstractSafeClassProcessor implements RegisterGlobalsParticipant<Declaration>, TransformationParticipant<MutableDeclaration>, CodeGenerationParticipant<Declaration>, ValidationParticipant<Declaration>
@@ -41,35 +42,39 @@ class AbstractSafeClassProcessor implements RegisterGlobalsParticipant<Declarati
 	override doRegisterGlobals(List<? extends Declaration> annotatedSourceElements,
 		extension RegisterGlobalsContext context)
 	{
-		if (check(annotatedSourceElements, null))
+		val validSourceElements = annotatedSourceElements.removeNullElements
+		if (check(validSourceElements, null))
 		{
-			delegate.doRegisterGlobals(annotatedSourceElements as List<? extends ClassDeclaration>, context)
+			delegate.doRegisterGlobals(validSourceElements as List<? extends ClassDeclaration>, context)
 		}
 	}
 
 	override doTransform(List<? extends MutableDeclaration> annotatedTargetElements,
 		extension TransformationContext context)
 	{
-		if (check(annotatedTargetElements, context))
+		val validTargetElements = annotatedTargetElements.removeNullElements
+		if (check(validTargetElements, context))
 		{
-			delegate.doTransform(annotatedTargetElements as List<? extends MutableClassDeclaration>, context)
+			delegate.doTransform(validTargetElements as List<? extends MutableClassDeclaration>, context)
 		}
 	}
 
 	override doGenerateCode(List<? extends Declaration> annotatedSourceElements,
 		extension CodeGenerationContext context)
 	{
-		if (check(annotatedSourceElements, null))
+		val validSourceElements = annotatedSourceElements.removeNullElements
+		if (check(validSourceElements, null))
 		{
-			delegate.doGenerateCode(annotatedSourceElements as List<? extends ClassDeclaration>, context)
+			delegate.doGenerateCode(validSourceElements as List<? extends ClassDeclaration>, context)
 		}
 	}
 
 	override doValidate(List<? extends Declaration> annotatedTargetElements, extension ValidationContext context)
 	{
-		if (check(annotatedTargetElements, null))
+		val validTargetElements = annotatedTargetElements.removeNullElements
+		if (check(validTargetElements, context))
 		{
-			delegate.doValidate(annotatedTargetElements as List<? extends ClassDeclaration>, context)
+			delegate.doValidate(validTargetElements as List<? extends ClassDeclaration>, context)
 		}
 	}
 
