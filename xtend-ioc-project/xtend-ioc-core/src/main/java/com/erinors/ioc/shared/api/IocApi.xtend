@@ -243,6 +243,9 @@ annotation Interceptor
 	Class<? extends InterceptorInvocationHandler> value
 }
 
+/**
+ * Dynamic properties of an interceptor invocation.
+ */
 interface InvocationContext
 {
 	def Object getTarget()

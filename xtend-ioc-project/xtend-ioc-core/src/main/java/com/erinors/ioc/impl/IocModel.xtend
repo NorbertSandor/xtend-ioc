@@ -196,6 +196,7 @@ class DeclaredComponentDependencyReference<T extends Declaration> implements Com
 					'''
 						Component reference resolution error in module: «moduleModel»
 						No component is compatible with: «signature.componentTypeSignature»
+						[E006]
 					'''
 				))
 			}
@@ -209,6 +210,7 @@ class DeclaredComponentDependencyReference<T extends Declaration> implements Com
 					Component reference resolution error in module: «moduleModel»
 					Multiple components are compatible with «signature.componentTypeSignature» but expected only one. 
 					Compatible components: «resolvedComponents»
+					[E007]
 				''' // TODO test if the output is readable
 			))
 		}
@@ -300,7 +302,8 @@ class ComponentProviderModel extends ComponentModel
 			it -> parameterNameToAttributeMap.get(parameterName)
 		].map [ parameterizedQualifierModel |
 			val qualifierModel = typeSignature.qualifiers.findFirst[name == parameterizedQualifierModel.key.name]
-			if (qualifierModel === null)
+			if (qualifierModel ===
+				null)
 			{
 				throw new IllegalStateException('''«typeSignature», «parameterizedQualifierModel», «ownerComponentModel», «providerMethodDeclaration.simpleName»''')
 			}

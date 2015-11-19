@@ -850,11 +850,23 @@ Only classes may be annotated with `@Component`.
 Only classes may be annotated with `@Injectable`.
 
 [E004] Component reference cycle detected: ComponentX -> ... -> ComponentX::
-There is a cycle in the component dependency graph therefore the correct order of component instantiation cannot be resolved.
+There is a cycle in the component dependency graph therefore the correct order of component instantiation cannot be resolved. +
 See the section about the <<component-dependency-graph, component dependency graph>> how this error could be avoided.
 
 [E005] Component class should be non-generic: CLASS::
 Only component classes with not type parameters may be referenced by modules.
+
+[E006] Component reference resolution error in module: X. No component is compatible with: Y::
+The given component reference `Y` cannot be satisfied in module `X`, no compatible component was found. +
+The components contained by the module are documented in the module report and in the javadoc of module interface's translated Java source file.
+
+[E007] Component reference resolution error in module: X. Multiple components are compatible with Y but expected only one. Compatible components: Z::
+The given component reference `Y` can be satisfied in module `X` with multiple components (`Z`) but the component reference expected only one. +
+Consider using a more specific component reference e.g. by
+* adding qualifiers to it
+* using a more specific Java type.
+
+Alternatively use a multi-valued component reference (like `List<ComponentX>`).
 
 ++++
 <script>

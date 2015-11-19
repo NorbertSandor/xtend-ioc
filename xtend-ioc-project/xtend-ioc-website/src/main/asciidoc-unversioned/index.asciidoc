@@ -18,6 +18,11 @@ For more details see
 
 == History
 
+=== 0.3.0
+
+* Upgrade xtend to 2.9.0.rc2.
+* Code cleanup.
+
 === 0.2.1 (2015-11-15)
 
 * Build system improvements.
