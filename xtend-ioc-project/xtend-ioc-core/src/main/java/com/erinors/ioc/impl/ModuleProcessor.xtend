@@ -179,7 +179,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 			ComponentClassModel:
 			'''Component class: «componentModel.classDeclaration.qualifiedName»'''
 			ComponentProviderModel:
-			'''Provider in «componentModel.ownerComponentModel.classDeclaration.qualifiedName»)'''
+			'''Provider in «componentModel.getEnclosingComponentModel.classDeclaration.qualifiedName»)'''
 			EventComponentModel:
 			'''Event of «componentModel.eventTypeReference.name»'''
 			ModuleInstanceComponentModel:
@@ -361,7 +361,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						}
 						ComponentProviderModel:
 						'''
-							return «moduleModel.componentSupplierFieldNames.get(componentModel.ownerComponentModel)».get().«componentModel.providerMethodDeclaration.simpleName»(«FOR parameterDeclaration : componentModel.providerMethodDeclaration.parameters SEPARATOR ", "»«generateQualifierAttributeValueSourceCode(componentModel, parameterDeclaration.simpleName)»«ENDFOR»);
+							return «moduleModel.componentSupplierFieldNames.get(componentModel.getEnclosingComponentModel)».get().«componentModel.providerMethodDeclaration.simpleName»(«FOR parameterDeclaration : componentModel.providerMethodDeclaration.parameters SEPARATOR ", "»«generateQualifierAttributeValueSourceCode(componentModel, parameterDeclaration.simpleName)»«ENDFOR»);
 						'''
 						ModuleInstanceComponentModel:
 						'''

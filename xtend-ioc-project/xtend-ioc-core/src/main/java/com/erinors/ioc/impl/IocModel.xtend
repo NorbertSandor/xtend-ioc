@@ -309,8 +309,7 @@ class ParameterizedQualifierModel
 @Data
 class ComponentProviderModel extends ComponentModel
 {
-	// TODO rename: enclosingComponent
-	ComponentClassModel ownerComponentModel
+	ComponentClassModel enclosingComponentModel
 
 	MethodDeclaration providerMethodDeclaration
 
@@ -318,7 +317,7 @@ class ComponentProviderModel extends ComponentModel
 
 	override getComponentReferences()
 	{
-		#[new ComponentReferenceToOwnerComponent(ownerComponentModel, providerMethodDeclaration)]
+		#[new ComponentReferenceToOwnerComponent(enclosingComponentModel, providerMethodDeclaration)]
 	}
 
 	def getParameterizedQualifierAttributeValue(String parameterName)
@@ -330,7 +329,7 @@ class ComponentProviderModel extends ComponentModel
 			if (qualifierModel ===
 				null)
 			{
-				throw new IllegalStateException('''«typeSignature», «parameterizedQualifierModel», «ownerComponentModel», «providerMethodDeclaration.simpleName»''')
+				throw new IllegalStateException('''«typeSignature», «parameterizedQualifierModel», «enclosingComponentModel», «providerMethodDeclaration.simpleName»''')
 			}
 			qualifierModel.attributes.get(parameterizedQualifierModel.value)
 		].head
