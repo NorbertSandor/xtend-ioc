@@ -61,9 +61,9 @@ package class InjectableClassModelBuilder
 	@Data
 	static class ComponentReferenceInjectionModel<T extends Declaration> extends DeclaredInjectionModel<T>
 	{
-		ComponentReference<?> componentReference
+		ComponentReference componentReference
 
-		ComponentReference<MethodDeclaration> sourceComponentReference
+		DeclaredComponentReference<MethodDeclaration> sourceComponentReference
 	}
 
 	@Data
@@ -93,7 +93,7 @@ package class InjectableClassModelBuilder
 	{
 		// TODO berendezni, hogy a "legközelebbit" adja eredményül (amihez a legkevesebb konverzió kell)
 		val componentReference = moduleModel.explicitModuleDependencies.filter [ moduleComponentReference |
-			createDependencyReference(declaration, typeReference, context).signature.isAssignableFrom(
+			createDeclaredComponentReference(declaration, typeReference, context).signature.isAssignableFrom(
 				moduleComponentReference.signature)
 		].head
 
@@ -147,7 +147,7 @@ package class InjectableClassModelBuilder
 				{
 					injectedField ->
 						new ComponentReferenceInjectionModel(injectedField,
-							createDependencyReference(injectedField, injectedField.type, context),
+							createDeclaredComponentReference(injectedField, injectedField.type, context),
 							findCompatibleExplicitModuleDependency(moduleModel, injectedField, injectedField.type))
 				}
 			].pairsToMap
@@ -200,7 +200,7 @@ package class InjectableClassModelBuilder
 		new ConstructorModel(constructor, constructor.parameters.map [ it |
 			if (allParametersAreInjected || isInjected(context))
 			{
-				new ComponentReferenceInjectionModel(it, createDependencyReference(it, it.type, context),
+				new ComponentReferenceInjectionModel(it, createDeclaredComponentReference(it, it.type, context),
 					findCompatibleExplicitModuleDependency(moduleModel, it, it.type))
 			}
 			else
@@ -218,8 +218,8 @@ package class InjectableClassCodeGenerator
 
 	val extension TransformationContext context
 
-	def private static generateProviderConverter(ComponentReference<?> targetComponentReference,
-		ComponentReference<?> sourceComponentReference, CharSequence sourceReferenceSourceCode,
+	def private static generateProviderConverter(ComponentReference targetComponentReference,
+		ComponentReference sourceComponentReference, CharSequence sourceReferenceSourceCode,
 		TransformationContext context)
 		{
 			switch (targetComponentReference.signature.cardinality)
@@ -250,8 +250,8 @@ package class InjectableClassCodeGenerator
 				}
 			}
 
-			def private static generateSingleProviderConverter(ComponentReference<?> targetComponentReference,
-				ComponentReference<?> sourceComponentReference, CharSequence sourceReferenceSourceCode,
+			def private static generateSingleProviderConverter(ComponentReference targetComponentReference,
+				ComponentReference sourceComponentReference, CharSequence sourceReferenceSourceCode,
 				TransformationContext context)
 			{
 				switch (targetComponentReference.providerType)
@@ -294,8 +294,8 @@ package class InjectableClassCodeGenerator
 			}
 
 			def private static generateMultipleProviderConverter(
-				ComponentReference<?> targetComponentReference,
-				ComponentReference<?> sourceComponentReference,
+				ComponentReference targetComponentReference,
+				ComponentReference sourceComponentReference,
 				CharSequence sourceReferenceSourceCode,
 				TransformationContext context
 			)
@@ -307,8 +307,8 @@ package class InjectableClassCodeGenerator
 
 			def private generateModuleMethodCall(
 				InterfaceDeclaration moduleInterfaceDeclaration,
-				ComponentReference<?> componentReference,
-				ComponentReference<MethodDeclaration> sourceComponentReference
+				ComponentReference componentReference,
+				DeclaredComponentReference<MethodDeclaration> sourceComponentReference
 			)
 			{
 				if (componentReference !== null)

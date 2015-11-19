@@ -72,7 +72,7 @@ class AbstractSafeAnnotationTypeProcessor implements RegisterGlobalsParticipant<
 	override doValidate(List<? extends Declaration> annotatedTargetElements, extension ValidationContext context)
 	{
 		val validTargetElements = annotatedTargetElements.removeNullElements
-		if (check(validTargetElements, context))
+		if (check(validTargetElements, null))
 		{
 			delegate.doValidate(validTargetElements as List<? extends AnnotationTypeDeclaration>, context)
 		}

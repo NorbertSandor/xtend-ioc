@@ -49,12 +49,11 @@ class ComponentClassModelBuilder
 			val methodDeclaration = key
 			val interceptorAnnotations = value
 
-			interceptorAnnotations.map [
-				val handlerTypeReference = interceptorInvocationHandler
-				// FIXME do not process qualifiers and other annotations of the method declaration!!!
-				createDependencyReference(methodDeclaration, handlerTypeReference, context)
+			interceptorAnnotations.map [ interceptorAnnotation |
+				val handlerTypeReference = interceptorAnnotation.interceptorInvocationHandler
+				createGeneratedComponentReference(handlerTypeReference, methodDeclaration, context)
 			]
-		].flatten.toList
+		].flatten.toSet.toList
 	}
 
 	def private findConstructorComponentReferences(TypeReference componentClassTypeReference)
@@ -63,7 +62,8 @@ class ComponentClassModelBuilder
 		if (componentConstructor !== null)
 		{
 			componentConstructor.resolvedParameters.map [ resolvedParameter |
-				createDependencyReference(resolvedParameter.declaration, resolvedParameter.resolvedType, context)
+				createDeclaredComponentReference(resolvedParameter.declaration, resolvedParameter.resolvedType,
+					context)
 			].toList
 		}
 		else
@@ -83,7 +83,7 @@ class ComponentClassModelBuilder
 				val fieldDeclaration = injectedFields.findFirst [
 					simpleName == resolvedParameter.declaration.simpleName
 				]
-				createDependencyReference(fieldDeclaration, resolvedParameter.resolvedType, context)
+				createDeclaredComponentReference(fieldDeclaration, resolvedParameter.resolvedType, context)
 			].toList
 		}
 		else
@@ -177,7 +177,7 @@ class ComponentClassModelBuilder
 	def private findFieldComponentReferences(ClassDeclaration componentClassDeclaration)
 	{
 		componentClassDeclaration.findInjectedFields(context).map [
-			createDependencyReference(it, type, context)
+			createDeclaredComponentReference(it, type, context)
 		].toList.immutableCopy
 	}
 
@@ -198,12 +198,11 @@ class ComponentClassModelBuilder
 			val methodDeclaration = key
 			val interceptorAnnotations = value
 
-			interceptorAnnotations.map [
-				val handlerTypeReference = interceptorInvocationHandler
-				// FIXME do not process qualifiers and other annotations of the method declaration!!!
-				createDependencyReference(methodDeclaration, handlerTypeReference, context)
+			interceptorAnnotations.map [ interceptorAnnotation |
+				val handlerTypeReference = interceptorAnnotation.interceptorInvocationHandler
+				createGeneratedComponentReference(handlerTypeReference, methodDeclaration, context)
 			]
-		].flatten.toList
+		].flatten.toSet.toList
 	}
 
 	def private findConstructorComponentReferences(ClassDeclaration componentClassDeclaration)
@@ -212,7 +211,7 @@ class ComponentClassModelBuilder
 
 		if (declaredComponentConstructor !== null)
 			declaredComponentConstructor.parameters.map [
-				createDependencyReference(it, type, context)
+				createDeclaredComponentReference(it, type, context)
 			].toList.immutableCopy
 		else
 			#[]
@@ -331,8 +330,8 @@ class ComponentClassModelBuilder
 
 			new InterceptorInvocationModel(
 				interceptorDefinitionModel,
-				createDependencyReference(methodDeclaration,
-					interceptorAnnotationReference.interceptorInvocationHandler, context), // FIXME createDependencyReference called with wrong declaration
+				createGeneratedComponentReference(interceptorAnnotationReference.interceptorInvocationHandler,
+					methodDeclaration, context),
 				interceptorArguments
 			)
 		].toList)

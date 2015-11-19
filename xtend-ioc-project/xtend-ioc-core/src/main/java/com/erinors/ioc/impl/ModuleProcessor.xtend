@@ -41,6 +41,7 @@ import org.jgrapht.graph.DefaultEdge
 
 import static extension com.erinors.ioc.impl.IocUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
+import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 
 class ModuleProcessor extends AbstractSafeInterfaceProcessor
 {
@@ -455,7 +456,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 					//
 					moduleModel.staticModuleModel.explicitModuleDependencies.forEach [ componentReference |
 						val interfaceMethodDeclaration = componentReference.declaration
-						val returnType = componentReference.typeReference
+						val returnType = componentReference.declaredTypeReference
 
 						// FIXME use generateComponentReferenceSourceCode()
 						implementationClass.addMethod(
@@ -472,7 +473,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 				}
 
 				def private generateExplicitModuleComponentReferenceSourceCode(ResolvedModuleModel moduleModel,
-					ComponentReference<?> componentReference, TransformationContext context)
+					DeclaredComponentReference<MethodDeclaration> componentReference, TransformationContext context)
 				{
 					val resolvedComponentReference = componentReference.resolve(moduleModel.staticModuleModel)
 					generateConverter(resolvedComponentReference, moduleModel, context, [
@@ -481,7 +482,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 				}
 
 				// TODO jobb nevet
-				def private static generateConverter(ResolvedComponentReference<?> resolvedComponentReference,
+				def private static generateConverter(ResolvedComponentReference resolvedComponentReference,
 					ResolvedModuleModel moduleModel, TransformationContext context,
 					(ComponentModel)=>String componentLookup)
 					{
@@ -502,7 +503,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 							}
 						}
 
-						def private static generateSingleAbsentConverter(ComponentReference<?> componentReference)
+						def private static generateSingleAbsentConverter(ComponentReference componentReference)
 						{
 							switch (componentReference.providerType)
 							{
@@ -515,7 +516,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 							}
 						}
 
-						def private static generateSinglePresentConverter(ComponentReference<?> componentReference,
+						def private static generateSinglePresentConverter(ComponentReference componentReference,
 							ComponentModel componentModel, ResolvedModuleModel moduleModel,
 							TransformationContext context, (ComponentModel)=>String componentLookup)
 						{

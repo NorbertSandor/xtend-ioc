@@ -34,6 +34,7 @@ import org.jgrapht.graph.DefaultEdge
 import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 import static extension com.erinors.ioc.impl.MapUtils.*
 import org.eclipse.xtend.lib.macro.declaration.AnnotationTypeDeclaration
+import org.eclipse.xtend.lib.macro.declaration.Element
 
 // TODO @Optional az Option<>-ön legyen warning, mivel redundáns
 // FIXME @Component nem működik class szintű @Accessors-sal!!!! com.erinors.ioc.examples.docs.events.EventObserver nem fordul, ha @Accessors van a class-on
@@ -144,31 +145,29 @@ class ComponentReferenceSignature
 	}
 }
 
-interface ComponentReference<T extends Declaration>
+interface ComponentReference
 {
 	def ComponentReferenceSignature getSignature()
 
 	def ProviderType getProviderType()
 
-	def boolean isOptional()
-
-	def T getDeclaration()
+	def Element getCompilationProblemTarget()
 
 	def TypeReference getTypeReference()
 
-	def ResolvedComponentReference<T> resolve(StaticModuleModel moduleModel)
+	def ResolvedComponentReference resolve(StaticModuleModel moduleModel)
 }
 
 @Data
-class ResolvedComponentReference<T extends Declaration>
+class ResolvedComponentReference
 {
-	ComponentReference<T> componentReference
+	ComponentReference componentReference
 
 	List<? extends ComponentModel> resolvedComponents
 }
 
 @Data
-class DeclaredComponentDependencyReference<T extends Declaration> implements ComponentReference<T>
+abstract class AbstractComponentDependencyReference implements ComponentReference
 {
 	ComponentReferenceSignature signature
 
@@ -176,12 +175,8 @@ class DeclaredComponentDependencyReference<T extends Declaration> implements Com
 
 	boolean optional
 
-	T declaration
-
-	TypeReference typeReference
-
 	@Cached
-	override ResolvedComponentReference<T> resolve(StaticModuleModel moduleModel)
+	override ResolvedComponentReference resolve(StaticModuleModel moduleModel)
 	{
 		val resolvedComponents = signature.resolve(moduleModel)
 
@@ -191,7 +186,7 @@ class DeclaredComponentDependencyReference<T extends Declaration> implements Com
 			{
 				throw new IocProcessingException(new ProcessingMessage(
 					Severity.ERROR,
-					declaration,
+					compilationProblemTarget,
 					'''
 						Component reference resolution error in module: «moduleModel»
 						No component is compatible with: «signature.componentTypeSignature»
@@ -204,7 +199,7 @@ class DeclaredComponentDependencyReference<T extends Declaration> implements Com
 		{
 			throw new IocProcessingException(new ProcessingMessage(
 				Severity.ERROR,
-				declaration,
+				compilationProblemTarget,
 				'''
 					Component reference resolution error in module: «moduleModel»
 					Multiple components are compatible with «signature.componentTypeSignature» but expected only one. 
@@ -218,12 +213,48 @@ class DeclaredComponentDependencyReference<T extends Declaration> implements Com
 	}
 }
 
+@Accessors
+class GeneratedComponentReference extends AbstractComponentDependencyReference
+{
+	val Element compilationProblemTarget
+
+	new(TypeReference targetTypeReference, Element compilationProblemTarget)
+	{
+		super(new ComponentReferenceSignature(new ComponentTypeSignature(targetTypeReference, #{}),
+			CardinalityType.SINGLE), ProviderType.DIRECT, false)
+		this.compilationProblemTarget = compilationProblemTarget
+	}
+
+	override getTypeReference()
+	{
+		signature.componentTypeSignature.typeReference
+	}
+}
+
 @Data
-class ComponentReferenceToOwnerComponent<T extends Declaration> implements ComponentReference<T>
+class DeclaredComponentReference<T extends Declaration> extends AbstractComponentDependencyReference
+{
+	T declaration
+
+	TypeReference declaredTypeReference
+
+	override getCompilationProblemTarget()
+	{
+		declaration
+	}
+
+	override getTypeReference()
+	{
+		declaredTypeReference
+	}
+}
+
+@Data
+class ComponentReferenceToOwnerComponent implements ComponentReference
 {
 	ComponentModel ownerComponent
 
-	T providerMethodDeclaration
+	MethodDeclaration providerMethodDeclaration
 
 	override getSignature()
 	{
@@ -235,12 +266,7 @@ class ComponentReferenceToOwnerComponent<T extends Declaration> implements Compo
 		ProviderType.DIRECT
 	}
 
-	override isOptional()
-	{
-		false
-	}
-
-	override getDeclaration()
+	override getCompilationProblemTarget()
 	{
 		providerMethodDeclaration
 	}
@@ -251,7 +277,7 @@ class ComponentReferenceToOwnerComponent<T extends Declaration> implements Compo
 	}
 
 	@Cached
-	override ResolvedComponentReference<T> resolve(StaticModuleModel moduleModel)
+	override ResolvedComponentReference resolve(StaticModuleModel moduleModel)
 	{
 		new ResolvedComponentReference(this, #[ownerComponent])
 	}
@@ -269,7 +295,7 @@ abstract class ComponentModel implements HasPriority
 	/**
 	 * All component references.
 	 */
-	abstract def List<? extends ComponentReference<?>> getComponentReferences()
+	abstract def List<? extends ComponentReference> getComponentReferences()
 }
 
 @Data
@@ -318,9 +344,10 @@ class ComponentClassConstructorModel
 
 	boolean constructorReceivesModuleInstance
 
-	List<? extends ComponentReference<ParameterDeclaration>> injectedConstructorParameters
+	List<? extends DeclaredComponentReference<ParameterDeclaration>> injectedConstructorParameters
 }
 
+// TODO handle common fields with ComponentClassModel
 @Data
 class ComponentSuperclassModel
 {
@@ -328,11 +355,11 @@ class ComponentSuperclassModel
 
 	ComponentSuperclassModel superclassModel
 
-	List<? extends ComponentReference<? extends FieldDeclaration>> fieldComponentReferences
+	List<? extends DeclaredComponentReference<? extends FieldDeclaration>> fieldComponentReferences
 
-	List<? extends ComponentReference<? extends ParameterDeclaration>> constructorComponentReferences
+	List<? extends DeclaredComponentReference<? extends ParameterDeclaration>> constructorComponentReferences
 
-	List<? extends ComponentReference<? extends Declaration>> generatedComponentReferences
+	List<? extends GeneratedComponentReference> generatedComponentReferences
 
 	List<? extends InterceptedMethod> interceptedMethods
 
@@ -341,7 +368,7 @@ class ComponentSuperclassModel
 		(fieldComponentReferences + constructorComponentReferences + generatedComponentReferences)
 	}
 
-	def Iterable<? extends ComponentReference<? extends Declaration>> getComponentReferences()
+	def Iterable<? extends ComponentReference> getComponentReferences()
 	{
 		((if (superclassModel !== null) superclassModel.componentReferences else #[]) + declaredComponentReferences).
 			toList.immutableCopy
@@ -357,11 +384,11 @@ class ComponentClassModel extends ComponentModel
 
 	ConstructorDeclaration componentConstructor
 
-	List<? extends ComponentReference<? extends FieldDeclaration>> fieldComponentReferences
+	List<? extends DeclaredComponentReference<? extends FieldDeclaration>> fieldComponentReferences
 
-	List<? extends ComponentReference<? extends ParameterDeclaration>> constructorComponentReferences
+	List<? extends DeclaredComponentReference<? extends ParameterDeclaration>> constructorComponentReferences
 
-	List<? extends ComponentReference<? extends Declaration>> generatedComponentReferences
+	List<? extends GeneratedComponentReference> generatedComponentReferences
 
 	List<? extends MethodDeclaration> postConstructMethods
 
@@ -376,7 +403,7 @@ class ComponentClassModel extends ComponentModel
 		(fieldComponentReferences + constructorComponentReferences + generatedComponentReferences)
 	}
 
-	override List<? extends ComponentReference<?>> getComponentReferences()
+	override List<? extends ComponentReference> getComponentReferences()
 	{
 		((if (superclassModel !== null) superclassModel.componentReferences else #[]) + declaredComponentReferences).
 			toList.immutableCopy
@@ -388,7 +415,7 @@ class ComponentClassModel extends ComponentModel
 	}
 
 	def String getGeneratedComponentReferenceFieldName(
-		ComponentReference<? extends Declaration> generatedComponentReference)
+		GeneratedComponentReference generatedComponentReference)
 	{
 		if (!generatedComponentReferences.contains(generatedComponentReference))
 		{
@@ -415,7 +442,7 @@ class StaticModuleModel
 
 	Set<? extends ComponentModel> components
 
-	Set<? extends ComponentReference<MethodDeclaration>> explicitModuleDependencies
+	Set<? extends DeclaredComponentReference<MethodDeclaration>> explicitModuleDependencies
 
 	/**
 	 * Module resolution involves the resolution of all component references.
@@ -697,7 +724,7 @@ class MethodReferenceInterceptorParameterType implements InterceptorParameterTyp
 	{
 		InterceptorDefinitionModel definitionModel
 
-		ComponentReference<? extends Declaration> invocationHandlerReference
+		GeneratedComponentReference invocationHandlerReference
 
 		List<? extends InterceptorArgumentModel<?>> arguments
 	}

@@ -15,6 +15,7 @@ package com.erinors.ioc.impl
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.ComponentLifecycleManager
 import com.erinors.ioc.shared.api.Inject
+import com.erinors.ioc.shared.api.Interceptor
 import com.erinors.ioc.shared.api.NotRequired
 import com.erinors.ioc.shared.api.Qualifier
 import com.erinors.ioc.shared.api.Scope
@@ -36,8 +37,10 @@ import org.eclipse.xtend.lib.macro.declaration.AnnotationReference
 import org.eclipse.xtend.lib.macro.declaration.AnnotationTarget
 import org.eclipse.xtend.lib.macro.declaration.ClassDeclaration
 import org.eclipse.xtend.lib.macro.declaration.Declaration
+import org.eclipse.xtend.lib.macro.declaration.Element
 import org.eclipse.xtend.lib.macro.declaration.EnumerationValueDeclaration
 import org.eclipse.xtend.lib.macro.declaration.InterfaceDeclaration
+import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 import org.eclipse.xtend.lib.macro.declaration.Type
 import org.eclipse.xtend.lib.macro.declaration.TypeReference
 import org.eclipse.xtend.lib.macro.services.GlobalTypeLookup
@@ -46,8 +49,6 @@ import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 
 import static extension com.erinors.ioc.impl.MapUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
-import com.erinors.ioc.shared.api.Interceptor
-import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 
 @FinalFieldsConstructor
 class IocProcessingContext
@@ -81,7 +82,7 @@ package class IocUtils
 	def static String moduleImplementationClassName(Type moduleInterfaceType)
 	'''«moduleInterfaceType.qualifiedName»Implementation'''
 
-	def static TypeReference getProviderTypeReference(ComponentReference<?> componentReference,
+	def static TypeReference getProviderTypeReference(ComponentReference componentReference,
 		extension TypeReferenceProvider context)
 	{
 		getProviderTypeReference(componentReference.providerType,
@@ -296,10 +297,19 @@ package class IocUtils
 		}
 	}
 
+	def static GeneratedComponentReference createGeneratedComponentReference(
+		TypeReference targetTypeReference, Element compilationProblemTarget, extension TransformationContext context)
+	{
+		new GeneratedComponentReference(targetTypeReference, compilationProblemTarget)
+	}
+
 	// TODO rename
-	def static <T extends Declaration> DeclaredComponentDependencyReference<T> createDependencyReference(
+	// TODO rename params
+	def static <T extends Declaration> DeclaredComponentReference<T> createDeclaredComponentReference(
 		T dependencyReferenceDeclaration, TypeReference targetTypeReference, extension TransformationContext context)
 	{
+		val compilationProblemTarget = dependencyReferenceDeclaration
+
 		val isIterable = Iterable.newTypeReference.isAssignableFrom(targetTypeReference)
 
 		if (isIterable)
@@ -322,8 +332,8 @@ package class IocUtils
 					new ProcessingMessage(
 						Severity.
 							ERROR,
-						dependencyReferenceDeclaration,
-						'''Collections of dependencies can be referenced only by Iterable, Collection and List types, «targetTypeReference» is not supported.'''
+						compilationProblemTarget,
+						'''Collections of dependencies can be referenced only by Iterable, Collection and List types, «targetTypeReference.toDisplayName» is not supported.'''
 					)
 				)
 			}
@@ -334,7 +344,7 @@ package class IocUtils
 					new ProcessingMessage(
 						Severity.
 							ERROR,
-						dependencyReferenceDeclaration,
+						compilationProblemTarget,
 						'''Raw collections of dependencies are not supported, add a type argument to «dependencyReferenceDeclaration.asString».'''
 					)
 				)
@@ -346,7 +356,7 @@ package class IocUtils
 			throw new IocProcessingException(
 				new ProcessingMessage(
 					Severity.ERROR,
-					dependencyReferenceDeclaration,
+					compilationProblemTarget,
 					'''Maps of dependencies are not supported: «dependencyReferenceDeclaration.asString»'''
 				)
 			)
@@ -365,7 +375,7 @@ package class IocUtils
 				new ProcessingMessage(
 					Severity.
 						ERROR,
-					dependencyReferenceDeclaration,
+					compilationProblemTarget,
 					'''Collection of Optionals is not supported, use Supplier instead of Optional at «dependencyReferenceDeclaration.asString».'''
 				)
 			)
@@ -386,7 +396,7 @@ package class IocUtils
 					new ProcessingMessage(
 						Severity.
 							ERROR,
-						dependencyReferenceDeclaration,
+						compilationProblemTarget,
 						'''Raw Suppliers are not supported, add a type argument to «dependencyReferenceDeclaration.asString».'''
 					)
 				)
@@ -413,7 +423,7 @@ package class IocUtils
 
 		val qualifiers = findQualifiers(dependencyReferenceDeclaration, context)
 
-		new DeclaredComponentDependencyReference(new ComponentReferenceSignature(
+		new DeclaredComponentReference(new ComponentReferenceSignature(
 			new ComponentTypeSignature(typeReference, qualifiers),
 			cardinalityType
 		), providerType, optional, dependencyReferenceDeclaration, targetTypeReference)
@@ -486,7 +496,7 @@ package class IocUtils
 		else
 			false
 	}
-	
+
 	static def handleExceptions(Exception e, extension TransformationContext context, Declaration defaultDeclaration)
 	{
 		switch (e)

@@ -25,7 +25,6 @@ import java.lang.annotation.Target
 import java.util.List
 import org.eclipse.xtend.lib.macro.AbstractClassProcessor
 import org.eclipse.xtend.lib.macro.TransformationContext
-import org.eclipse.xtend.lib.macro.declaration.FieldDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableClassDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableConstructorDeclaration
 import org.eclipse.xtend.lib.macro.declaration.TypeReference
@@ -81,8 +80,9 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 			componentClassDeclaration.addMethod(componentClassDeclaration.generateRandomMethodName, [
 				visibility = Visibility.PRIVATE
 				addAnnotation(InjectedFieldsSignatureMethod.newAnnotationReference)
-				componentModel.declaredComponentReferences.filter[declaration instanceof FieldDeclaration].forEach [ fieldComponentReference, index |
-					addParameter(fieldComponentReference.declaration.simpleName, fieldComponentReference.typeReference)
+				// TODO change filter() to better solution
+				componentModel.fieldComponentReferences.forEach [ fieldComponentReference, index |
+					addParameter(fieldComponentReference.declaration.simpleName, fieldComponentReference.declaredTypeReference)
 				]
 
 				body = '''throw new «UnsupportedOperationException.newTypeReference»();'''
@@ -124,7 +124,7 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 		].head
 	}
 
-	def private static generateProviderConverter(ComponentReference<?> componentReference, String inputSourceCode,
+	def private static generateProviderConverter(ComponentReference componentReference, String inputSourceCode,
 		TransformationContext context)
 	{
 		switch (componentReference.signature.cardinality)
@@ -136,7 +136,7 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 		}
 	}
 
-	def private static generateSingleProviderConverter(ComponentReference<?> componentReference, String inputSourceCode,
+	def private static generateSingleProviderConverter(ComponentReference componentReference, String inputSourceCode,
 		TransformationContext context)
 	{
 		switch (componentReference.providerType)
@@ -150,7 +150,7 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 		}
 	}
 
-	def private static generateMultipleProviderConverter(ComponentReference<?> componentReference,
+	def private static generateMultipleProviderConverter(ComponentReference componentReference,
 		String inputSourceCode,
 		extension TransformationContext context)
 		{

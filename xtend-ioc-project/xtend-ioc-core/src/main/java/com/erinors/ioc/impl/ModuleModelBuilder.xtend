@@ -32,6 +32,7 @@ import org.eclipse.xtend.lib.macro.services.Problem.Severity
 
 import static extension com.erinors.ioc.impl.IocUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
+import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 
 // TODO module interface ne lehessen generikus
 class ModuleModelBuilder
@@ -196,7 +197,7 @@ class ModuleModelBuilder
 		].map [
 			declaredResolvedMethods
 		].flatten.map [ interfaceMethod |
-			createDependencyReference(interfaceMethod.declaration, interfaceMethod.resolvedReturnType, context)
+			com.erinors.ioc.impl.IocUtils.createDeclaredComponentReference(interfaceMethod.declaration, interfaceMethod.resolvedReturnType, context)
 		].toSet
 	}
 
@@ -205,7 +206,7 @@ class ModuleModelBuilder
 	 */
 	def private processModule(InterfaceDeclaration moduleInterface,
 		Set<? extends ComponentClassModel> componentClassModels, // TODO rename
-		Set<? extends ComponentReference<?>> moduleDependencies)
+		Set<? extends DeclaredComponentReference<MethodDeclaration>> moduleDependencies)
 	{
 		val allDependencies = (componentClassModels.map[componentReferences].flatten + moduleDependencies).toSet
 

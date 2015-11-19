@@ -13,6 +13,7 @@ package com.erinors.ioc.impl
 
 import com.erinors.ioc.impl.ModuleModelBuilder.ModuleModelBuilderContext
 import com.erinors.ioc.shared.api.Event
+import com.erinors.ioc.shared.api.InterceptorInvocationHandler
 import com.erinors.ioc.shared.api.PriorityConstants
 import com.erinors.ioc.shared.impl.ModuleInstance
 import com.erinors.ioc.shared.impl.SingletonComponentLifecycleManager
@@ -21,9 +22,6 @@ import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
 import org.eclipse.xtend.lib.macro.TransformationContext
 import org.eclipse.xtend.lib.macro.declaration.ClassDeclaration
 import org.eclipse.xtend.lib.macro.services.Problem.Severity
-import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
-
-import static extension com.erinors.ioc.impl.IocUtils.*
 
 class BuiltinComponentManagers
 {
@@ -40,7 +38,7 @@ class BuiltinComponentManagers
 			new InterceptorHandlerComponentManager(context)]
 	}
 
-	def findFor(ModuleModelBuilderContext context, ComponentReference<?> componentReference)
+	def findFor(ModuleModelBuilderContext context, ComponentReference componentReference)
 	{
 		val filteredComponentManagers = componentManagers.filter[supports(context, componentReference)]
 		switch (filteredComponentManagers.size)
@@ -59,10 +57,10 @@ class BuiltinComponentManagers
 
 interface ComponentManager
 {
-	def boolean supports(ModuleModelBuilderContext context, ComponentReference<?> componentReference)
+	def boolean supports(ModuleModelBuilderContext context, ComponentReference componentReference)
 
 	def void processComponentReference(ModuleModelBuilderContext context, ComponentClassModel componentModel,
-		ComponentReference<?> reference)
+		ComponentReference componentReference)
 }
 
 @FinalFieldsConstructor
@@ -70,27 +68,19 @@ class InterceptorHandlerComponentManager implements ComponentManager
 {
 	val extension TransformationContext context
 
-	override supports(ModuleModelBuilderContext context, ComponentReference<?> componentReference)
+	override supports(ModuleModelBuilderContext moduleModelBuilderContext, ComponentReference componentReference)
 	{
-		// TODO skip provider methods
-		val declaration = componentReference.declaration
-		declaration instanceof MethodDeclaration && (declaration as MethodDeclaration).hasInterceptorAnnotation
+		// TODO correct?
+		InterceptorInvocationHandler.findTypeGlobally.isAssignableFrom(componentReference.signature.componentTypeSignature.typeReference.type)
 	}
 
 	override processComponentReference(ModuleModelBuilderContext context, ComponentClassModel componentModel,
-		ComponentReference<?> reference)
+		ComponentReference componentReference)
 	{
-		// FIXME másképp, valszeg külön ComponentReference subclass-szal
-		val interceptorInvocationHandlerTypeReference = (reference.declaration as MethodDeclaration).annotations.filter [
-			isInterceptorAnnotation
-		].findFirst [
-			interceptorInvocationHandler == reference.typeReference
-		]?.interceptorInvocationHandler
-
-		if (interceptorInvocationHandlerTypeReference !== null)
+		// TODO correct?
+		if (!context.exists(componentReference.signature.componentTypeSignature))
 		{
-			// TODO check
-			context.addComponentClass(interceptorInvocationHandlerTypeReference)
+			context.addComponentClass(componentReference.signature.componentTypeSignature.typeReference)
 		}
 	}
 }
@@ -109,20 +99,20 @@ class ModuleInstanceComponentManager implements ComponentManager
 {
 	val extension TransformationContext context
 
-	override supports(ModuleModelBuilderContext context, ComponentReference<?> componentReference)
+	override supports(ModuleModelBuilderContext context, ComponentReference componentReference)
 	{
 		ModuleInstance.newTypeReference.isAssignableFrom(
 			componentReference.signature.componentTypeSignature.typeReference)
 	}
 
 	override processComponentReference(ModuleModelBuilderContext context, ComponentClassModel componentModel,
-		ComponentReference<?> reference)
+		ComponentReference componentReference)
 	{
 		// TODO ellenőrzés: components should not implement ModuleInstance
-		if (!context.exists(reference.signature.componentTypeSignature))
+		if (!context.exists(componentReference.signature.componentTypeSignature))
 		{
 			context.addComponentModel(
-				new ModuleInstanceComponentModel(reference.signature.componentTypeSignature,
+				new ModuleInstanceComponentModel(componentReference.signature.componentTypeSignature,
 					SingletonComponentLifecycleManager.findTypeGlobally as ClassDeclaration,
 					PriorityConstants.MAX_PRIORITY))
 			}
@@ -148,7 +138,7 @@ class ModuleInstanceComponentManager implements ComponentManager
 	{
 		val extension TransformationContext context
 
-		override supports(ModuleModelBuilderContext context, ComponentReference<?> componentReference)
+		override supports(ModuleModelBuilderContext context, ComponentReference componentReference)
 		{
 			// TODO ne lehessen megadni scope-ot
 			// TODO ne lehessen wildcard
@@ -159,13 +149,13 @@ class ModuleInstanceComponentManager implements ComponentManager
 				{
 					throw new IocProcessingException(
 						new ProcessingMessage(Severity.ERROR,
-							componentReference.declaration, '''Collections of «Event.simpleName»s is not supported.'''))
+							componentReference.compilationProblemTarget, '''Collections of «Event.simpleName»s is not supported.'''))
 				}
 				else if (componentReference.providerType != ProviderType.DIRECT)
 				{
 					throw new IocProcessingException(
 						new ProcessingMessage(Severity.ERROR, componentReference.
-							declaration, '''Indirect «Event.simpleName» reference is not supported.'''))
+							compilationProblemTarget, '''Indirect «Event.simpleName» reference is not supported.'''))
 				}
 				else
 				{
@@ -179,12 +169,12 @@ class ModuleInstanceComponentManager implements ComponentManager
 		}
 
 		override processComponentReference(ModuleModelBuilderContext context, ComponentClassModel componentModel,
-			ComponentReference<?> reference)
+			ComponentReference componentReference)
 		{
-			if (!context.exists(reference.signature.componentTypeSignature))
+			if (!context.exists(componentReference.signature.componentTypeSignature))
 			{
 				context.addComponentModel(
-					new EventComponentModel(reference.signature.componentTypeSignature,
+					new EventComponentModel(componentReference.signature.componentTypeSignature,
 						SingletonComponentLifecycleManager.findTypeGlobally as ClassDeclaration,
 						PriorityConstants.MAX_PRIORITY))
 				}
