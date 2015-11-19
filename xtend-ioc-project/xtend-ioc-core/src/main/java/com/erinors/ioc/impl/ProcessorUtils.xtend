@@ -120,40 +120,6 @@ class ProcessorUtils
 		}
 	}
 
-	// TODO nem jó helyen
-	static def handleExceptions(Exception e, extension TransformationContext context, Declaration defaultDeclaration)
-	{
-		switch (e)
-		{
-			IocProcessingException:
-			{
-				processMessages(e.messages, defaultDeclaration, context)
-			}
-			CancelOperationException:
-			{
-				// Ignore exception
-			}
-			default:
-				throw new IllegalStateException('''Internal xtend-ioc error: «e.message»''', e)
-		}
-	}
-
-	// TODO nem jó helyen
-	def static processMessages(Iterable<? extends ProcessingMessage> messages, Declaration defaultDeclaration,
-		extension TransformationContext context)
-	{
-		messages.forEach [
-			try
-			{
-				addError(if (element !== null) element else defaultDeclaration, message)
-			}
-			catch (Exception e1)
-			{
-				addError(defaultDeclaration, '''Error at «element.toDisplayName». «message»''')
-			}
-		]
-	}
-
 	def static hasSuperclass(TypeReference typeReference)
 	{
 		typeReference.superclass !== null && typeReference.superclass.name != Object.name
@@ -185,8 +151,9 @@ class ProcessorUtils
 
 		return randomName
 	}
-	
-	def static valueToSourceCode(Object value) {
+
+	def static valueToSourceCode(Object value)
+	{
 		if (value === null)
 		{
 			"null"
@@ -197,12 +164,22 @@ class ProcessorUtils
 			// TODO raise error on annotations
 			switch (value)
 			{
-				String: '''"«value»"'''
-				Number: value.toString
-				EnumerationValueDeclaration: '''«value.declaringType.qualifiedName».«value.simpleName»'''
-				TypeReference: value.name
-				default: throw new AssertionError('''Unsupported value: «value»''')
+				String:
+				'''"«value»"'''
+				Number:
+					value.toString
+				EnumerationValueDeclaration:
+				'''«value.declaringType.qualifiedName».«value.simpleName»'''
+				TypeReference:
+					value.name
+				default:
+					throw new AssertionError('''Unsupported value: «value»''')
 			}
 		}
+	}
+
+	def static hasSuperclass(ClassDeclaration classDeclaration)
+	{
+		classDeclaration.extendedClass !== null && classDeclaration.extendedClass.type.qualifiedName != Object.name
 	}
 }

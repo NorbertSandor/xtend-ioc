@@ -87,7 +87,6 @@ enum CardinalityType
 	MULTIPLE
 }
 
-// TODO all references should be named "componentTypeSignature" or similar
 @Data
 class ComponentTypeSignature
 {
@@ -460,7 +459,6 @@ class StaticModuleModel
 	'''«moduleInterfaceDeclaration.qualifiedName»'''
 }
 
-// TODO átalakítani, hogy @Data legyen, és kell egy másik külön class a plusz adatoknak, amire erre hivatkozik
 @Data
 class ResolvedModuleModel
 {

@@ -33,6 +33,7 @@ import org.eclipse.xtend.lib.macro.declaration.Visibility
 import org.eclipse.xtext.xbase.lib.Procedures.Procedure1
 
 import static com.erinors.ioc.impl.InterceptorUtils.*
+import static com.erinors.ioc.impl.IocUtils.*
 
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
 
@@ -104,7 +105,8 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 					interceptedMethod.methodDeclaration.simpleName, interceptedMethod.methodDeclaration.parameters.map [
 						type
 					])
-				transformMethod(componentModel, annotatedMutableMethod, interceptedMethod.interceptorInvocations, context)
+				transformMethod(componentModel, annotatedMutableMethod, interceptedMethod.interceptorInvocations,
+					context)
 			]
 		}
 		catch (Exception e)

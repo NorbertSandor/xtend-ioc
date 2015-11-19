@@ -379,7 +379,7 @@ package class InjectableClassCodeGenerator
 					}
 					catch (Exception e)
 					{
-						ProcessorUtils.handleExceptions(e, context, annotatedClass)
+						handleExceptions(e, context, annotatedClass)
 					}
 				}
 			}

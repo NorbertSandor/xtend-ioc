@@ -486,4 +486,36 @@ package class IocUtils
 		else
 			false
 	}
+	
+	static def handleExceptions(Exception e, extension TransformationContext context, Declaration defaultDeclaration)
+	{
+		switch (e)
+		{
+			IocProcessingException:
+			{
+				processMessages(e.messages, defaultDeclaration, context)
+			}
+			CancelOperationException:
+			{
+				// Ignore exception
+			}
+			default:
+				throw new IllegalStateException('''Internal xtend-ioc error: «e.message»''', e)
+		}
+	}
+
+	def static processMessages(Iterable<? extends ProcessingMessage> messages, Declaration defaultDeclaration,
+		extension TransformationContext context)
+	{
+		messages.forEach [
+			try
+			{
+				addError(if (element !== null) element else defaultDeclaration, message)
+			}
+			catch (Exception e1)
+			{
+				addError(defaultDeclaration, '''Error at «element.toDisplayName». «message»''')
+			}
+		]
+	}
 }

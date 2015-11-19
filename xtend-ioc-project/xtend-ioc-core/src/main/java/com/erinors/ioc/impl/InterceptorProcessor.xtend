@@ -22,6 +22,8 @@ import org.eclipse.xtend.lib.macro.declaration.AnnotationTypeDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableAnnotationTypeDeclaration
 import org.eclipse.xtend.lib.macro.declaration.Visibility
 
+import static com.erinors.ioc.impl.IocUtils.*
+
 class InterceptorProcessor<T extends Annotation> extends AbstractSafeAnnotationTypeProcessor
 {
 	new()
@@ -64,7 +66,7 @@ package class InterceptorProcessorImplementation<T extends Annotation> extends A
 			// constructorUtils.addFinalFieldsConstructor(generatedClass)
 			generatedClass.addConstructor [ constructor |
 				constructor.addParameter("methodName", string)
-				
+
 				interceptorDefinitionModel.parameters.forEach [ interceptorParameter |
 					constructor.addParameter(interceptorParameter.name, interceptorParameter.type.getApiType(context))
 				]
@@ -78,7 +80,7 @@ package class InterceptorProcessorImplementation<T extends Annotation> extends A
 		}
 		catch (Exception e)
 		{
-			ProcessorUtils.handleExceptions(e, context, annotatedAnnotationType)
+			handleExceptions(e, context, annotatedAnnotationType)
 		}
 	}
 }

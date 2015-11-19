@@ -406,11 +406,5 @@ class ComponentClassModelBuilder
 			hasAnnotation(PreDestroy.findTypeGlobally)
 		].toList
 	}
-
-	// TODO nincsenek jó helyen
-	private def hasSuperclass(ClassDeclaration classDeclaration)
-	{
-		classDeclaration.extendedClass !== null && classDeclaration.extendedClass != object
-	}
 }
 // TODO mi van, ha a komponens és a superclass-a is bele van rakva a modulba

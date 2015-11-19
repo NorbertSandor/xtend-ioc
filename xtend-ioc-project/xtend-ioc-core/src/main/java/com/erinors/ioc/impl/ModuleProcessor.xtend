@@ -350,7 +350,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						{
 							'''
 								«componentModel.classDeclaration.qualifiedName» o = new «componentModel.classDeclaration.qualifiedName»(«moduleImplementationClass.simpleName».this«FOR componentReferenceSignature : componentModel.constructorParameters BEFORE ", " SEPARATOR ", "»
-																																																							«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
+																																																									«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
 								«ENDFOR»);
 								«FOR postConstructMethod : componentModel.postConstructMethods»
 									o.«postConstructMethod.simpleName»();
