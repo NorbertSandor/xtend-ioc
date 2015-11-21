@@ -52,7 +52,7 @@ class ModuleProcessor extends AbstractSafeInterfaceProcessor
 
 class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 {
-	val Map<String, ResolvedModuleModel> moduleModels = newHashMap
+	val Map<String, ModuleModel> moduleModels = newHashMap
 
 	override doRegisterGlobals(InterfaceDeclaration annotatedInterface, extension RegisterGlobalsContext context)
 	{
@@ -69,94 +69,109 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 		val moduleModel = moduleModels.get(annotatedInterface.qualifiedName)
 		if (moduleModel !== null)
 		{
-			val targetFolder = annotatedInterface.compilationUnit.filePath.targetFolder
-
-			val dependencyGraphValid = !moduleModel.staticModuleModel.abstract && try
+			// TODO extension
+			if (moduleModel instanceof ResolvedModuleModel)
 			{
-				moduleModel.dependencyGraph
-				true
-			}
-			catch (Exception e)
-			{
-				false
-			}
+				val targetFolder = annotatedInterface.compilationUnit.filePath.targetFolder
 
-			val componentIds = newHashMap
-			moduleModel.staticModuleModel.components.forEach [ componentModel, index |
-				componentIds.put(componentModel, (index + 1).toString)
-			]
-
-			val dotContents = if (dependencyGraphValid)
+				val dependencyGraphValid = try
 				{
-					val graph = moduleModel.dependencyGraph.graph
-
-					val writer = new StringWriter
-					val dotExporter = new DOTExporter<DependencyGraphNode, DefaultEdge>([
-						componentIds.get(componentModel)
-					], [
-						'''«componentModel.getTypeSignature.typeReference» [«componentIds.get(componentModel)»]'''
-					], null)
-					dotExporter.export(writer, graph)
-					writer.toString.replace(System.lineSeparator, "\n")
+					moduleModel.dependencyGraph
+					true
+				}
+				catch (Exception e)
+				{
+					false
 				}
 
-			if (dependencyGraphValid)
-			{
-				val dotFile = targetFolder.append(annotatedInterface.qualifiedName.replace('.', '/') + ".dot")
-				dotFile.contents = '''«dotContents»'''
+				val componentIds = newHashMap
+				moduleModel.staticModuleModel.components.forEach [ componentModel, index |
+					componentIds.put(componentModel, (index + 1).toString)
+				]
+
+				val dotContents = if (dependencyGraphValid)
+					{
+						val graph = moduleModel.dependencyGraph.graph
+
+						val writer = new StringWriter
+						val dotExporter = new DOTExporter<DependencyGraphNode, DefaultEdge>([
+							componentIds.get(componentModel)
+						], [
+							'''«componentModel.getTypeSignature.typeReference» [«componentIds.get(componentModel)»]'''
+						], null)
+						dotExporter.export(writer, graph)
+						writer.toString.replace(System.lineSeparator, "\n")
+					}
+
+				if (dependencyGraphValid)
+				{
+					val dotFile = targetFolder.append(annotatedInterface.qualifiedName.replace('.', '/') + ".dot")
+					dotFile.contents = '''«dotContents»'''
+				}
+
+				val reportFile = targetFolder.append(
+					annotatedInterface.qualifiedName.replace('.', '/') +
+						".report.html"
+				)
+
+				reportFile.contents = '''
+					<!DOCTYPE html>
+					<html>
+					<head>
+					<meta charset="UTF-8">
+					<title>«annotatedInterface.simpleName» (xtend-ioc report)</title>
+					<script src="https://github.com/mdaines/viz.js/releases/download/1.0.1/viz.js"></script>
+					</head>
+					
+					<body>
+						<h1>Module «annotatedInterface.simpleName»</h1>
+						
+						<h2>Module properties</h2>
+						<dl>
+							<dt>Interface</dt>
+							<dd>«moduleModel.staticModuleModel.moduleInterfaceDeclaration.qualifiedName»</dd>
+							<dt>«IF moduleModel.staticModuleModel.abstract»Abstract«ELSE»Non-abstract«ENDIF»</dt>
+							<dd></dd>
+							<dt>Inherited modules</dt>
+							<dd>«IF moduleModel.staticModuleModel.inheritedModules.empty»-«ELSE»«moduleModel.staticModuleModel.inheritedModules»«ENDIF»</dd>
+						</dl>
+						
+						«IF !moduleModel.staticModuleModel.abstract»
+							<h2>Components</h2>
+							«FOR componentModel : moduleModel.staticModuleModel.components»«componentModel.asHtml(3, componentIds.get(componentModel))»«ENDFOR»
+						«ENDIF»
+						
+						«IF !moduleModel.staticModuleModel.abstract»
+							«IF dependencyGraphValid»
+								<h2>Dependency graph</h2>
+								<div id="graph"></div>
+								
+								<script>
+									var parser = new DOMParser();
+									var result = Viz(«dotContents.split("\n").map["'" + it + "'"].join(" +\n")», {engine: "dot", format: "svg"});
+									var svg = parser.parseFromString(result, "image/svg+xml");
+									document.getElementById("graph").appendChild(svg.documentElement);
+								</script>
+							«ELSE»
+								Invalid dependency graph!
+							«ENDIF»
+						«ENDIF»
+					</body>
+					
+					</html> 
+				'''
 			}
 
-			val reportFile = targetFolder.append(
-				annotatedInterface.qualifiedName.replace('.', '/') +
-					".report.html"
-			)
-
-			reportFile.contents = '''
-				<!DOCTYPE html>
-				<html>
-				<head>
-				<meta charset="UTF-8">
-				<title>«annotatedInterface.simpleName» (xtend-ioc report)</title>
-				<script src="https://github.com/mdaines/viz.js/releases/download/1.0.1/viz.js"></script>
-				</head>
-				
-				<body>
-					<h1>Module «annotatedInterface.simpleName»</h1>
-					
-					<h2>Module properties</h2>
-					<dl>
-						<dt>Interface</dt>
-						<dd>«moduleModel.staticModuleModel.moduleInterfaceDeclaration.qualifiedName»</dd>
-						<dt>«IF moduleModel.staticModuleModel.abstract»Abstract«ELSE»Non-abstract«ENDIF»</dt>
-						<dd></dd>
-						<dt>Inherited modules</dt>
-						<dd>«IF moduleModel.staticModuleModel.inheritedModules.empty»-«ELSE»«moduleModel.staticModuleModel.inheritedModules»«ENDIF»</dd>
-					</dl>
-					
-					«IF !moduleModel.staticModuleModel.abstract»
-						<h2>Components</h2>
-						«FOR componentModel : moduleModel.staticModuleModel.components»«componentModel.asHtml(3, componentIds.get(componentModel))»«ENDFOR»
-					«ENDIF»
-					
-					«IF !moduleModel.staticModuleModel.abstract»
-						«IF dependencyGraphValid»
-							<h2>Dependency graph</h2>
-							<div id="graph"></div>
-							
-							<script>
-								var parser = new DOMParser();
-								var result = Viz(«dotContents.split("\n").map["'" + it + "'"].join(" +\n")», {engine: "dot", format: "svg"});
-								var svg = parser.parseFromString(result, "image/svg+xml");
-								document.getElementById("graph").appendChild(svg.documentElement);
-							</script>
-						«ELSE»
-							Invalid dependency graph!
-						«ENDIF»
-					«ENDIF»
-				</body>
-				
-				</html> 
-			'''
+			findModuleProcessorExtensions.forEach [
+				if (moduleModel instanceof ResolvedModuleModel)
+				{
+					doGenerateCode(annotatedInterface, context, moduleModel)
+				}
+				else
+				{
+					doGenerateCode(annotatedInterface, context, moduleModel.staticModuleModel)
+				}
+			]
 		}
 	}
 
@@ -227,8 +242,10 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 				{
 					generateModulePeer(annotatedInterface, moduleModel, context, false)
 
+					moduleModels.put(annotatedInterface.qualifiedName, moduleModel)
+
 					findModuleProcessorExtensions.forEach [
-						doTransformAbstractModule(annotatedInterface, context, moduleModel)
+						doTransform(annotatedInterface, context, moduleModel)
 					]
 				}
 				else
@@ -244,11 +261,10 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 					// Generate module classes
 					generateModulePeer(annotatedInterface, moduleModel, context, true)
 					generateModuleImplementation(annotatedInterface, resolvedModuleModel, context)
-					
+
 					// Invoke extensions
-					
 					findModuleProcessorExtensions.forEach [
-						doTransformNonAbstractModule(annotatedInterface, context, resolvedModuleModel)
+						doTransform(annotatedInterface, context, resolvedModuleModel)
 					]
 				}
 			}
@@ -263,7 +279,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 			handleExceptions(e, context, annotatedInterface)
 		}
 	}
-	
+
 	def private static generateResolvedComponentReferenceSourceCode(ResolvedModuleModel moduleModel,
 		ComponentReferenceSignature componentReferenceSignature, extension TransformationContext context,
 		(ComponentModel)=>String componentLookup)
@@ -331,7 +347,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						{
 							'''
 								«componentModel.classDeclaration.qualifiedName» o = new «componentModel.classDeclaration.qualifiedName»(«moduleImplementationClass.simpleName».this«FOR componentReferenceSignature : componentModel.constructorParameters BEFORE ", " SEPARATOR ", "»
-																																																																	«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
+																																																																					«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
 								«ENDFOR»);
 								«FOR postConstructMethod : componentModel.postConstructMethods»
 									o.«postConstructMethod.simpleName»();

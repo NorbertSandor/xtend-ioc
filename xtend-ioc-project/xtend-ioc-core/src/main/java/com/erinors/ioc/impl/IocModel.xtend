@@ -426,8 +426,12 @@ class ComponentClassModel extends ComponentModel
 	}
 }
 
+interface ModuleModel {
+	def StaticModuleModel getStaticModuleModel()
+}
+
 @Data
-class StaticModuleModel
+class StaticModuleModel implements ModuleModel
 {
 	InterfaceDeclaration moduleInterfaceDeclaration
 
@@ -481,10 +485,14 @@ class StaticModuleModel
 
 	override toString()
 	'''«moduleInterfaceDeclaration.qualifiedName»'''
+	
+	override getStaticModuleModel() {
+		this
+	}
 }
 
 @Data
-class ResolvedModuleModel
+class ResolvedModuleModel implements ModuleModel
 {
 	StaticModuleModel staticModuleModel
 
