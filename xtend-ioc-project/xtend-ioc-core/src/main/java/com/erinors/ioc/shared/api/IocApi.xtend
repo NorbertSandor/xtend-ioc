@@ -228,14 +228,6 @@ annotation NotRequired
 {
 }
 
-/**
- * <a href="http://norbertsandor.github.io/xtend-ioc/latest/#module-gwtentrypoint">Generates a GWT entry-point class</a> for the annotated module. 
- */
-@Target(TYPE)
-annotation GwtEntryPoint
-{
-}
-
 @Active(InterceptorProcessor)
 @Target(ANNOTATION_TYPE)
 annotation Interceptor

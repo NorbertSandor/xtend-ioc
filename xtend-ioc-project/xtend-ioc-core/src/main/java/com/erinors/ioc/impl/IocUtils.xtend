@@ -20,6 +20,8 @@ import com.erinors.ioc.shared.api.NotRequired
 import com.erinors.ioc.shared.api.Qualifier
 import com.erinors.ioc.shared.api.Scope
 import com.erinors.ioc.shared.api.Singleton
+import com.erinors.ioc.shared.impl.ModuleImplementor
+import com.erinors.ioc.spi.ModuleProcessorExtension
 import com.google.common.base.Optional
 import com.google.common.base.Supplier
 import com.google.common.collect.ImmutableList
@@ -28,6 +30,7 @@ import java.util.Collection
 import java.util.Comparator
 import java.util.List
 import java.util.Map
+import java.util.ServiceLoader
 import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.Data
@@ -77,7 +80,7 @@ class PriorityComparator<T extends HasPriority> implements Comparator<T>
 	}
 }
 
-package class IocUtils
+class IocUtils
 {
 	def static String moduleImplementationClassName(Type moduleInterfaceType)
 	'''«moduleInterfaceType.qualifiedName»Implementation'''
@@ -297,8 +300,8 @@ package class IocUtils
 		}
 	}
 
-	def static GeneratedComponentReference createGeneratedComponentReference(
-		TypeReference targetTypeReference, Element compilationProblemTarget, extension TransformationContext context)
+	def static GeneratedComponentReference createGeneratedComponentReference(TypeReference targetTypeReference,
+		Element compilationProblemTarget, extension TransformationContext context)
 	{
 		new GeneratedComponentReference(targetTypeReference, compilationProblemTarget)
 	}
@@ -528,4 +531,20 @@ package class IocUtils
 			}
 		]
 	}
+
+	def static inheritedModules(InterfaceDeclaration moduleInterface)
+	{
+		moduleInterface.extendedInterfaces.filter[type.qualifiedName != ModuleImplementor.name]
+	}
+
+	def static findModuleProcessorExtensions()
+	{
+		ServiceLoader.load(ModuleProcessorExtension, ModuleProcessorImplementation.classLoader);
+	}
+
+	def static String modulePeerClassName(TypeReference moduleType)
+	'''«modulePeerClassName(moduleType.type.qualifiedName)»'''
+
+	def static String modulePeerClassName(String moduleQualifiedName)
+	'''«moduleQualifiedName».Peer'''
 }

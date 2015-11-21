@@ -31,8 +31,8 @@ import org.eclipse.xtend.lib.macro.RegisterGlobalsContext
 import org.eclipse.xtend.lib.macro.TransformationContext
 import org.eclipse.xtend.lib.macro.declaration.ClassDeclaration
 import org.eclipse.xtend.lib.macro.declaration.InterfaceDeclaration
+import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableInterfaceDeclaration
-import org.eclipse.xtend.lib.macro.declaration.Type
 import org.eclipse.xtend.lib.macro.declaration.TypeReference
 import org.eclipse.xtend.lib.macro.declaration.Visibility
 import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
@@ -41,7 +41,6 @@ import org.jgrapht.graph.DefaultEdge
 
 import static extension com.erinors.ioc.impl.IocUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
-import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 
 class ModuleProcessor extends AbstractSafeInterfaceProcessor
 {
@@ -55,25 +54,14 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 {
 	val Map<String, ResolvedModuleModel> moduleModels = newHashMap
 
-	// TODO ezeket utilsba
-	def private static String gwtEntryPointClassName(Type moduleType)
-	'''«moduleType.qualifiedName»EntryPoint'''
-
-	def private static String modulePeerClassName(TypeReference moduleType)
-	'''«modulePeerClassName(moduleType.type.qualifiedName)»'''
-
-	def private static String modulePeerClassName(String moduleQualifiedName)
-	'''«moduleQualifiedName».Peer'''
-
 	override doRegisterGlobals(InterfaceDeclaration annotatedInterface, extension RegisterGlobalsContext context)
 	{
 		registerClass(annotatedInterface.moduleImplementationClassName)
 		registerClass(annotatedInterface.qualifiedName.modulePeerClassName)
 
-		if (annotatedInterface.gwtEntryPoint)
-		{
-			registerClass(annotatedInterface.gwtEntryPointClassName)
-		}
+		findModuleProcessorExtensions.forEach [
+			doRegisterGlobals(annotatedInterface, context)
+		]
 	}
 
 	override doGenerateCode(InterfaceDeclaration annotatedInterface, extension CodeGenerationContext context)
@@ -81,6 +69,8 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 		val moduleModel = moduleModels.get(annotatedInterface.qualifiedName)
 		if (moduleModel !== null)
 		{
+			val targetFolder = annotatedInterface.compilationUnit.filePath.targetFolder
+
 			val dependencyGraphValid = !moduleModel.staticModuleModel.abstract && try
 			{
 				moduleModel.dependencyGraph
@@ -90,8 +80,6 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 			{
 				false
 			}
-
-			val targetFolder = annotatedInterface.compilationUnit.filePath.targetFolder
 
 			val componentIds = newHashMap
 			moduleModel.staticModuleModel.components.forEach [ componentModel, index |
@@ -233,16 +221,15 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 				</p>
 			'''
 
-			if (moduleModel.gwtEntryPoint)
-			{
-				generateGwtEntryPointClass(annotatedInterface, context)
-			}
-
 			try
 			{
 				if (moduleModel.abstract)
 				{
 					generateModulePeer(annotatedInterface, moduleModel, context, false)
+
+					findModuleProcessorExtensions.forEach [
+						doTransformAbstractModule(annotatedInterface, context, moduleModel)
+					]
 				}
 				else
 				{
@@ -257,6 +244,12 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 					// Generate module classes
 					generateModulePeer(annotatedInterface, moduleModel, context, true)
 					generateModuleImplementation(annotatedInterface, resolvedModuleModel, context)
+					
+					// Invoke extensions
+					
+					findModuleProcessorExtensions.forEach [
+						doTransformNonAbstractModule(annotatedInterface, context, resolvedModuleModel)
+					]
 				}
 			}
 			catch (Exception e)
@@ -270,20 +263,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 			handleExceptions(e, context, annotatedInterface)
 		}
 	}
-
-	def private generateGwtEntryPointClass(InterfaceDeclaration moduleInterfaceDeclaration,
-		extension TransformationContext context)
-	{
-		val gwtEntryPointDeclaration = findClass(moduleInterfaceDeclaration.gwtEntryPointClassName)
-
-		gwtEntryPointDeclaration.implementedInterfaces = #["com.google.gwt.core.client.EntryPoint".newTypeReference]
-
-		// TODO support non-singleton modules
-		gwtEntryPointDeclaration.addMethod("onModuleLoad", [
-			body = '''«moduleInterfaceDeclaration.qualifiedName.modulePeerClassName».initialize();'''
-		])
-	}
-
+	
 	def private static generateResolvedComponentReferenceSourceCode(ResolvedModuleModel moduleModel,
 		ComponentReferenceSignature componentReferenceSignature, extension TransformationContext context,
 		(ComponentModel)=>String componentLookup)
@@ -351,7 +331,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						{
 							'''
 								«componentModel.classDeclaration.qualifiedName» o = new «componentModel.classDeclaration.qualifiedName»(«moduleImplementationClass.simpleName».this«FOR componentReferenceSignature : componentModel.constructorParameters BEFORE ", " SEPARATOR ", "»
-																																																									«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
+																																																																	«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
 								«ENDFOR»);
 								«FOR postConstructMethod : componentModel.postConstructMethods»
 									o.«postConstructMethod.simpleName»();

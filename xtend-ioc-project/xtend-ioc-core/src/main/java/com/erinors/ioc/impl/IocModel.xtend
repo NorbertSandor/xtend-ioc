@@ -35,6 +35,7 @@ import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 import static extension com.erinors.ioc.impl.MapUtils.*
 import org.eclipse.xtend.lib.macro.declaration.AnnotationTypeDeclaration
 import org.eclipse.xtend.lib.macro.declaration.Element
+import de.oehme.xtend.contrib.Buildable
 
 // TODO @Optional az Option<>-ön legyen warning, mivel redundáns
 // FIXME @Component nem működik class szintű @Accessors-sal!!!! com.erinors.ioc.examples.docs.events.EventObserver nem fordul, ha @Accessors van a class-on
@@ -413,8 +414,7 @@ class ComponentClassModel extends ComponentModel
 		componentReferences.groupBy[signature].keySet.immutableCopy // TODO ne feltétlenül signature szerint, lehetne esetleg komolyabb szűkítést?
 	}
 
-	def String getGeneratedComponentReferenceFieldName(
-		GeneratedComponentReference generatedComponentReference)
+	def String getGeneratedComponentReferenceFieldName(GeneratedComponentReference generatedComponentReference)
 	{
 		if (!generatedComponentReferences.contains(generatedComponentReference))
 		{
@@ -434,8 +434,6 @@ class StaticModuleModel
 	boolean isAbstract
 
 	boolean singleton
-
-	boolean gwtEntryPoint
 
 	Set<? extends TypeReference> inheritedModules
 

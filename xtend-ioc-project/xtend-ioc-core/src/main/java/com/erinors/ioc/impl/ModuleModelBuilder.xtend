@@ -25,6 +25,7 @@ import java.util.Set
 import java.util.regex.Pattern
 import org.eclipse.xtend.lib.macro.TransformationContext
 import org.eclipse.xtend.lib.macro.declaration.InterfaceDeclaration
+import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 import org.eclipse.xtend.lib.macro.declaration.TypeDeclaration
 import org.eclipse.xtend.lib.macro.declaration.TypeReference
 import org.eclipse.xtend.lib.macro.file.Path
@@ -32,7 +33,6 @@ import org.eclipse.xtend.lib.macro.services.Problem.Severity
 
 import static extension com.erinors.ioc.impl.IocUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
-import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 
 // TODO module interface ne lehessen generikus
 class ModuleModelBuilder
@@ -58,6 +58,7 @@ class ModuleModelBuilder
 		builtinComponentManagers = BuiltinComponentManagers.builtinComponentManagers(context)
 	}
 
+	// TODO check: non-abstract module interface may not have type arguments
 	def build(InterfaceDeclaration moduleInterface)
 	{
 		val Set<TypeReference> inheritedModules = newLinkedHashSet
@@ -68,7 +69,7 @@ class ModuleModelBuilder
 			componentClassModels
 		)
 
-		// TODO non-abstract module interface may not have type arguments
+		// TODO rename: moduleComponentReferences
 		val moduleDependencies = collectModuleDependencies(moduleInterface)
 
 		val allComponentModels = processModule(moduleInterface, componentClassModels, moduleDependencies)
@@ -78,21 +79,19 @@ class ModuleModelBuilder
 
 		val singleton = moduleInterface.isSingletonModule(context)
 
-		val gwtEntryPoint = moduleInterface.isGwtEntryPoint()
-
-		new StaticModuleModel(moduleInterface, abstract, singleton, gwtEntryPoint, inheritedModules, allComponentModels,
+		new StaticModuleModel(moduleInterface, abstract, singleton, inheritedModules, allComponentModels,
 			moduleDependencies)
 	}
 
 	def private void preprocessModule(
 		InterfaceDeclaration moduleInterface,
-		Set<TypeReference> inheritedModules,
+		Set<TypeReference> allInheritedModules,
 		Set<ComponentClassModel> componentClassModels
 	)
 	{
-		moduleInterface.extendedInterfaces.filter[type != ModuleImplementor.newTypeReference.type].forEach [
-			inheritedModules.add(it)
-			preprocessModule(type as InterfaceDeclaration, inheritedModules, componentClassModels)
+		moduleInterface.inheritedModules.forEach [
+			allInheritedModules.add(it)
+			preprocessModule(type as InterfaceDeclaration, allInheritedModules, componentClassModels)
 		]
 
 		val moduleAnnotation = moduleInterface.findAnnotation(Module.findTypeGlobally)
@@ -197,7 +196,8 @@ class ModuleModelBuilder
 		].map [
 			declaredResolvedMethods
 		].flatten.map [ interfaceMethod |
-			com.erinors.ioc.impl.IocUtils.createDeclaredComponentReference(interfaceMethod.declaration, interfaceMethod.resolvedReturnType, context)
+			IocUtils.createDeclaredComponentReference(interfaceMethod.declaration, interfaceMethod.resolvedReturnType,
+				context)
 		].toSet
 	}
 

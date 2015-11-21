@@ -19,6 +19,7 @@ import org.eclipse.xtend.lib.macro.declaration.AnnotationTarget
 import org.eclipse.xtend.lib.macro.declaration.ClassDeclaration
 import org.eclipse.xtend.lib.macro.declaration.Declaration
 import org.eclipse.xtend.lib.macro.declaration.Element
+import org.eclipse.xtend.lib.macro.declaration.EnumerationValueDeclaration
 import org.eclipse.xtend.lib.macro.declaration.ExecutableDeclaration
 import org.eclipse.xtend.lib.macro.declaration.InterfaceDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MemberDeclaration
@@ -28,8 +29,6 @@ import org.eclipse.xtend.lib.macro.declaration.TypeDeclaration
 import org.eclipse.xtend.lib.macro.declaration.TypeReference
 import org.eclipse.xtend.lib.macro.services.Problem
 import org.eclipse.xtend.lib.macro.services.Tracability
-import com.erinors.ioc.shared.api.GwtEntryPoint
-import org.eclipse.xtend.lib.macro.declaration.EnumerationValueDeclaration
 
 @Data
 class ProcessingMessage
@@ -43,14 +42,14 @@ class ProcessingMessage
 
 class ProcessorUtils
 {
-	def static isGwtEntryPoint(InterfaceDeclaration interfaceDeclaration)
-	{
-		interfaceDeclaration.hasAnnotation(GwtEntryPoint.name)
-	}
-
 	def static hasAnnotation(AnnotationTarget annotationTarget, String annotationQualifiedName)
 	{
-		annotationTarget.annotations.exists[annotationTypeDeclaration.qualifiedName == annotationQualifiedName]
+		annotationTarget.getAnnotation(annotationQualifiedName) !== null
+	}
+
+	def static getAnnotation(AnnotationTarget annotationTarget, String annotationQualifiedName)
+	{
+		annotationTarget.annotations.findFirst[annotationTypeDeclaration.qualifiedName == annotationQualifiedName]
 	}
 
 	// TODO nem jó helyen

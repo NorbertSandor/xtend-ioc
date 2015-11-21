@@ -710,13 +710,6 @@ E.g. the <<component-dependency-graph-example-cycle-avoided, example above>> has
 NOTE: The module report is a work in progress. +
 Currently graph rendering is very slow (done with https://github.com/mdaines/viz.js/[viz.js]).
 
-[module-gwtentrypoint]
-==== GWT support
-
-If the _module_ `ModuleInterface` is annotated with `@GwtEntryPoint` then a special class named `ModuleInterfaceEntryPoint` is generated. +
-This class implements `com.google.gwt.core.client.EntryPoint` and the implementation instantiates the module. +
-__Component__s with post-construct methods may be used to implement bootstrap code like UI construction.
-
 === Module-local event dispatching
 
 Events allow simple communication between __component instance__s in a _module_ instance:
