@@ -29,6 +29,7 @@ import org.eclipse.xtend.lib.macro.declaration.TypeDeclaration
 import org.eclipse.xtend.lib.macro.declaration.TypeReference
 import org.eclipse.xtend.lib.macro.services.Problem
 import org.eclipse.xtend.lib.macro.services.Tracability
+import java.lang.annotation.Annotation
 
 @Data
 class ProcessingMessage
@@ -50,6 +51,16 @@ class ProcessorUtils
 	def static getAnnotation(AnnotationTarget annotationTarget, String annotationQualifiedName)
 	{
 		annotationTarget.annotations.findFirst[annotationTypeDeclaration.qualifiedName == annotationQualifiedName]
+	}
+
+	def static hasAnnotation(AnnotationTarget annotationTarget, Class<?> annotationClass)
+	{
+		annotationTarget.getAnnotation(annotationClass) !== null
+	}
+
+	def static getAnnotation(AnnotationTarget annotationTarget, Class<?> annotationClass)
+	{
+		annotationTarget.getAnnotation(annotationClass.name)
 	}
 
 	// TODO nem jó helyen
