@@ -161,7 +161,8 @@ class IocUtils
 	def static isInjected(AnnotationTarget annotationTarget, extension TransformationContext context)
 	{
 		annotationTarget.hasAnnotation(Inject.findTypeGlobally) ||
-			annotationTarget.hasAnnotation(javax.inject.Inject.findTypeGlobally)
+			("javax.inject.Inject".findTypeGlobally !== null &&
+				annotationTarget.hasAnnotation("javax.inject.Inject".findTypeGlobally))
 	}
 
 	def static findInjectedConstructors(ClassDeclaration classDeclaration, extension TransformationContext context)
