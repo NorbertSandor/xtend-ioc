@@ -18,24 +18,24 @@ import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.Data
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
+import org.eclipse.xtend.lib.macro.declaration.AnnotationTypeDeclaration
 import org.eclipse.xtend.lib.macro.declaration.ClassDeclaration
 import org.eclipse.xtend.lib.macro.declaration.ConstructorDeclaration
 import org.eclipse.xtend.lib.macro.declaration.Declaration
+import org.eclipse.xtend.lib.macro.declaration.Element
 import org.eclipse.xtend.lib.macro.declaration.FieldDeclaration
 import org.eclipse.xtend.lib.macro.declaration.InterfaceDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 import org.eclipse.xtend.lib.macro.declaration.ParameterDeclaration
 import org.eclipse.xtend.lib.macro.declaration.TypeReference
 import org.eclipse.xtend.lib.macro.services.Problem.Severity
+import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 import org.jgrapht.alg.cycle.SzwarcfiterLauerSimpleCycles
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph
 import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.graph.DefaultEdge
-import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
+
 import static extension com.erinors.ioc.impl.MapUtils.*
-import org.eclipse.xtend.lib.macro.declaration.AnnotationTypeDeclaration
-import org.eclipse.xtend.lib.macro.declaration.Element
-import de.oehme.xtend.contrib.Buildable
 
 // TODO @Optional az Option<>-ön legyen warning, mivel redundáns
 // FIXME @Component nem működik class szintű @Accessors-sal!!!! com.erinors.ioc.examples.docs.events.EventObserver nem fordul, ha @Accessors van a class-on

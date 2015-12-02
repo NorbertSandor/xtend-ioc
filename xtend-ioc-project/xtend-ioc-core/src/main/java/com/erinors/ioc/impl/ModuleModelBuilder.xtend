@@ -17,8 +17,6 @@ import com.erinors.ioc.shared.api.ImportComponents
 import com.erinors.ioc.shared.api.Module
 import com.erinors.ioc.shared.api.PriorityConstants
 import com.erinors.ioc.shared.api.Provider
-import com.erinors.ioc.shared.impl.ModuleImplementor
-import com.erinors.ioc.shared.impl.ModuleInstance
 import com.google.common.collect.Lists
 import java.util.List
 import java.util.Set
@@ -33,8 +31,6 @@ import org.eclipse.xtend.lib.macro.services.Problem.Severity
 
 import static extension com.erinors.ioc.impl.IocUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
-import com.erinors.ioc.shared.api.ModuleImporter
-import org.eclipse.xtend.lib.macro.declaration.AnnotationTarget
 
 // TODO module interface ne lehessen generikus
 class ModuleModelBuilder

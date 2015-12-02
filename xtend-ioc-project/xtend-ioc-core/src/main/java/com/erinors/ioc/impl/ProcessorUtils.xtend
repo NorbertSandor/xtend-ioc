@@ -29,7 +29,6 @@ import org.eclipse.xtend.lib.macro.declaration.TypeDeclaration
 import org.eclipse.xtend.lib.macro.declaration.TypeReference
 import org.eclipse.xtend.lib.macro.services.Problem
 import org.eclipse.xtend.lib.macro.services.Tracability
-import java.lang.annotation.Annotation
 
 @Data
 class ProcessingMessage

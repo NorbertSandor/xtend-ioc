@@ -16,6 +16,8 @@ import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.ComponentLifecycleManager
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Interceptor
+import com.erinors.ioc.shared.api.Module
+import com.erinors.ioc.shared.api.ModuleImporter
 import com.erinors.ioc.shared.api.NotRequired
 import com.erinors.ioc.shared.api.Qualifier
 import com.erinors.ioc.shared.api.Scope
@@ -31,7 +33,6 @@ import java.util.Comparator
 import java.util.List
 import java.util.Map
 import java.util.ServiceLoader
-import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.Data
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
@@ -52,8 +53,6 @@ import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 
 import static extension com.erinors.ioc.impl.MapUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
-import com.erinors.ioc.shared.api.ModuleImporter
-import com.erinors.ioc.shared.api.Module
 
 @FinalFieldsConstructor
 class IocProcessingContext
