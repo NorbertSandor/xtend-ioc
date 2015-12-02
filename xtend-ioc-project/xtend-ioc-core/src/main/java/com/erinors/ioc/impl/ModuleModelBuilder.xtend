@@ -33,6 +33,8 @@ import org.eclipse.xtend.lib.macro.services.Problem.Severity
 
 import static extension com.erinors.ioc.impl.IocUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
+import com.erinors.ioc.shared.api.ModuleImporter
+import org.eclipse.xtend.lib.macro.declaration.AnnotationTarget
 
 // TODO module interface ne lehessen generikus
 class ModuleModelBuilder
@@ -70,7 +72,7 @@ class ModuleModelBuilder
 		)
 
 		// TODO rename: moduleComponentReferences
-		val moduleDependencies = collectModuleDependencies(moduleInterface)
+		val moduleDependencies = collectModuleDependencies(inheritedModules + #[moduleInterface.newTypeReference])
 
 		val allComponentModels = processModule(moduleInterface, componentClassModels, moduleDependencies)
 
@@ -89,68 +91,66 @@ class ModuleModelBuilder
 		Set<ComponentClassModel> componentClassModels
 	)
 	{
-		moduleInterface.inheritedModules.forEach [
+		val moduleAnnotation = moduleInterface.findAnnotation(Module.findTypeGlobally)
+
+		if (moduleAnnotation === null)
+		{
+			throw new IocProcessingException // TODO
+		}
+
+		val importedModules = moduleInterface.importedModules.map[newTypeReference]
+		(moduleInterface.inheritedModules + importedModules).forEach [
 			allInheritedModules.add(it)
 			preprocessModule(type as InterfaceDeclaration, allInheritedModules, componentClassModels)
 		]
 
-		val moduleAnnotation = moduleInterface.findAnnotation(Module.findTypeGlobally)
-
-		if (moduleAnnotation !== null)
+		val componentClassTypeReferences = moduleAnnotation.getClassArrayValue("components")
+		if (componentClassTypeReferences === null)
 		{
-			val componentClassTypeReferences = moduleAnnotation.getClassArrayValue("components")
-			if (componentClassTypeReferences === null)
-			{
-				throw new CancelOperationException
-			}
-
-			// TODO report error: cannot rename
-			val componentTypeReferences = newLinkedHashSet(componentClassTypeReferences)
-
-			moduleAnnotation.getClassArrayValue("componentScanClasses").forEach [ componentScanClass |
-				// TODO refactor based on xtend-contrib/Reflections
-				context.getProjectSourceFolders(moduleInterface.compilationUnit.filePath).forEach [ sourceFolderPath |
-					val componentScanPath = sourceFolderPath.append(
-						componentScanClass.type.packageName.replace(".", "/"))
-					componentTypeReferences += scanComponents(moduleInterface, sourceFolderPath, componentScanPath)
-				]
-			]
-
-			moduleAnnotation.getClassArrayValue("componentImporters").forEach [ componentImporter |
-				// TODO check
-				val importComponentsAnnotation = (componentImporter.type as TypeDeclaration).findAnnotation(
-					ImportComponents.findTypeGlobally)
-				importComponentsAnnotation.getClassArrayValue("value").forEach [
-					componentTypeReferences += it
-				]
-			]
-
-			val validationMessages = componentTypeReferences.map [
-				type.validateComponentType(moduleInterface, context)
-			].flatten
-			if (!validationMessages.empty)
-			{
-				throw new IocProcessingException(validationMessages)
-			}
-
-			val moduleComponentModels = try
-			{
-				componentTypeReferences.map [
-					new ComponentClassModelBuilder(context).build(it)
-				]
-			}
-			catch (Exception e)
-			{
-				// Ignore exception
-				throw new CancelOperationException
-			}
-
-			componentClassModels += moduleComponentModels
+			throw new CancelOperationException // TODO document case
 		}
-		else
+
+		// TODO report error: cannot rename
+		val componentTypeReferences = newLinkedHashSet(componentClassTypeReferences)
+
+		moduleAnnotation.getClassArrayValue("componentScanClasses").forEach [ componentScanClass |
+			// TODO refactor based on xtend-contrib/Reflections
+			context.getProjectSourceFolders(moduleInterface.compilationUnit.filePath).forEach [ sourceFolderPath |
+				val componentScanPath = sourceFolderPath.append(componentScanClass.type.packageName.replace(".", "/"))
+				componentTypeReferences += scanComponents(moduleInterface, sourceFolderPath, componentScanPath)
+			]
+		]
+
+		moduleAnnotation.getClassArrayValue("componentImporters").forEach [ componentImporter |
+			// TODO check
+			val importComponentsAnnotation = (componentImporter.type as TypeDeclaration).findAnnotation(
+				ImportComponents.findTypeGlobally)
+			importComponentsAnnotation.getClassArrayValue("value").forEach [
+				componentTypeReferences += it
+			]
+		]
+
+		val validationMessages = componentTypeReferences.map [
+			type.validateComponentType(moduleInterface, context)
+		].flatten
+		if (!validationMessages.empty)
 		{
-			// TODO nem kéne hibát jelezni?
+			throw new IocProcessingException(validationMessages)
 		}
+
+		val moduleComponentModels = try
+		{
+			componentTypeReferences.map [
+				new ComponentClassModelBuilder(context).build(it)
+			]
+		}
+		catch (Exception e)
+		{
+			// Ignore exception
+			throw new CancelOperationException
+		}
+
+		componentClassModels += moduleComponentModels
 	}
 
 	// TODO cleanup
@@ -189,11 +189,9 @@ class ModuleModelBuilder
 		]
 	}
 
-	def private collectModuleDependencies(InterfaceDeclaration moduleInterfaceDeclaration)
+	def private collectModuleDependencies(Iterable<TypeReference> allModuleInterfaces)
 	{
-		moduleInterfaceDeclaration.allAssignableInterfaces(context).filter [
-			it != ModuleImplementor.newTypeReference && it != ModuleInstance.newTypeReference
-		].map [
+		allModuleInterfaces.map [
 			declaredResolvedMethods
 		].flatten.map [ interfaceMethod |
 			IocUtils.createDeclaredComponentReference(interfaceMethod.declaration, interfaceMethod.resolvedReturnType,

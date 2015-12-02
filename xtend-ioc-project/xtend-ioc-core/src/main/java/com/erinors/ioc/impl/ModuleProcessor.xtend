@@ -223,6 +223,9 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 
 			val moduleModel = new ModuleModelBuilder(context).build(annotatedInterface)
 
+			annotatedInterface.extendedInterfaces = annotatedInterface.extendedInterfaces +
+				annotatedInterface.importedModules.map[newTypeReference]
+
 			annotatedInterface.docComment = '''
 				«IF annotatedInterface.docComment !== null»«annotatedInterface.docComment»
 				«ENDIF»
@@ -347,7 +350,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						{
 							'''
 								«componentModel.classDeclaration.qualifiedName» o = new «componentModel.classDeclaration.qualifiedName»(«moduleImplementationClass.simpleName».this«FOR componentReferenceSignature : componentModel.constructorParameters BEFORE ", " SEPARATOR ", "»
-																																																																					«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
+																																																																									«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
 								«ENDFOR»);
 								«FOR postConstructMethod : componentModel.postConstructMethods»
 									o.«postConstructMethod.simpleName»();
@@ -491,8 +494,8 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 								if (resolvedComponents.empty)
 									generateSingleAbsentConverter(componentReference)
 								else
-									generateSinglePresentConverter(componentReference, resolvedComponents.head,
-										moduleModel, context,
+									generateSinglePresentConverter(componentReference,
+										resolvedComponents.head, moduleModel, context,
 										componentLookup)
 								case MULTIPLE:
 								'''(«List.name»)«ImmutableList.name».of(«FOR componentModel : resolvedComponents SEPARATOR ", "»«generateSinglePresentConverter(componentReference, componentModel, moduleModel, context, componentLookup)»«ENDFOR»)'''

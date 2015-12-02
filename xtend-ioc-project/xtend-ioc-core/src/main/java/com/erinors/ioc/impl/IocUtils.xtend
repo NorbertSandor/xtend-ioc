@@ -52,6 +52,8 @@ import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 
 import static extension com.erinors.ioc.impl.MapUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
+import com.erinors.ioc.shared.api.ModuleImporter
+import com.erinors.ioc.shared.api.Module
 
 @FinalFieldsConstructor
 class IocProcessingContext
@@ -440,24 +442,6 @@ class IocUtils
 		QualifierModel referencingQualifier
 	}
 
-	def static Set<? extends TypeReference> allAssignableInterfaces(InterfaceDeclaration interfaceDeclaration,
-		extension TypeReferenceProvider context)
-	{
-		val interfaceTypeReference = interfaceDeclaration.newTypeReference
-		var result = newLinkedHashSet(interfaceTypeReference)
-		interfaceTypeReference.collectAssignableInterfaces(result)
-		return result
-	}
-
-	def private static void collectAssignableInterfaces(TypeReference interfaceTypeReference,
-		Set<TypeReference> interfaces)
-	{
-		val declaredSupertypes = interfaceTypeReference.declaredSuperTypes.filter[type instanceof InterfaceDeclaration]
-		interfaces += declaredSupertypes
-
-		declaredSupertypes.forEach[collectAssignableInterfaces(interfaces)]
-	}
-
 	def static hasInterceptorAnnotation(MethodDeclaration methodDeclaration)
 	{
 		methodDeclaration.annotations.exists[isInterceptorAnnotation]
@@ -529,6 +513,16 @@ class IocUtils
 			{
 				addError(defaultDeclaration, '''Error at «element.toDisplayName». «message»''')
 			}
+		]
+	}
+
+	def static importedModules(InterfaceDeclaration moduleInterface)
+	{
+		val moduleAnnotation = moduleInterface.getAnnotation(Module)
+		val moduleImporters = moduleAnnotation.getClassArrayValue("moduleImporters")
+
+		moduleImporters.map [ moduleImporter |
+			(moduleImporter.type as AnnotationTarget).getAnnotation(ModuleImporter).getStringValue("moduleClassName")
 		]
 	}
 

@@ -64,6 +64,8 @@ annotation Module
 	 * @see ImportComponents
 	 */
 	Class<?>[] componentImporters = #[]
+	
+	Class<?>[] moduleImporters = #[]
 }
 
 /**
@@ -271,4 +273,13 @@ annotation MethodReference
 	Class<?> sampleDeclaringType = Object
 	
 	String sampleDeclaredMethodName = ""
+}
+
+// TODO @Repeatable(ModuleImporters)
+annotation ModuleImporter {
+	String moduleClassName
+}
+
+annotation ModuleImporters {
+	ModuleImporter[] value
 }
