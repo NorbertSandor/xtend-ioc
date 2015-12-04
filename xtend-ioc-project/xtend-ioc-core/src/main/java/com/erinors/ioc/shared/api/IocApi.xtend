@@ -262,6 +262,8 @@ abstract class InvocationPointConfiguration
 interface InterceptorInvocationHandler<T extends InvocationPointConfiguration>
 {
 	def Object handle(T invocationPointConfiguration, InvocationContext context)
+	
+	def void defaultMethod() {}
 }
 
 annotation MethodReference
