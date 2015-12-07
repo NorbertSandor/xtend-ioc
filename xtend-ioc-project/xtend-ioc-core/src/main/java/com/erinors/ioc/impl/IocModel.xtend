@@ -35,7 +35,7 @@ import org.jgrapht.experimental.dag.DirectedAcyclicGraph
 import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.graph.DefaultEdge
 
-import static extension com.erinors.ioc.impl.MapUtils.*
+import static extension com.erinors.ioc.shared.util.MapUtils.*
 
 // TODO @Optional az Option<>-ön legyen warning, mivel redundáns
 // FIXME @Component nem működik class szintű @Accessors-sal!!!! com.erinors.ioc.examples.docs.events.EventObserver nem fordul, ha @Accessors van a class-on

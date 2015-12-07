@@ -28,7 +28,7 @@ import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableMethodDeclaration
 import org.eclipse.xtend.lib.macro.services.ProblemSupport
-import static extension com.erinors.ioc.impl.ListUtils.*
+import static extension com.erinors.ioc.shared.util.ListUtils.*
 
 @FinalFieldsConstructor
 class AbstractSafeMethodProcessor implements RegisterGlobalsParticipant<Declaration>, TransformationParticipant<MutableDeclaration>, CodeGenerationParticipant<Declaration>, ValidationParticipant<Declaration>

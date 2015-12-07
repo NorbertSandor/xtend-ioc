@@ -13,6 +13,7 @@ package com.erinors.ioc.shared.impl
 
 import java.util.Deque
 import org.eclipse.xtend.lib.annotations.Data
+import static extension com.erinors.ioc.shared.util.IterableUtils.*
 
 interface EventMatcher
 {
@@ -86,7 +87,7 @@ class ModuleEventBusImpl implements ModuleEventBus
 
 	override fire(Object event)
 	{
-		eventListeners.values.filter[eventMatcher.matches(event)].forEach [
+		eventListeners.values.filter[eventMatcher.matches(event)].foreach [
 			taskQueue.offerLast([
 				if (eventListeners.containsKey(id))
 				{

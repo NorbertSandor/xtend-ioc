@@ -9,7 +9,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  * #L%
  */
-package com.erinors.ioc.impl
+package com.erinors.ioc.server.util
 
 import com.google.common.collect.Iterables
 

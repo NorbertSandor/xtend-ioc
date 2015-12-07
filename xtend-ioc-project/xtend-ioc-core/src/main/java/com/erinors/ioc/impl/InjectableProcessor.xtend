@@ -41,8 +41,8 @@ import org.eclipse.xtend.lib.macro.declaration.TypeReference
 import org.eclipse.xtend.lib.macro.services.Problem.Severity
 
 import static extension com.erinors.ioc.impl.IocUtils.*
-import static extension com.erinors.ioc.impl.IterableUtils.*
-import static extension com.erinors.ioc.impl.MapUtils.*
+import static extension com.erinors.ioc.server.util.IterableUtils.*
+import static extension com.erinors.ioc.shared.util.MapUtils.*
 
 @FinalFieldsConstructor
 package class InjectableClassModelBuilder

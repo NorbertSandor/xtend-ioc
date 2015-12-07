@@ -51,7 +51,7 @@ import org.eclipse.xtend.lib.macro.services.GlobalTypeLookup
 import org.eclipse.xtend.lib.macro.services.Problem.Severity
 import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 
-import static extension com.erinors.ioc.impl.MapUtils.*
+import static extension com.erinors.ioc.shared.util.MapUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
 
 @FinalFieldsConstructor
