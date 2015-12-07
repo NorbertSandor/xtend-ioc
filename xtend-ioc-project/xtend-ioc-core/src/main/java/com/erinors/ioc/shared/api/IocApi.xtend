@@ -188,6 +188,11 @@ annotation Qualifier
 	// TODO support javax.inject.Qualifier
 }
 
+@Qualifier
+annotation Named {
+	String value
+}
+
 interface ComponentLifecycleManager<T> extends Supplier<T>
 {
 }
