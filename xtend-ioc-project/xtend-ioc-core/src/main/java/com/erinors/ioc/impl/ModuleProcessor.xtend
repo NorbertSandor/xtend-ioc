@@ -323,7 +323,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 			ComponentReferenceSignature componentReferenceSignature,
 			extension TransformationContext context)
 			{
-				return '''«AbsentComponentReferenceSupplier.findTypeGlobally.qualifiedName».<«componentReferenceSignature.componentTypeSignature.typeReference»>of()'''
+				return '''«AbsentComponentReferenceSupplier.findTypeGlobally.qualifiedName».<«componentReferenceSignature.componentTypeSignature.typeReference.name»>of()'''
 			}
 
 			private def generateComponentLifecycleManagerSourceCode(ClassDeclaration moduleImplementationClass,
