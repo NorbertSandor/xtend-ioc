@@ -30,7 +30,7 @@
 		<profile>
 			<id>release</id>
 			<activation>
-				<activeByDefault />
+				<activeByDefault>true</activeByDefault>
 			</activation>
 			<build>
 				<plugins>
