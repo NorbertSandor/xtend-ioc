@@ -18,10 +18,14 @@ For more details see
 
 == History
 
+=== 0.4.0-SNAPSHOT
+
+Current development version.
+
 === 0.3.0
 
-* Upgrade xtend to 2.9.0.rc2.
-* Code cleanup.
+* Upgrade xtend to 2.9.0 final.
+* Code cleanup, improvements and bug fixes in the framework code.
 
 === 0.2.1 (2015-11-15)
 
