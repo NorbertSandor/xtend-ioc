@@ -159,9 +159,8 @@ class IocUtils
 
 	def static isInjected(AnnotationTarget annotationTarget, extension TransformationContext context)
 	{
-		annotationTarget.hasAnnotation(Inject.findTypeGlobally) ||
-			("javax.inject.Inject".findTypeGlobally !== null &&
-				annotationTarget.hasAnnotation("javax.inject.Inject".findTypeGlobally))
+		annotationTarget.hasAnnotation(Inject.findTypeGlobally) || ("javax.inject.Inject".findTypeGlobally !== null &&
+			annotationTarget.hasAnnotation("javax.inject.Inject".findTypeGlobally))
 	}
 
 	def static findInjectedConstructors(ClassDeclaration classDeclaration, extension TransformationContext context)
@@ -188,9 +187,16 @@ class IocUtils
 		val v = annotationTarget.annotations.filter [
 			annotationTypeDeclaration.hasAnnotation(Qualifier.findTypeGlobally)
 		].map [
-			new QualifierModel(annotationTypeDeclaration.qualifiedName, extractQualifierAttributes(context))
+			buildQualifierModel(context)
 		].toSet.immutableCopy
 		return v
+	}
+
+	def private static buildQualifierModel(AnnotationReference qualifierAnnotationReference,
+		extension TransformationContext context)
+	{
+		new QualifierModel(qualifierAnnotationReference.annotationTypeDeclaration.qualifiedName,
+			qualifierAnnotationReference.extractQualifierAttributes(context))
 	}
 
 	def static collectParameterizedQualifiers(AnnotationReference providerAnnotationReference)
@@ -207,7 +213,7 @@ class IocUtils
 		result
 	}
 
-	def private static Map<String, ?> extractQualifierAttributes(AnnotationReference annotationReference,
+	def private static Map<String, ? extends QualifierAttributeValue> extractQualifierAttributes(AnnotationReference annotationReference,
 		extension TransformationContext context)
 	{
 		annotationReference.annotationTypeDeclaration.declaredAnnotationTypeElements.map [ attribute |
@@ -217,21 +223,21 @@ class IocUtils
 		].pairsToMap.immutableCopy
 	}
 
-	def private static Object convertQualifierAttributeValue(Object attributeValue,
+	def private static QualifierAttributeValue convertQualifierAttributeValue(Object attributeValue,
 		extension TransformationContext context)
 	{
 		switch (attributeValue)
 		{
 			case null: null
-			AnnotationReference: attributeValue.extractQualifierAttributes(context)
-			EnumerationValueDeclaration: attributeValue.simpleName
-			TypeReference: attributeValue.type.qualifiedName
+			AnnotationReference: attributeValue.buildQualifierModel(context)
+			EnumerationValueDeclaration: new QualifierAttributeEnumValue(attributeValue.declaringType.qualifiedName, attributeValue.simpleName)
+			TypeReference: new QualifierAttributeClassValue(attributeValue.type.qualifiedName)
 			case attributeValue.class.array: convertQualifierAttributeArrayValue(attributeValue, context)
-			default: attributeValue
+			default: new QualifierAttributePrimitiveValue(attributeValue)
 		}
 	}
 
-	def private static List<?> convertQualifierAttributeArrayValue(Object array,
+	def private static QualifierAttributeArrayValue convertQualifierAttributeArrayValue(Object array,
 		extension TransformationContext context)
 	{
 		val listBuilder = ImmutableList.builder
@@ -251,7 +257,7 @@ class IocUtils
 			}
 		}
 
-		return listBuilder.build
+		return new QualifierAttributeArrayValue(listBuilder.build)
 	}
 
 	def static Iterable<ProcessingMessage> validateComponentType(Type componentType,
@@ -424,8 +430,8 @@ class IocUtils
 			}
 
 		// TODO warning: @NotRequired on collection, it is redundant
-		val optional = cardinalityType == CardinalityType.MULTIPLE || dependencyReferenceDeclaration.hasAnnotation(NotRequired.findTypeGlobally) ||
-			providerType.implicitOptional
+		val optional = cardinalityType == CardinalityType.MULTIPLE ||
+			dependencyReferenceDeclaration.hasAnnotation(NotRequired.findTypeGlobally) || providerType.implicitOptional
 
 		val qualifiers = findQualifiers(dependencyReferenceDeclaration, context)
 

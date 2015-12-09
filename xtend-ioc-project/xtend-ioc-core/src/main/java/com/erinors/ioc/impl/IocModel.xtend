@@ -67,19 +67,115 @@ interface HasPriority
 }
 
 @Data
-class QualifierModel
+abstract class QualifierAttributeValue
+{
+	def CharSequence asString()
+
+	override toString()
+	{
+		asString.toString
+	}
+
+	def CharSequence toSourceCode()
+}
+
+@Data
+class QualifierAttributePrimitiveValue extends QualifierAttributeValue
+{
+	Object value
+
+	override asString()
+	{
+		value.toString
+	}
+
+	override toSourceCode()
+	{
+		switch (value)
+		{
+			String:
+			'''"«value»"'''
+			default:
+				value.toString
+		}
+	}
+}
+
+@Data
+class QualifierAttributeEnumValue extends QualifierAttributeValue
+{
+	String enumClassName
+
+	String enumConstantName
+
+	override asString()
+	{
+		'''«enumClassName».«enumConstantName»'''
+	}
+
+	override toSourceCode()
+	{
+		'''«enumClassName».«enumConstantName»'''
+	}
+}
+
+@Data
+class QualifierAttributeClassValue extends QualifierAttributeValue
+{
+	String typeName
+
+	override asString()
+	{
+		'''type «typeName»'''
+	}
+
+	override toSourceCode()
+	{
+		'''«typeName».class'''
+	}
+}
+
+@Data
+class QualifierAttributeArrayValue extends QualifierAttributeValue
+{
+	List<? extends QualifierAttributeValue> elements
+
+	override asString()
+	{
+		elements.map[asString].toString
+	}
+
+	override toSourceCode()
+	{
+		'''«FOR element : elements BEFORE "{" SEPARATOR ", " AFTER "}"»«element.toSourceCode»«ENDFOR»'''
+	}
+}
+
+@Data
+class QualifierAttributeAnnotationValue extends QualifierAttributeValue
 {
 	String name
 
-	Map<String, ?> attributes
+	Map<String, ? extends QualifierAttributeValue> attributes
 
 	def hasAttributes()
 	{
-		!attributes.empty
+		!attributes.
+			empty
 	}
 
-	def String asString()
-	'''@«name»«IF hasAttributes»«attributes»«ENDIF»''' // TODO
+	override asString()
+	'''@«name»«IF hasAttributes»«attributes.mapValues[asString]»«ENDIF»'''
+
+	override toSourceCode()
+	{
+		'''@«name»«FOR attribute : attributes.entrySet BEFORE "(" SEPARATOR ", " AFTER ")"»«attribute.key» = «attribute.value.toSourceCode»«ENDFOR»'''
+	}
+}
+
+@Data
+class QualifierModel extends QualifierAttributeAnnotationValue
+{
 }
 
 enum CardinalityType

@@ -382,8 +382,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 				def private generateQualifierAttributeValueSourceCode(ComponentProviderModel componentModel,
 					String parameterName)
 				{
-					val value = componentModel.getParameterizedQualifierAttributeValue(parameterName)
-					value.valueToSourceCode
+					componentModel.getParameterizedQualifierAttributeValue(parameterName).toSourceCode
 				}
 
 				def private TypeReference getLifecycleManagerTypeReference(
