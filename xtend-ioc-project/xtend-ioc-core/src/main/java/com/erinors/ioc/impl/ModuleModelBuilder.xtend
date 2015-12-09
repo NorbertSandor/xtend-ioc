@@ -11,14 +11,11 @@
  */
 package com.erinors.ioc.impl
 
-import com.erinors.ioc.impl.IocUtils.ParameterizedQualifierReference
 import com.erinors.ioc.impl.ModuleModelBuilder.ModuleModelBuilderContext
 import com.erinors.ioc.shared.api.ImportComponents
 import com.erinors.ioc.shared.api.Module
 import com.erinors.ioc.shared.api.PriorityConstants
 import com.erinors.ioc.shared.api.Provider
-import com.google.common.collect.Lists
-import java.util.List
 import java.util.Set
 import java.util.regex.Pattern
 import org.eclipse.xtend.lib.macro.TransformationContext
@@ -202,7 +199,8 @@ class ModuleModelBuilder
 		Set<? extends ComponentClassModel> componentClassModels, // TODO rename
 		Set<? extends DeclaredComponentReference<MethodDeclaration>> moduleDependencies)
 	{
-		val allDependencies = (componentClassModels.map[componentReferences].flatten + moduleDependencies).toSet
+		val allDependencies = (componentClassModels.map[componentReferences].flatten + moduleDependencies).toSet.
+			immutableCopy
 
 		val Set<ComponentModel> additionalComponentModels = newLinkedHashSet
 
@@ -255,107 +253,73 @@ class ModuleModelBuilder
 			ownerComponentModel.classDeclaration.declaredMethods.filter [
 				hasAnnotation(Provider.findTypeGlobally)
 			].forEach [ providerMethodDeclaration |
-				if (providerMethodDeclaration.returnType.inferred)
-				{
-					// TODO ezt a componentprocessor-nak kellene vizsgálni
-					throw new IocProcessingException(
-						new ProcessingMessage(
-							Severity.
-								ERROR,
-							providerMethodDeclaration,
-							'''Provider method must have an explicit return type, type inference is not supported: «providerMethodDeclaration.asString»'''
-						))
-				}
-
-				val providerSimpleQualifiers = providerMethodDeclaration.findQualifiers(context)
-
-				val providerAnnotation = providerMethodDeclaration.findAnnotation(Provider.findTypeGlobally)
-				val providerParameterizedQualifiers = providerAnnotation.collectParameterizedQualifiers
-
-				providerParameterizedQualifiers.forEach [ parameterizedQualifier |
-					val providerQualifiersWithAttributes = providerSimpleQualifiers.filter[hasAttributes]
-					if (providerQualifiersWithAttributes.exists[name == parameterizedQualifier.name])
-					{
-						throw new IllegalStateException("invalid qualifier composition: " + parameterizedQualifier.name) // FIXME
-					}
-				]
-
-				val applicableDependencies = allDependencies.filter [
-					val dependencySimpleQualifiers = signature.componentTypeSignature.qualifiers.filter [ dependencyQualifier |
-						!providerParameterizedQualifiers.exists[name == dependencyQualifier.name]
-					].toSet
-					providerSimpleQualifiers.containsAll(dependencySimpleQualifiers)
-				].filter [
-					val dependencyParameterizedQualifiers = signature.componentTypeSignature.qualifiers.filter [ dependencyQualifier |
-						providerParameterizedQualifiers.exists[name == dependencyQualifier.name]
-					].toSet
-					providerParameterizedQualifiers.map[name].containsAll(dependencyParameterizedQualifiers.map [
-						name
-					].toSet)
-				]
-
-				// TODO move to component validation
-				if (applicableDependencies.empty)
-				{
-					throw new IocProcessingException(
-						new ProcessingMessage(Severity.ERROR,
-							providerMethodDeclaration, '''Provided component not referenced.''') // TODO
-					)
-				}
-
-				val applicableParameterizedQualifierReferences = applicableDependencies.map [
-					signature.componentTypeSignature.qualifiers
-				].flatten.toSet.map [ qualifier |
-					new ParameterizedQualifierReference(providerParameterizedQualifiers.findFirst [
-						name == qualifier.name
-					], qualifier)
-				].groupBy[parameterizedQualifier].values.toList
-
-				val finalizedParameterizedQualifierInstances = applicableParameterizedQualifierReferences.variations.map [
-					map [referencingQualifier]
-				].toList
-
-				val finalQualifierLists = if (finalizedParameterizedQualifierInstances.empty)
-						#[providerSimpleQualifiers]
-					else
-						finalizedParameterizedQualifierInstances.map [
-							it + providerSimpleQualifiers
-						]
-
-				finalQualifierLists.forEach [ qualifierVariation |
-					additionalComponentModels +=
-						#[
-							new ComponentProviderModel(
-								new ComponentTypeSignature(providerMethodDeclaration.returnType,
-									qualifierVariation.toSet),
-								providerMethodDeclaration.getLifecycleManagerClass(context),
-								PriorityConstants.DEFAULT_PRIORITY, ownerComponentModel, providerMethodDeclaration,
-								providerParameterizedQualifiers.toSet)]
-				]
+				processProviderMethod(providerMethodDeclaration, allDependencies, additionalComponentModels,
+					ownerComponentModel)
 			]
 		]
 
 		(componentClassModels + additionalComponentModels).toSet.immutableCopy
 	}
 
-	def private static <T> Iterable<List<T>> variations(Iterable<List<T>> lists)
-	{
-		if (lists.empty)
-			#[]
-		else
+	def private processProviderMethod(MethodDeclaration providerMethodDeclaration,
+		Set<ComponentReference> allDependencies, Set<ComponentModel> additionalComponentModels,
+		ComponentClassModel ownerComponentModel)
 		{
-			val result = <List<T>>newLinkedList
-			lists.head.forEach [ head |
-				val rest = variations(lists.tail.toList)
+			val providerSimpleQualifiers = providerMethodDeclaration.findQualifiers(context)
 
-				if (rest.empty)
-					result.add(#[head])
-				else
-					rest.forEach [ tail |
-						result.add(Lists.asList(head, tail))
-					]
+			val providerAnnotation = providerMethodDeclaration.findAnnotation(Provider.findTypeGlobally)
+			val providerParameterizedQualifiers = providerAnnotation.collectParameterizedQualifiers
+
+			providerParameterizedQualifiers.forEach [ parameterizedQualifier |
+				if (providerSimpleQualifiers.exists[name == parameterizedQualifier.name])
+				{
+					throw new IllegalStateException("invalid qualifier composition: " + parameterizedQualifier.name) // FIXME
+				}
 			]
-			result
+
+			val applicableDependencies = allDependencies.filter [ componentReference |
+				val componentReferenceParameterizedQualifiers = componentReference.
+					componentReferenceParameterizedQualifiers(providerParameterizedQualifiers)
+
+				if (componentReferenceParameterizedQualifiers.size != providerParameterizedQualifiers.size)
+				{
+					// TODO warning: no component is generated!
+					false
+				}
+				else
+				{
+					val currentReferenceSyntheticSignature = new ComponentReferenceSignature(
+						new ComponentTypeSignature(providerMethodDeclaration.returnType,
+							(providerSimpleQualifiers + componentReferenceParameterizedQualifiers).toSet),
+						componentReference.signature.cardinality
+					)
+
+					componentReference.signature.isAssignableFrom(currentReferenceSyntheticSignature)
+				}
+			].toSet.immutableCopy
+
+			val finalQualifierLists = applicableDependencies.map [
+				(providerSimpleQualifiers + componentReferenceParameterizedQualifiers(providerParameterizedQualifiers)).
+					toSet
+			].toSet.immutableCopy
+
+			finalQualifierLists.forEach [ qualifiers |
+				additionalComponentModels +=
+					#[
+						new ComponentProviderModel(
+							new ComponentTypeSignature(providerMethodDeclaration.returnType, qualifiers.toSet),
+							providerMethodDeclaration.getLifecycleManagerClass(context),
+							PriorityConstants.DEFAULT_PRIORITY, ownerComponentModel, providerMethodDeclaration,
+							providerParameterizedQualifiers.toSet)]
+			]
+		}
+
+		def private componentReferenceParameterizedQualifiers(ComponentReference componentReference,
+			Iterable<ParameterizedQualifierModel> providerParameterizedQualifiers)
+		{
+			componentReference.signature.componentTypeSignature.qualifiers.filter [ qualifier |
+				providerParameterizedQualifiers.exists[name == qualifier.name]
+			]
 		}
 	}
-}
+	

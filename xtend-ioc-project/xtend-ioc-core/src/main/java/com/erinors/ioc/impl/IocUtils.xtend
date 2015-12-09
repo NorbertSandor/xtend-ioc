@@ -423,7 +423,8 @@ class IocUtils
 					targetTypeReference
 			}
 
-		val optional = dependencyReferenceDeclaration.hasAnnotation(NotRequired.findTypeGlobally) ||
+		// TODO warning: @NotRequired on collection, it is redundant
+		val optional = cardinalityType == CardinalityType.MULTIPLE || dependencyReferenceDeclaration.hasAnnotation(NotRequired.findTypeGlobally) ||
 			providerType.implicitOptional
 
 		val qualifiers = findQualifiers(dependencyReferenceDeclaration, context)

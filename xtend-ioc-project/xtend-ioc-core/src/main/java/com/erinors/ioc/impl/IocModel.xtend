@@ -96,10 +96,14 @@ class ComponentTypeSignature
 
 	Set<? extends QualifierModel> qualifiers
 
+	/**
+	 * Indicates whether the specified ComponentTypeSignature can be assigned to this ComponentTypeSignature.
+	 */
 	def isAssignableFrom(ComponentTypeSignature otherComponentSignature)
 	{
-		typeReference.isAssignableFrom(otherComponentSignature.typeReference) &&
-			otherComponentSignature.qualifiers.containsAll(qualifiers)
+		val typesCompatible = typeReference.isAssignableFrom(otherComponentSignature.typeReference)
+		val qualifiersCompatible = otherComponentSignature.qualifiers.containsAll(qualifiers)
+		typesCompatible && qualifiersCompatible
 	}
 
 	override toString()
@@ -118,6 +122,9 @@ class ComponentReferenceSignature
 
 	CardinalityType cardinality
 
+	/**
+	 * Indicates whether the specified ComponentReferenceSignature can be assigned to this ComponentReferenceSignature.
+	 */
 	def boolean isAssignableFrom(ComponentReferenceSignature sourceComponentReferenceSignature)
 	{
 		val compatibleTypes = componentTypeSignature.isAssignableFrom(
@@ -330,7 +337,7 @@ class ComponentProviderModel extends ComponentModel
 			if (qualifierModel ===
 				null)
 			{
-				throw new IllegalStateException('''«typeSignature», «parameterizedQualifierModel», «enclosingComponentModel», «providerMethodDeclaration.simpleName»''')
+				throw new IllegalStateException('''«typeSignature», «parameterizedQualifierModel», «enclosingComponentModel», «providerMethodDeclaration.simpleName»''') // FIXME
 			}
 			qualifierModel.attributes.get(parameterizedQualifierModel.value)
 		].head
@@ -426,7 +433,8 @@ class ComponentClassModel extends ComponentModel
 	}
 }
 
-interface ModuleModel {
+interface ModuleModel
+{
 	def StaticModuleModel getStaticModuleModel()
 }
 
@@ -485,8 +493,9 @@ class StaticModuleModel implements ModuleModel
 
 	override toString()
 	'''«moduleInterfaceDeclaration.qualifiedName»'''
-	
-	override getStaticModuleModel() {
+
+	override getStaticModuleModel()
+	{
 		this
 	}
 }
@@ -741,5 +750,4 @@ class MethodReferenceInterceptorParameterType implements InterceptorParameterTyp
 
 		List<? extends InterceptorInvocationModel> interceptorInvocations
 	}
-
 	

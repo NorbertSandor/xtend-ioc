@@ -27,6 +27,7 @@ import org.eclipse.xtend.lib.macro.services.Problem.Severity
 
 import static extension com.erinors.ioc.impl.IocUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
+import com.erinors.ioc.shared.api.Provider
 
 @FinalFieldsConstructor
 class ComponentClassModelBuilder
@@ -62,8 +63,7 @@ class ComponentClassModelBuilder
 		if (componentConstructor !== null)
 		{
 			componentConstructor.resolvedParameters.map [ resolvedParameter |
-				createDeclaredComponentReference(resolvedParameter.declaration, resolvedParameter.resolvedType,
-					context)
+				createDeclaredComponentReference(resolvedParameter.declaration, resolvedParameter.resolvedType, context)
 			].toList
 		}
 		else
@@ -340,6 +340,22 @@ class ComponentClassModelBuilder
 	def ComponentClassModel build(ClassDeclaration componentClassDeclaration)
 	{
 		val lifecycleManagerClass = componentClassDeclaration.getLifecycleManagerClass(context)
+
+		componentClassDeclaration.declaredMethods.filter [
+			hasAnnotation(Provider.findTypeGlobally)
+		].forEach [
+			if (returnType.inferred)
+			{
+				// TODO ezt a componentprocessor-nak kellene vizsgálni
+				throw new IocProcessingException(
+					new ProcessingMessage(
+						Severity.
+							ERROR,
+						it,
+						'''Provider method must have an explicit return type, type inference is not supported: «it.asString»'''
+					))
+			}
+		]
 
 		val predestroyMethods = findPreDestroyMethods(componentClassDeclaration)
 		if (!predestroyMethods.empty &&

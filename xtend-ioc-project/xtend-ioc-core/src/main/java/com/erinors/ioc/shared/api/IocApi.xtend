@@ -188,11 +188,6 @@ annotation Qualifier
 	// TODO support javax.inject.Qualifier
 }
 
-@Qualifier
-annotation Named {
-	String value
-}
-
 interface ComponentLifecycleManager<T> extends Supplier<T>
 {
 }
@@ -228,6 +223,8 @@ annotation Priority
 {
 	int value = PriorityConstants.DEFAULT_PRIORITY
 }
+
+// TODO support @Required, eg. in case of collections
 
 @Documented
 @Target(#[TYPE, METHOD, FIELD, PARAMETER])

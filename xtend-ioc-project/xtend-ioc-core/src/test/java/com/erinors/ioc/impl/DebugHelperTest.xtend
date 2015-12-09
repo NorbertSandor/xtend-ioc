@@ -41,7 +41,7 @@ class DebugHelperTest
 	extension XtendCompilerTester compilerTester = XtendCompilerTester.newXtendCompilerTester(class.classLoader)
 
 	@Test
-	@Ignore
+//	@Ignore
 	def void test()
 	{
 		'''
@@ -69,29 +69,28 @@ import «ParameterizedQualifier.name»
 
 @Qualifier
 @Documented
-@Retention(RUNTIME)
 annotation ConfigurationValue {
-	String value
+	Class<?> value
 }
 
 @Component
 class ServiceImpl {
-	//@Inject
-	//@ConfigurationValue("c")
-	//public String configurationC
+	@Inject
+	@ConfigurationValue(Integer)
+	public String configurationC
 }
 
 @Component
 class ConfigurationValueProvider {
-	@Provider(parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterName="name"))
-	def String provideConfigurationValue(String name) {
-		"configuration." + name
+	@Provider(parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterName="clazz"))
+	def String provideConfigurationValue(Class<?> clazz) {
+		"configuration." + clazz.name
 	}
 }
 
 @Module(components=#[ConfigurationValueProvider, ServiceImpl])
 interface TestModule {
-	def ServiceImpl service()
+	// def ServiceImpl service()
 }
 '''.compile [
 			System.out.println(allProblems.map[message])
