@@ -156,6 +156,7 @@
 						<configuration>
 							<outputDirectory>${project.build.directory}/generated-sources/xtend</outputDirectory>
 							<testOutputDirectory>${project.build.directory}/generated-test-sources/xtend</testOutputDirectory>
+							<javaSourceVersion>1.8</javaSourceVersion>
 						</configuration>
 					</execution>
 				</executions>
