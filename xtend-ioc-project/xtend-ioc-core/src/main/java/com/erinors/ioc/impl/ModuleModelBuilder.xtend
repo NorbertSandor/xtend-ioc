@@ -289,7 +289,7 @@ class ModuleModelBuilder
 				else
 				{
 					val currentReferenceSyntheticSignature = new ComponentReferenceSignature(
-						new ComponentTypeSignature(providerMethodDeclaration.returnType,
+						new ComponentTypeSignature(providerMethodDeclaration.returnType.wrapperIfPrimitive,
 							(providerSimpleQualifiers + componentReferenceParameterizedQualifiers).toSet),
 						componentReference.signature.cardinality
 					)

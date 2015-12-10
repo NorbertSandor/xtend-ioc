@@ -69,29 +69,40 @@ import «ParameterizedQualifier.name»
 
 @Qualifier
 @Documented
-annotation ConfigurationValue {
-	Class<?> value
+@Retention(RUNTIME)
+annotation ConfigurationValue
+{
+	String value
 }
 
 @Component
-class ServiceImpl {
+class ServiceImpl
+{
 	@Inject
-	@ConfigurationValue(Integer)
-	public String configurationC
+	@ConfigurationValue("a")
+	public int configurationInt
+
+	@Inject
+	@ConfigurationValue("a")
+	public Integer configurationInteger
 }
 
 @Component
-class ConfigurationValueProvider {
-	@Provider(parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterName="clazz"))
-	def String provideConfigurationValue(Class<?> clazz) {
-		"configuration." + clazz.name
+class ConfigurationValueProvider
+{
+	@Provider(parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterName="name"))
+	def Integer provideConfigurationValue(String name)
+	{
+		name.charAt(0) - 'a'
 	}
 }
 
 @Module(components=#[ConfigurationValueProvider, ServiceImpl])
-interface TestModule {
-	// def ServiceImpl service()
+interface TestModule
+{
+	def ServiceImpl service()
 }
+
 '''.compile [
 			System.out.println(allProblems.map[message])
 			System.out.println(singleGeneratedCode)

@@ -324,7 +324,7 @@ class GeneratedComponentReference extends AbstractComponentDependencyReference
 
 	new(TypeReference targetTypeReference, Element compilationProblemTarget)
 	{
-		super(new ComponentReferenceSignature(new ComponentTypeSignature(targetTypeReference, #{}),
+		super(new ComponentReferenceSignature(new ComponentTypeSignature(targetTypeReference.wrapperIfPrimitive, #{}),
 			CardinalityType.SINGLE), ProviderType.DIRECT, false)
 		this.compilationProblemTarget = compilationProblemTarget
 	}
@@ -438,6 +438,11 @@ class ComponentProviderModel extends ComponentModel
 			qualifierModel.attributes.get(parameterizedQualifierModel.value)
 		].head
 	}
+
+	override toString()
+	{
+		'''«enclosingComponentModel».«providerMethodDeclaration.simpleName»'''
+	}
 }
 
 @Data
@@ -526,6 +531,11 @@ class ComponentClassModel extends ComponentModel
 
 		// TODO use random name
 		return '''_generated_«generatedComponentReferences.indexOf(generatedComponentReference)»'''
+	}
+
+	override toString()
+	{
+		'''«classDeclaration.qualifiedName»'''
 	}
 }
 

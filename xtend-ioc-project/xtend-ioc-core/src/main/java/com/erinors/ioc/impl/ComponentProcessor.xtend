@@ -165,7 +165,7 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 			ComponentReferenceSignature componentReferenceSignature, extension TransformationContext context)
 		{
 			ComponentReferenceSupplier.newTypeReference(
-				componentReferenceSignature.componentTypeSignature.typeReference.newWildcardTypeReference)
+				componentReferenceSignature.componentTypeSignature.typeReference.wrapperIfPrimitive.newWildcardTypeReference)
 		}
 
 		def private generateConstructor(MutableClassDeclaration annotatedClass, ComponentClassModel componentModel,
@@ -190,7 +190,7 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 						if (componentReferenceSignature.cardinality == CardinalityType.SINGLE)
 							baseTypeReference
 						else
-							List.newTypeReference(baseTypeReference.newWildcardTypeReference)
+							List.newTypeReference(baseTypeReference.wrapperIfPrimitive.newWildcardTypeReference)
 					)
 				]
 

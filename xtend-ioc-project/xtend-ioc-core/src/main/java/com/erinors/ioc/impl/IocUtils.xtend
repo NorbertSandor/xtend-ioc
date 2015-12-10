@@ -51,8 +51,8 @@ import org.eclipse.xtend.lib.macro.services.GlobalTypeLookup
 import org.eclipse.xtend.lib.macro.services.Problem.Severity
 import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 
-import static extension com.erinors.ioc.shared.util.MapUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
+import static extension com.erinors.ioc.shared.util.MapUtils.*
 
 @FinalFieldsConstructor
 class IocProcessingContext
@@ -213,13 +213,26 @@ class IocUtils
 		result
 	}
 
-	def private static Map<String, ? extends QualifierAttributeValue> extractQualifierAttributes(AnnotationReference annotationReference,
-		extension TransformationContext context)
+	def private static Map<String, ? extends QualifierAttributeValue> extractQualifierAttributes(
+		AnnotationReference annotationReference, extension TransformationContext context)
 	{
-		annotationReference.annotationTypeDeclaration.declaredAnnotationTypeElements.map [ attribute |
+		val annotationAttributes = annotationReference.annotationTypeDeclaration.declaredAnnotationTypeElements
+
+		if (annotationAttributes.exists [ attribute |
+			val attributeValue = annotationReference.getValue(attribute.simpleName)
+			attributeValue.convertQualifierAttributeValue(context) === null
+		])
+		{
+			// Check if the annotation reference has compilation error.
+			// In this case attribute.simpleName is valid but getValue() returns null
+			throw new CancelOperationException
+		}
+
+		annotationAttributes.map [ attribute |
 			val attributeName = attribute.simpleName
 			val attributeValue = annotationReference.getValue(attributeName)
-			attributeName -> attributeValue.convertQualifierAttributeValue(context)
+			val convertedAttributeValue = attributeValue.convertQualifierAttributeValue(context)
+			attributeName -> convertedAttributeValue
 		].pairsToMap.immutableCopy
 	}
 
@@ -228,12 +241,18 @@ class IocUtils
 	{
 		switch (attributeValue)
 		{
-			case null: null
-			AnnotationReference: attributeValue.buildQualifierModel(context)
-			EnumerationValueDeclaration: new QualifierAttributeEnumValue(attributeValue.declaringType.qualifiedName, attributeValue.simpleName)
-			TypeReference: new QualifierAttributeClassValue(attributeValue.type.qualifiedName)
-			case attributeValue.class.array: convertQualifierAttributeArrayValue(attributeValue, context)
-			default: new QualifierAttributePrimitiveValue(attributeValue)
+			case null:
+				null
+			AnnotationReference:
+				attributeValue.buildQualifierModel(context)
+			EnumerationValueDeclaration:
+				new QualifierAttributeEnumValue(attributeValue.declaringType.qualifiedName, attributeValue.simpleName)
+			TypeReference:
+				new QualifierAttributeClassValue(attributeValue.type.qualifiedName)
+			case attributeValue.class.array:
+				convertQualifierAttributeArrayValue(attributeValue, context)
+			default:
+				new QualifierAttributePrimitiveValue(attributeValue)
 		}
 	}
 
@@ -436,7 +455,7 @@ class IocUtils
 		val qualifiers = findQualifiers(dependencyReferenceDeclaration, context)
 
 		new DeclaredComponentReference(new ComponentReferenceSignature(
-			new ComponentTypeSignature(typeReference, qualifiers),
+			new ComponentTypeSignature(typeReference.wrapperIfPrimitive, qualifiers),
 			cardinalityType
 		), providerType, optional, dependencyReferenceDeclaration, targetTypeReference)
 	}

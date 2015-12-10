@@ -398,10 +398,10 @@ class ComponentClassModelBuilder
 	def private getComponentClassType(ClassDeclaration componentClassDeclaration)
 	{
 		val componentAnnotation = componentClassDeclaration.findAnnotation(Component.findTypeGlobally)
-		if (componentAnnotation.getClassValue("type") == object)
+		(if (componentAnnotation.getClassValue("type") == object)
 			componentClassDeclaration.newTypeReference
 		else
-			componentAnnotation.getClassValue("type")
+			componentAnnotation.getClassValue("type")).wrapperIfPrimitive
 	}
 
 	def private getComponentClassPriority(ClassDeclaration componentClassDeclaration)

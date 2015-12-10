@@ -225,7 +225,7 @@ annotation Priority
 }
 
 // TODO support @Required, eg. in case of collections
-
+// TODO move to attribute of @Inject
 @Documented
 @Target(#[TYPE, METHOD, FIELD, PARAMETER])
 annotation NotRequired
