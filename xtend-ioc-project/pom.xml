@@ -52,6 +52,9 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+
 		<dependency.xtend.version>2.9.0</dependency.xtend.version>
 
 	</properties>
@@ -155,7 +158,6 @@
 						<configuration>
 							<outputDirectory>${project.build.directory}/generated-sources/xtend</outputDirectory>
 							<testOutputDirectory>${project.build.directory}/generated-test-sources/xtend</testOutputDirectory>
-							<javaSourceVersion>1.8</javaSourceVersion>
 						</configuration>
 					</execution>
 				</executions>
@@ -163,10 +165,6 @@
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.3</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-toolchains-plugin</artifactId>
