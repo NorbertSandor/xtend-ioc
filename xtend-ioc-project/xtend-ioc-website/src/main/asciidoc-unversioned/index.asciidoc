@@ -22,6 +22,9 @@ For more details see
 
 Current development version.
 
+* Code cleanup, improvements and bug fixes in the framework code.
+* Build system improvements.
+
 === 0.3.0
 
 * Upgrade to xtend-2.9.0.
