@@ -22,6 +22,8 @@ For more details see
 
 Current development version.
 
+* Upgrade xtend-contrib to 1.0.0.
+
 === 0.4.0
 
 * Code cleanup, improvements and bug fixes in the framework code.
