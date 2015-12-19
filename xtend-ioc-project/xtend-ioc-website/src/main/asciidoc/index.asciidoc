@@ -481,21 +481,33 @@ There are important differences as well:
 
 Parameterized component providers are very similar to <<component-providers, simple component providers>>, the only difference is that they can provide __component instance__s for multiple __qualifier__s.
 
-WARNING: _Parameterized component providers_ is an experimental feature, use it at your own risk.
-
 NOTE: As all features of _xtend-ioc_, _parameterized component providers_ is a compile-time feature.
+
+An example implementing configuration value injection:
 
 [source,xtend]
 ----
 include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/parameterizedproviders/Example.xtend[tags=Example]
 ----
-<1> Declare qualifier annotation with attributes.
+<1> Declare qualifier annotation for configuration value injection.
 <2> Declare parameterized provider.
 <3> Specify the qualifier annotation supported by the provider.
 <4> Specify the annotation attribute name.
 <5> Specify the method parameter name the annotation attribute value is mapped to.
 <6> Declare component with injected fields.
 <7> Test injected values.
+
+Another example implementing logger injection:
+
+[source,xtend]
+----
+include::../../../../xtend-ioc-examples/src/test/java/com/erinors/ioc/examples/docs/parameterizedproviders2/Example.xtend[tags=Example]
+----
+<1> Declare qualifier annotation for logger injection.
+<2> Simple logger implementation.
+<3> Declare logger provider.
+<4> A simple task executor service that uses loggers.
+<5> Check logger output.
 
 === Modules
 
