@@ -55,7 +55,8 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
-		<dependency.xtend.version>2.9.0</dependency.xtend.version>
+		<dependency.xtend.version>2.9.1</dependency.xtend.version>
+		<dependency.xtend-maven-plugin.version>2.9.0</dependency.xtend-maven-plugin.version>
 
 	</properties>
 
@@ -148,7 +149,7 @@
 			<plugin>
 				<groupId>org.eclipse.xtend</groupId>
 				<artifactId>xtend-maven-plugin</artifactId>
-				<version>${dependency.xtend.version}</version>
+				<version>${dependency.xtend-maven-plugin.version}</version>
 				<executions>
 					<execution>
 						<goals>

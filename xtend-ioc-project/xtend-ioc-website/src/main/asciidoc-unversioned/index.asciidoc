@@ -27,6 +27,7 @@ Current development version.
 * Code cleanup, improvements and bug fixes in the framework code.
 * Build system improvements.
 * Documentation improvements, new example (logger injection with parameterized component provider).
+* Upgrade xtend to 2.9.1.
 
 Documentation: link:0.4.0/index.html[0.4.0]
 
