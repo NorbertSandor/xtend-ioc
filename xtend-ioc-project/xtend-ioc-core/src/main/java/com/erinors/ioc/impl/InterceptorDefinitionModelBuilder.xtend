@@ -66,9 +66,6 @@ class InterceptorDefinitionModelBuilder
 
 					val returnTypeExplicit = returnType !=
 						methodReferenceAnnotationType.findDeclaredAnnotationTypeElement("returnType").defaultValue
-					val parameterTypesExplicit = parameterTypes.toList !=
-						(methodReferenceAnnotationType.findDeclaredAnnotationTypeElement("parameterTypes").
-							defaultValue as TypeReference[]).toList
 					val sampleDeclaringTypeExplicit = sampleDeclaringType !=
 						methodReferenceAnnotationType.findDeclaredAnnotationTypeElement("sampleDeclaringType").
 							defaultValue
@@ -76,10 +73,9 @@ class InterceptorDefinitionModelBuilder
 								methodReferenceAnnotationType.
 									findDeclaredAnnotationTypeElement("sampleDeclaredMethodName").defaultValue
 
-							val definitionByMethodSignature = returnTypeExplicit && parameterTypesExplicit &&
-								!sampleDeclaringTypeExplicit && !sampleDeclaredMethodNameExplicit
-							val definitionBySample = !returnTypeExplicit && !parameterTypesExplicit &&
-								sampleDeclaringTypeExplicit
+							val definitionByMethodSignature = returnTypeExplicit && !sampleDeclaringTypeExplicit &&
+								!sampleDeclaredMethodNameExplicit
+							val definitionBySample = !returnTypeExplicit && sampleDeclaringTypeExplicit
 
 							if (!(definitionByMethodSignature || definitionBySample))
 							{
@@ -134,6 +130,13 @@ class InterceptorDefinitionModelBuilder
 										declaration.simpleName == sampleDeclaredMethodName
 									].resolvedParameters.map[declaration.type].toList
 
+							if (finalParameterTypes.size > 6)
+							{
+								throw new IocProcessingException(
+									new ProcessingMessage(Severity.ERROR,
+										attributeDeclaration, '''Referenced methods may have at most 6 parameters.''')) // TODO
+							}
+
 							new MethodReferenceInterceptorParameterType(finalReturnType, finalParameterTypes)
 						}
 						else
@@ -148,3 +151,4 @@ class InterceptorDefinitionModelBuilder
 					parameters.toList)
 				}
 			}
+			
