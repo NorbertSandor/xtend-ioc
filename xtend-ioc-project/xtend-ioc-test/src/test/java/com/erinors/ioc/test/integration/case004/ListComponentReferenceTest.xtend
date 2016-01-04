@@ -12,15 +12,16 @@
 package com.erinors.ioc.test.integration.case004
 
 import com.erinors.ioc.shared.api.Component
-
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
+import com.erinors.ioc.shared.api.NotRequired
 import com.erinors.ioc.test.integration.HelloService
+import com.google.common.base.Optional
 import com.google.common.base.Supplier
 import java.util.List
-import static org.junit.Assert.*
 import org.junit.Test
-import com.erinors.ioc.shared.api.NotRequired
+
+import static org.junit.Assert.*
 
 interface NotImplementedInterface
 {
@@ -121,13 +122,13 @@ class ComponentWithInjectedConstructor
 	public List<? extends Supplier<? extends HelloService>> helloServices6
 
 	// List of optionals
-	public List<com.google.common.base.Optional<HelloService>> helloServices7
+	public List<Optional<HelloService>> helloServices7
 
-	public List<com.google.common.base.Optional<? extends HelloService>> helloServices8
+	public List<Optional<? extends HelloService>> helloServices8
 
-	public List<? extends com.google.common.base.Optional<HelloService>> helloServices9
+	public List<? extends Optional<HelloService>> helloServices9
 
-	public List<? extends com.google.common.base.Optional<? extends HelloService>> helloServices10
+	public List<? extends Optional<? extends HelloService>> helloServices10
 
 	//
 	// Unresolved
@@ -147,13 +148,13 @@ class ComponentWithInjectedConstructor
 	public List<? extends Supplier<? extends NotImplementedInterface>> unresolved6
 
 	// List of optionals
-	public List<com.google.common.base.Optional<NotImplementedInterface>> unresolved7
+	public List<Optional<NotImplementedInterface>> unresolved7
 
-	public List<com.google.common.base.Optional<? extends NotImplementedInterface>> unresolved8
+	public List<Optional<? extends NotImplementedInterface>> unresolved8
 
-	public List<? extends com.google.common.base.Optional<NotImplementedInterface>> unresolved9
+	public List<? extends Optional<NotImplementedInterface>> unresolved9
 
-	public List<? extends com.google.common.base.Optional<? extends NotImplementedInterface>> unresolved10
+	public List<? extends Optional<? extends NotImplementedInterface>> unresolved10
 
 	@Inject
 	new(

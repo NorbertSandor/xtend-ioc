@@ -15,10 +15,10 @@ import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Module
 import org.eclipse.xtend.core.compiler.batch.XtendCompilerTester
 import org.eclipse.xtend.lib.macro.services.Problem.Severity
+import org.junit.Ignore
 import org.junit.Test
 
 import static org.junit.Assert.*
-import org.junit.Ignore
 
 class ComponentClassIsNotTransformedYetTest
 {

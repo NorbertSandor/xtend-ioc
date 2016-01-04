@@ -12,12 +12,12 @@
 package com.erinors.ioc.test.integration.case035
 
 import com.erinors.ioc.shared.api.Module
+import com.erinors.ioc.shared.api.ModuleImporter
 import com.erinors.ioc.test.integration.HelloService
 import com.erinors.ioc.test.integration.HelloServiceImpl
 import org.junit.Test
 
 import static org.junit.Assert.*
-import com.erinors.ioc.shared.api.ModuleImporter
 
 @Module(components=#[HelloServiceImpl])
 interface AnotherModule {

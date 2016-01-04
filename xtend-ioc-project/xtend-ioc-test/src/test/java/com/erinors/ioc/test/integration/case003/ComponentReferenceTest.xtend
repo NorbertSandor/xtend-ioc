@@ -14,12 +14,13 @@ package com.erinors.ioc.test.integration.case003
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
+import com.erinors.ioc.shared.api.NotRequired
 import com.erinors.ioc.test.integration.HelloService
 import com.erinors.ioc.test.integration.HelloServiceImpl
+import com.google.common.base.Optional
 import com.google.common.base.Supplier
 import org.junit.Assert
 import org.junit.Test
-import com.erinors.ioc.shared.api.NotRequired
 
 interface NotImplementedInterface
 {
@@ -38,10 +39,10 @@ class ComponentWithInjectedFields
 	public Supplier<? extends HelloService> helloService3
 
 	@Inject
-	public com.google.common.base.Optional<HelloService> helloService4
+	public Optional<HelloService> helloService4
 
 	@Inject
-	public com.google.common.base.Optional<? extends HelloService> helloService5
+	public Optional<? extends HelloService> helloService5
 
 	@Inject
 	@NotRequired
@@ -56,10 +57,10 @@ class ComponentWithInjectedFields
 	public Supplier<? extends NotImplementedInterface> unresolved3
 
 	@Inject
-	public com.google.common.base.Optional<NotImplementedInterface> unresolved4
+	public Optional<NotImplementedInterface> unresolved4
 
 	@Inject
-	public com.google.common.base.Optional<? extends NotImplementedInterface> unresolved5
+	public Optional<? extends NotImplementedInterface> unresolved5
 }
 
 @Component
@@ -71,9 +72,9 @@ class ComponentWithInjectedConstructor
 
 	public Supplier<? extends HelloService> helloService3
 
-	public com.google.common.base.Optional<HelloService> helloService4
+	public Optional<HelloService> helloService4
 
-	public com.google.common.base.Optional<? extends HelloService> helloService5
+	public Optional<? extends HelloService> helloService5
 
 	public NotImplementedInterface unresolved1
 
@@ -81,25 +82,25 @@ class ComponentWithInjectedConstructor
 
 	public Supplier<? extends NotImplementedInterface> unresolved3
 
-	public com.google.common.base.Optional<NotImplementedInterface> unresolved4
+	public Optional<NotImplementedInterface> unresolved4
 
-	public com.google.common.base.Optional<? extends NotImplementedInterface> unresolved5
+	public Optional<? extends NotImplementedInterface> unresolved5
 
 	@Inject
 	new(
 		HelloService helloService1,
 		Supplier<HelloService> helloService2,
 		Supplier<? extends HelloService> helloService3,
-		com.google.common.base.Optional<HelloService> helloService4,
-		com.google.common.base.Optional<? extends HelloService> helloService5,
+		Optional<HelloService> helloService4,
+		Optional<? extends HelloService> helloService5,
 		@NotRequired
 		NotImplementedInterface unresolved1,
 		@NotRequired
 		Supplier<NotImplementedInterface> unresolved2,
 		@NotRequired
 		Supplier<? extends NotImplementedInterface> unresolved3,
-		com.google.common.base.Optional<NotImplementedInterface> unresolved4,
-		com.google.common.base.Optional<? extends NotImplementedInterface> unresolved5
+		Optional<NotImplementedInterface> unresolved4,
+		Optional<? extends NotImplementedInterface> unresolved5
 	)
 	{
 		this.helloService1 = helloService1
@@ -128,9 +129,9 @@ interface TestModule
 
 	def Supplier<? extends HelloService> helloService3()
 
-	def com.google.common.base.Optional<HelloService> helloService4()
+	def Optional<HelloService> helloService4()
 
-	def com.google.common.base.Optional<? extends HelloService> helloService5()
+	def Optional<? extends HelloService> helloService5()
 
 	@NotRequired
 	def NotImplementedInterface unresolved1()
@@ -141,9 +142,9 @@ interface TestModule
 	@NotRequired
 	def Supplier<? extends NotImplementedInterface> unresolved3()
 
-	def com.google.common.base.Optional<NotImplementedInterface> unresolved4()
+	def Optional<NotImplementedInterface> unresolved4()
 
-	def com.google.common.base.Optional<? extends NotImplementedInterface> unresolved5()
+	def Optional<? extends NotImplementedInterface> unresolved5()
 }
 
 class ComponentReferenceTest

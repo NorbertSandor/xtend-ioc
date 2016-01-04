@@ -12,6 +12,7 @@
 package com.erinors.ioc.test.integration.case005
 
 import com.erinors.ioc.shared.api.Component
+import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
 import com.erinors.ioc.shared.api.Qualifier
 import com.erinors.ioc.test.integration.HelloService
@@ -22,7 +23,6 @@ import java.util.List
 import org.junit.Test
 
 import static org.junit.Assert.*
-import com.erinors.ioc.shared.api.Inject
 
 @Qualifier
 @Documented

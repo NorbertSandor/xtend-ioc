@@ -12,7 +12,6 @@
 package com.erinors.ioc.impl
 
 import java.lang.annotation.Annotation
-
 import java.util.List
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
 import org.eclipse.xtend.lib.macro.AbstractInterfaceProcessor
@@ -29,6 +28,7 @@ import org.eclipse.xtend.lib.macro.declaration.InterfaceDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableInterfaceDeclaration
 import org.eclipse.xtend.lib.macro.services.ProblemSupport
+
 import static extension com.erinors.ioc.shared.util.ListUtils.*
 
 @FinalFieldsConstructor

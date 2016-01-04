@@ -13,6 +13,7 @@ package com.erinors.ioc.shared.impl
 
 import java.util.Deque
 import org.eclipse.xtend.lib.annotations.Data
+
 import static extension com.erinors.ioc.shared.util.IterableUtils.*
 
 interface EventMatcher

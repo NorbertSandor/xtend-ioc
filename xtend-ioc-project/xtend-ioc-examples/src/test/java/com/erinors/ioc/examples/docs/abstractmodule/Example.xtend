@@ -12,10 +12,11 @@
 package com.erinors.ioc.examples.docs.abstractmodule
 
 import com.erinors.ioc.shared.api.Component
-import com.erinors.ioc.shared.api.Module
-import static org.junit.Assert.*
-import org.junit.Test
 import com.erinors.ioc.shared.api.Inject
+import com.erinors.ioc.shared.api.Module
+import org.junit.Test
+
+import static org.junit.Assert.*
 
 // tag::Example[]
 interface SomeService {

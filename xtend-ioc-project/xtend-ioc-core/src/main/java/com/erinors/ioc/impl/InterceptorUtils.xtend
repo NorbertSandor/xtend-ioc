@@ -15,8 +15,8 @@ import com.erinors.ioc.shared.api.InvocationContext
 import de.oehme.xtend.contrib.SignatureHelper
 import org.eclipse.xtend.lib.macro.TransformationContext
 import org.eclipse.xtend.lib.macro.declaration.AnnotationTypeDeclaration
-import org.eclipse.xtend.lib.macro.declaration.MutableMethodDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
+import org.eclipse.xtend.lib.macro.declaration.MutableMethodDeclaration
 
 class InterceptorUtils
 {

@@ -13,11 +13,12 @@ package com.erinors.ioc.examples.docs.lifecycle
 
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Module
-import static org.junit.Assert.*
-import org.junit.Test
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 import org.eclipse.xtend.lib.annotations.Accessors
+import org.junit.Test
+
+import static org.junit.Assert.*
 
 // tag::Example[]
 @Component // <1>

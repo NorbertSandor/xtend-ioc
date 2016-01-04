@@ -39,8 +39,9 @@ import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 import org.jgrapht.ext.DOTExporter
 import org.jgrapht.graph.DefaultEdge
 
+import static com.erinors.ioc.impl.ProcessorUtils.*
+
 import static extension com.erinors.ioc.impl.IocUtils.*
-import static extension com.erinors.ioc.impl.ProcessorUtils.*
 
 class ModuleProcessor extends AbstractSafeInterfaceProcessor
 {

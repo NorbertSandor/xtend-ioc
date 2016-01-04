@@ -12,11 +12,12 @@
 package com.erinors.ioc.examples.docs.multiplemodules
 
 import com.erinors.ioc.shared.api.Component
-import com.erinors.ioc.shared.api.Module
-import static org.junit.Assert.*
-import org.junit.Test
 import com.erinors.ioc.shared.api.Inject
+import com.erinors.ioc.shared.api.Module
 import com.erinors.ioc.shared.api.Provider
+import org.junit.Test
+
+import static org.junit.Assert.*
 
 // tag::Example[]
 @Component // <1>

@@ -14,12 +14,13 @@ package com.erinors.ioc.test.integration.case015
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
+import com.erinors.ioc.shared.api.NotRequired
 import com.erinors.ioc.shared.api.Provider
+import com.google.common.base.Optional
 import com.google.common.base.Supplier
 import org.junit.Test
 
 import static org.junit.Assert.*
-import com.erinors.ioc.shared.api.NotRequired
 
 interface NotImplementedInterface {
 }
@@ -55,10 +56,10 @@ class ServiceImpl
 	public Supplier<? extends ReferencedService> referencedServiceSupplier2
 
 	@Inject
-	public com.google.common.base.Optional<ReferencedService> referencedServiceOptional1
+	public Optional<ReferencedService> referencedServiceOptional1
 
 	@Inject
-	public com.google.common.base.Optional<? extends ReferencedService> referencedServiceOptional2
+	public Optional<? extends ReferencedService> referencedServiceOptional2
 }
 
 @Module(components=#[ProviderImpl, ServiceImpl])
@@ -72,7 +73,7 @@ interface TestModule
 	def Supplier<NotImplementedInterface> notImplementedInterfaceSupplier()
 
 	@NotRequired
-	def com.google.common.base.Optional<NotImplementedInterface> notImplementedInterfaceOptional()
+	def Optional<NotImplementedInterface> notImplementedInterfaceOptional()
 
 	// FIXME ezzel nem fordul, pedig hibát kellene jeleznie, mivel a ReferencedServiceImpl nem érhető el függőségként,
 	// csak a ReferencedService interfész: def Supplier<ReferencedServiceImpl> referencedServiceSupplier3()	

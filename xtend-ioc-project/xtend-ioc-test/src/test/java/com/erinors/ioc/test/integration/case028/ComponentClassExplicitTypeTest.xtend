@@ -15,7 +15,8 @@ import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Module
 import java.util.List
 import org.junit.Test
-import static extension org.junit.Assert.*
+
+import static org.junit.Assert.*
 
 interface ComponentInterface1
 {

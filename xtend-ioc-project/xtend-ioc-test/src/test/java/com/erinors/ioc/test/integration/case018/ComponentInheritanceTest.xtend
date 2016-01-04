@@ -11,6 +11,7 @@
  */
 package com.erinors.ioc.test.integration.case018
 
+import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
 import com.erinors.ioc.test.integration.HelloService
@@ -18,7 +19,6 @@ import com.erinors.ioc.test.integration.HelloServiceImpl
 import org.junit.Test
 
 import static org.junit.Assert.*
-import com.erinors.ioc.shared.api.Component
 
 @Component
 abstract class ParentWithInjectedField

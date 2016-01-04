@@ -12,11 +12,12 @@
 package com.erinors.ioc.examples.docs.chattymodule1
 
 import com.erinors.ioc.shared.api.Component
+import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
 import java.util.List
 import org.junit.Test
+
 import static org.junit.Assert.*
-import com.erinors.ioc.shared.api.Inject
 
 // tag::ChattyModule[]
 interface HelloService { // <1>

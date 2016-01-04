@@ -19,22 +19,21 @@ import com.erinors.ioc.shared.api.InterceptorInvocationHandler
 import com.erinors.ioc.shared.api.InvocationContext
 import com.erinors.ioc.shared.api.MethodReference
 import com.erinors.ioc.shared.api.Module
+import com.erinors.ioc.shared.api.ParameterizedQualifier
 import com.erinors.ioc.shared.api.Prototype
+import com.erinors.ioc.shared.api.Provider
 import com.erinors.ioc.shared.api.Qualifier
 import com.erinors.ioc.shared.impl.ModuleImplementor
 import com.erinors.ioc.shared.impl.ModuleInstance
 import com.google.common.base.Optional
 import com.google.common.base.Supplier
+import java.lang.annotation.Documented
+import java.lang.annotation.Retention
 import java.lang.annotation.Target
 import java.util.List
 import org.eclipse.xtend.core.compiler.batch.XtendCompilerTester
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.junit.Test
-import com.erinors.ioc.shared.api.ParameterizedQualifier
-import java.lang.annotation.Documented
-import java.lang.annotation.Retention
-import com.erinors.ioc.shared.api.Provider
-import org.junit.Ignore
 
 class DebugHelperTest
 {

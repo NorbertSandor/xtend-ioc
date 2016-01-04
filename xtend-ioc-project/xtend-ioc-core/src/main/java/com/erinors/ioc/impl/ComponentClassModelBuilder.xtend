@@ -14,6 +14,7 @@ package com.erinors.ioc.impl
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Eager
 import com.erinors.ioc.shared.api.Priority
+import com.erinors.ioc.shared.api.Provider
 import com.erinors.ioc.shared.api.SupportsPredestroyCallbacks
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
@@ -27,7 +28,6 @@ import org.eclipse.xtend.lib.macro.services.Problem.Severity
 
 import static extension com.erinors.ioc.impl.IocUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
-import com.erinors.ioc.shared.api.Provider
 
 @FinalFieldsConstructor
 class ComponentClassModelBuilder

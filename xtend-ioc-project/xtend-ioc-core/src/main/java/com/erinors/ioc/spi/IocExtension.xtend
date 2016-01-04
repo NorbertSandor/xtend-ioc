@@ -13,11 +13,11 @@ package com.erinors.ioc.spi
 
 import com.erinors.ioc.impl.ResolvedModuleModel
 import com.erinors.ioc.impl.StaticModuleModel
+import org.eclipse.xtend.lib.macro.CodeGenerationContext
 import org.eclipse.xtend.lib.macro.RegisterGlobalsContext
 import org.eclipse.xtend.lib.macro.TransformationContext
 import org.eclipse.xtend.lib.macro.declaration.InterfaceDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableInterfaceDeclaration
-import org.eclipse.xtend.lib.macro.CodeGenerationContext
 
 interface ModuleProcessorExtension
 {

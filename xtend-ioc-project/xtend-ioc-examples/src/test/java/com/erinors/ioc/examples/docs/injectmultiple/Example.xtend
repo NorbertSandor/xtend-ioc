@@ -15,8 +15,9 @@ import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
 import java.util.List
-import static org.junit.Assert.*
 import org.junit.Test
+
+import static org.junit.Assert.*
 
 // tag::Example[]
 interface Handler {

@@ -22,8 +22,8 @@ import com.google.common.base.Supplier
 import java.lang.annotation.Annotation
 import java.lang.annotation.Documented
 import java.lang.annotation.Target
-import org.eclipse.xtend.lib.macro.Active
 import org.eclipse.xtend.lib.annotations.Data
+import org.eclipse.xtend.lib.macro.Active
 
 /**
  * Indicates that the annotated interface is an <a href="http://norbertsandor.github.io/xtend-ioc/latest/#module-declaration">module</a>.<br>

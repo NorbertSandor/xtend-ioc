@@ -13,8 +13,9 @@ package com.erinors.ioc.examples.docs.singletons
 
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Module
-import static org.junit.Assert.*
 import org.junit.Test
+
+import static org.junit.Assert.*
 
 // tag::Example[]
 @Component // <1>

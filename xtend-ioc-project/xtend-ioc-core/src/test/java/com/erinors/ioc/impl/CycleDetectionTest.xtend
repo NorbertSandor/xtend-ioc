@@ -11,14 +11,14 @@
  */
 package com.erinors.ioc.impl
 
+import com.erinors.ioc.shared.api.Component
+import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
 import org.eclipse.xtend.core.compiler.batch.XtendCompilerTester
 import org.eclipse.xtend.lib.macro.services.Problem.Severity
 import org.junit.Test
 
 import static org.junit.Assert.*
-import com.erinors.ioc.shared.api.Component
-import com.erinors.ioc.shared.api.Inject
 
 import static extension com.erinors.ioc.impl.AsciiDocUtils.*
 

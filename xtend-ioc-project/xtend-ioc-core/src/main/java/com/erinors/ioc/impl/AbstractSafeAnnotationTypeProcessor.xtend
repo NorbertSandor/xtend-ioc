@@ -28,6 +28,7 @@ import org.eclipse.xtend.lib.macro.declaration.Declaration
 import org.eclipse.xtend.lib.macro.declaration.MutableAnnotationTypeDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableDeclaration
 import org.eclipse.xtend.lib.macro.services.ProblemSupport
+
 import static extension com.erinors.ioc.shared.util.ListUtils.*
 
 @FinalFieldsConstructor

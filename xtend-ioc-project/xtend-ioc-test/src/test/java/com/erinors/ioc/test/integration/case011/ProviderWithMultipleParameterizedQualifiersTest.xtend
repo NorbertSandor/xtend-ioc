@@ -14,6 +14,7 @@ package com.erinors.ioc.test.integration.case011
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
+import com.erinors.ioc.shared.api.ParameterizedQualifier
 import com.erinors.ioc.shared.api.Provider
 import com.erinors.ioc.shared.api.Qualifier
 import java.lang.annotation.Documented
@@ -21,7 +22,6 @@ import java.lang.annotation.Retention
 import org.junit.Test
 
 import static org.junit.Assert.*
-import com.erinors.ioc.shared.api.ParameterizedQualifier
 
 @Qualifier
 @Documented

@@ -15,12 +15,12 @@ import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Module
 import java.io.BufferedReader
+import java.io.File
+import java.io.FileInputStream
 import java.io.InputStreamReader
 import org.junit.Test
 
 import static org.junit.Assert.*
-import java.io.File
-import java.io.FileInputStream
 
 @Component
 class Component1

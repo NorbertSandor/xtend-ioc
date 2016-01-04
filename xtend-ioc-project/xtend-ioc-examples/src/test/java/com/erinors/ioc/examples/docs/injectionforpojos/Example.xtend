@@ -16,9 +16,10 @@ import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Injectable
 import com.erinors.ioc.shared.api.Module
 import com.erinors.ioc.shared.api.Provider
-import static org.junit.Assert.*
-import org.junit.Test
 import org.eclipse.xtend.lib.annotations.Data
+import org.junit.Test
+
+import static org.junit.Assert.*
 
 // tag::Example[]
 @Component

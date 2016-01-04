@@ -17,8 +17,9 @@ import com.erinors.ioc.shared.api.Interceptor
 import com.erinors.ioc.shared.api.InterceptorInvocationHandler
 import com.erinors.ioc.shared.api.InvocationContext
 import com.erinors.ioc.shared.api.Module
-import static org.junit.Assert.*
 import org.junit.Test
+
+import static org.junit.Assert.*
 
 // tag::Example[]
 @Interceptor(LoggedInvocationHandler) // <1>
