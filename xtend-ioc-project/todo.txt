@@ -1,13 +1,6 @@
-0.2.0:
-- docs
-	- interceptor examples
-	- provider examples and explanation
-- fix safe processors
-- fix parameterized providers 
-
 xtend-ioc:
 - allow method injection
-- implement component override
+- document parameterized provider change: parameterName -> parameterIndex
 
 build:
 - single license file
