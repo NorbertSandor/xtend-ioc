@@ -161,9 +161,11 @@ annotation ParameterizedQualifier
 {
 	Class<? extends Annotation> qualifier
 
+	// FIXME support multiple attributes
 	String attributeName
 
-	String parameterName
+	int parameterIndex
+	// TODO String parameterName
 }
 
 // TODO error if placed on void method

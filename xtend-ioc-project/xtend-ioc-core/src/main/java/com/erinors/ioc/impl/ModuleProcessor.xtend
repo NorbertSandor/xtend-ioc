@@ -351,7 +351,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						{
 							'''
 								«componentModel.classDeclaration.qualifiedName» o = new «componentModel.classDeclaration.qualifiedName»(«moduleImplementationClass.simpleName».this«FOR componentReferenceSignature : componentModel.constructorParameters BEFORE ", " SEPARATOR ", "»
-																																																																									«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
+																																																																											«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
 								«ENDFOR»);
 								«FOR postConstructMethod : componentModel.postConstructMethods»
 									o.«postConstructMethod.simpleName»();
@@ -361,7 +361,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						}
 						ComponentProviderModel:
 						'''
-							return «moduleModel.componentSupplierFieldNames.get(componentModel.getEnclosingComponentModel)».get().«componentModel.providerMethodDeclaration.simpleName»(«FOR parameterDeclaration : componentModel.providerMethodDeclaration.parameters SEPARATOR ", "»«generateQualifierAttributeValueSourceCode(componentModel, parameterDeclaration.simpleName)»«ENDFOR»);
+							return «moduleModel.componentSupplierFieldNames.get(componentModel.getEnclosingComponentModel)».get().«componentModel.providerMethodDeclaration.simpleName»(«componentModel.providerMethodDeclaration.parameters.toList.indexed.map[generateQualifierAttributeValueSourceCode(componentModel, key)].join(", ")»);
 						'''
 						ModuleInstanceComponentModel:
 						'''
@@ -381,9 +381,17 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 				}
 
 				def private generateQualifierAttributeValueSourceCode(ComponentProviderModel componentModel,
-					String parameterName)
+					int parameterIndex)
 				{
-					componentModel.getParameterizedQualifierAttributeValue(parameterName).toSourceCode
+					val parameterizedQualifierAttributeValue = componentModel.
+						getParameterizedQualifierAttributeValue(parameterIndex)
+
+					if (parameterizedQualifierAttributeValue == null)
+					{
+						throw new IllegalStateException("" + componentModel + ", " + parameterIndex) // TODO
+					}
+
+					parameterizedQualifierAttributeValue.toSourceCode
 				}
 
 				def private TypeReference getLifecycleManagerTypeReference(
@@ -494,8 +502,8 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 								if (resolvedComponents.empty)
 									generateSingleAbsentConverter(componentReference)
 								else
-									generateSinglePresentConverter(componentReference,
-										resolvedComponents.head, moduleModel, context,
+									generateSinglePresentConverter(componentReference, resolvedComponents.head,
+										moduleModel, context,
 										componentLookup)
 								case MULTIPLE:
 								'''(«List.name»)«ImmutableList.name».of(«FOR componentModel : resolvedComponents SEPARATOR ", "»«generateSinglePresentConverter(componentReference, componentModel, moduleModel, context, componentLookup)»«ENDFOR»)'''
@@ -657,4 +665,4 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 								#[ModuleImplementor.newTypeReference]
 						}
 					}
-
+					

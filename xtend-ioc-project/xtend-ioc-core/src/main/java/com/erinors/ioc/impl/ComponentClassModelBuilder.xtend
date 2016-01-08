@@ -79,10 +79,13 @@ class ComponentClassModelBuilder
 		if (injectedFieldsSignatureMethod !== null)
 		{
 			val injectedFields = (componentClassTypeReference.type as ClassDeclaration).findInjectedFields(context)
-			injectedFieldsSignatureMethod.resolvedParameters.map [ resolvedParameter |
-				val fieldDeclaration = injectedFields.findFirst [
-					simpleName == resolvedParameter.declaration.simpleName
-				]
+			injectedFieldsSignatureMethod.resolvedParameters.indexed.map [ pair |
+				val index = pair.key
+				val resolvedParameter = pair.value
+
+				// TODO another alternative is to generate one method for each required signature (the old solution used parameter lookup by name but it does not work because parameter names are not preserved in the class files)
+				val fieldDeclaration = injectedFields.get(index)
+
 				createDeclaredComponentReference(fieldDeclaration, resolvedParameter.resolvedType, context)
 			].toList
 		}
@@ -231,15 +234,15 @@ class ComponentClassModelBuilder
 			else
 				null,
 			componentClassTypeReference.findResolvedComponentConstructor?.declaration,
-			componentClassTypeReference.findFieldComponentReferences,
-			componentClassTypeReference.findConstructorComponentReferences,
-			componentClassTypeReference.findGeneratedComponentReferences,
-			componentClassDeclaration.findPostConstructMethods,
-			findPreDestroyMethods(componentClassDeclaration),
+			componentClassTypeReference.findFieldComponentReferences.immutableCopy,
+			componentClassTypeReference.findConstructorComponentReferences.immutableCopy,
+			componentClassTypeReference.findGeneratedComponentReferences.immutableCopy,
+			componentClassDeclaration.findPostConstructMethods.immutableCopy,
+			findPreDestroyMethods(componentClassDeclaration).immutableCopy,
 			componentClassDeclaration.hasAnnotation(Eager.findTypeGlobally),
 			componentClassTypeReference.findInterceptedMethods.map [
 				createInterceptedMethod(key, value)
-			].toList
+			].toList.immutableCopy
 		)
 	}
 
@@ -383,15 +386,15 @@ class ComponentClassModelBuilder
 			else
 				null,
 			componentClassDeclaration.findComponentConstructor,
-			componentClassDeclaration.findFieldComponentReferences,
-			componentClassDeclaration.findConstructorComponentReferences,
-			componentClassDeclaration.findGeneratedComponentReferences,
-			componentClassDeclaration.findPostConstructMethods,
-			predestroyMethods,
+			componentClassDeclaration.findFieldComponentReferences.immutableCopy,
+			componentClassDeclaration.findConstructorComponentReferences.immutableCopy,
+			componentClassDeclaration.findGeneratedComponentReferences.immutableCopy,
+			componentClassDeclaration.findPostConstructMethods.immutableCopy,
+			predestroyMethods.immutableCopy,
 			componentClassDeclaration.hasAnnotation(Eager.findTypeGlobally),
 			componentClassDeclaration.findInterceptedMethods.map [
 				createInterceptedMethod(key, value)
-			].toList
+			].toList.immutableCopy
 		)
 	}
 

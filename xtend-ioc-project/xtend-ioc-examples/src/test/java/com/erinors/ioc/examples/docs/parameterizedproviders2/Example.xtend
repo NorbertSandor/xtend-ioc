@@ -47,7 +47,7 @@ class LoggerProvider { // <3>
 	@Provider(
 	parameterizedQualifiers=@ParameterizedQualifier(qualifier=LoggerByName, //
 	attributeName="value", //
-	parameterName="loggerName" //
+	parameterIndex=0 //
 	))
 	def Logger loggerProvider(String loggerName) {
 		return new Logger(loggerName)

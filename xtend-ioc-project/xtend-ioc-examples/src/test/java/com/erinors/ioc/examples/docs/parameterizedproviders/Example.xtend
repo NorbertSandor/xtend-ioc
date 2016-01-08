@@ -44,7 +44,7 @@ class ProviderComponent {
 	@Provider( // <2>
 	parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, // <3>
 	attributeName="value", // <4>
-	parameterName="configurationName" // <5>
+	parameterIndex=0 // <5>
 	))
 	def String configurationValueProvider(String configurationName) {
 		return configuration.getProperty(configurationName)

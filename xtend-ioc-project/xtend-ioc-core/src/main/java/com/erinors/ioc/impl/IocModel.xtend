@@ -407,7 +407,7 @@ class ParameterizedQualifierModel
 {
 	String name
 
-	Map<String, String> parameterNameToAttributeMap
+	Map<Integer, String> parameterIndexToAttributeNameMap
 }
 
 @Data
@@ -424,10 +424,10 @@ class ComponentProviderModel extends ComponentModel
 		#[new ComponentReferenceToOwnerComponent(enclosingComponentModel, providerMethodDeclaration)]
 	}
 
-	def getParameterizedQualifierAttributeValue(String parameterName)
+	def getParameterizedQualifierAttributeValue(int parameterIndex)
 	{
-		parameterizedQualifiers.filter[parameterNameToAttributeMap.containsKey(parameterName)].map [
-			it -> parameterNameToAttributeMap.get(parameterName)
+		parameterizedQualifiers.filter[parameterIndexToAttributeNameMap.containsKey(parameterIndex)].map [
+			it -> parameterIndexToAttributeNameMap.get(parameterIndex)
 		].map [ parameterizedQualifierModel |
 			val qualifierModel = typeSignature.qualifiers.findFirst[name == parameterizedQualifierModel.key.name]
 			if (qualifierModel ===

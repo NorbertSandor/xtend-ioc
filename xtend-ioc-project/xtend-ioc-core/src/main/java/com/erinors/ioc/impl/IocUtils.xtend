@@ -207,7 +207,7 @@ class IocUtils
 		val result = newLinkedList
 		parameterizedQualifiers.forEach [ p1, p2 |
 			result.add(new ParameterizedQualifierModel(p1.name, p2.map [
-				getStringValue("parameterName") -> getStringValue("attributeName")
+				getIntValue("parameterIndex") -> getStringValue("attributeName")
 			].pairsToMap))
 		]
 		result
@@ -448,7 +448,7 @@ class IocUtils
 					targetTypeReference
 			}
 
-		// TODO warning: @NotRequired on collection, it is redundant
+		// TODO warning when @NotRequired on collection, it is redundant
 		val optional = cardinalityType == CardinalityType.MULTIPLE ||
 			dependencyReferenceDeclaration.hasAnnotation(NotRequired.findTypeGlobally) || providerType.implicitOptional
 

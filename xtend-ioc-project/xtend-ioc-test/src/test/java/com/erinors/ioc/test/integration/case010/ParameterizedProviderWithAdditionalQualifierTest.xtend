@@ -57,12 +57,12 @@ class ServiceImpl {
 
 @Component
 class ConfigurationValueProvider {
-	@Provider(parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterName="name"))
+	@Provider(parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterIndex=0))
 	@Production
 	def String provideProductionConfigurationValue(String name) {
 		'''production.configuration.«name»'''
 	}
-	@Provider(parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterName="name"))
+	@Provider(parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterIndex=0))
 	@Development
 	def String provideDevelopmentConfigurationValue(String name) {
 		'''development.configuration.«name»'''

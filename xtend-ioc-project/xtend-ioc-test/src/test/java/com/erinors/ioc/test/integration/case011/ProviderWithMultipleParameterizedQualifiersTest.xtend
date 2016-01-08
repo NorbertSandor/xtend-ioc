@@ -57,8 +57,8 @@ class ServiceImpl
 class ConfigurationValueProvider
 {
 	@Provider(parameterizedQualifiers=#[
-		@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterName="name"),
-		@ParameterizedQualifier(qualifier=Environment, attributeName="value", parameterName="environment")])
+		@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterIndex=1),
+		@ParameterizedQualifier(qualifier=Environment, attributeName="value", parameterIndex=0)])
 	def String provideProductionConfigurationValue(String environment, String name)
 	{
 		'''«environment».configuration.«name»'''

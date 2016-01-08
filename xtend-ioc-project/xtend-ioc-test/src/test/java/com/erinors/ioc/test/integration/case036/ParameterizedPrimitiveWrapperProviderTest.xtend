@@ -46,7 +46,7 @@ class ServiceImpl
 @Component
 class ConfigurationValueProvider
 {
-	@Provider(parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterName="name"))
+	@Provider(parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterIndex=0))
 	def Integer provideConfigurationValue(String name)
 	{
 		name.charAt(0) - 'a'
