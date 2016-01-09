@@ -43,7 +43,9 @@ class ModuleSyntaxTest
 		compilerTester.compile('''
 			@«Module.name»
 			class
-		''', [])
+		''', [
+			assertEquals(0, allProblems.size)
+		])
 	}
 
 	// TODO create similar tests for components
