@@ -70,7 +70,7 @@ After installing Eclipse and the Xtend plugin, follow these steps to create an _
 
 * Create a new Maven project by selecting "File->New->Project.." and "Maven Project" (a "simple project" is sufficient, no archetype is required).
 * Add Xtext nature to the project (by selecting "Configure -> Add Xtext Nature").
-* Add the dependecy http://search.maven.org/#artifactdetails|com.erinors|xtend-ioc-core|{docVersion}|jar[com.erinors:xtend-ioc-core:{docVersion}] to the project.
+* Add the dependency http://search.maven.org/#artifactdetails|com.erinors|xtend-ioc-core|{docVersion}|jar[com.erinors:xtend-ioc-core:{docVersion}] to the project.
 * Create a new Xtend class and start implementing your components and modules. +
 See an <<showcase-example-first, example>> to quickly learn the basics!
 
