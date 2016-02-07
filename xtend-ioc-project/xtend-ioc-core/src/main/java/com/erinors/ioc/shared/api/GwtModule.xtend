@@ -18,5 +18,7 @@ annotation GwtModule
 {
 	boolean entryPoint = false
 	
+	String renameTo = "app"
+	
 	String[] inherits = #[]
 }

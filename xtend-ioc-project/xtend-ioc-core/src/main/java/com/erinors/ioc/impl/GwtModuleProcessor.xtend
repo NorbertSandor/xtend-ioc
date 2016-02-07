@@ -30,6 +30,8 @@ import static extension com.erinors.ioc.server.util.IterableUtils.*
 @Buildable
 package class GwtModuleModel
 {
+	String renameTo
+	
 	String entryPointClassName
 
 	Iterable<String> inherits
@@ -74,6 +76,8 @@ package class GwtModuleModelBuilder
 		else
 		{
 			GwtModuleModel.build [
+				renameTo = currentGwtModuleAnnotation.getStringValue("renameTo")
+				
 				entryPointClassName = if (currentGwtModuleAnnotation.getBooleanValue("entryPoint"))
 					staticModuleModel.moduleInterfaceDeclaration.gwtEntryPointClassName
 				else
@@ -145,7 +149,7 @@ class GwtModuleProcessor implements ModuleProcessorExtension
 		{
 			val gwtXmlContents = '''
 				<?xml version="1.0" encoding="UTF-8"?>
-				<module rename-to="app">
+				<module rename-to="«gwtModuleModel.renameTo»">
 				
 					<inherits name="org.eclipse.xtext.xbase.lib.Lib" />
 					<inherits name="com.erinors.ioc.Ioc" />
