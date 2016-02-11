@@ -35,6 +35,8 @@ package class GwtModuleModel
 	String entryPointClassName
 
 	Iterable<String> inherits
+	
+	boolean collapseAllProperties
 
 	def isEntryPoint()
 	{
@@ -82,12 +84,15 @@ package class GwtModuleModelBuilder
 					staticModuleModel.moduleInterfaceDeclaration.gwtEntryPointClassName
 				else
 					null
+					
 				// TODO include only directly inherited modules
 				inherits = (staticModuleModel.inheritedModules.map[type].castElements(InterfaceDeclaration).filter [
 					gwtModuleAnnotation !== null
 				].map [
 					gwtModuleName
 				] + currentGwtModuleAnnotation.getStringArrayValue("inherits")).toSet.immutableCopy
+				
+				collapseAllProperties = currentGwtModuleAnnotation.getBooleanValue("collapseAllProperties")
 			]
 		}
 	}
@@ -164,7 +169,11 @@ class GwtModuleProcessor implements ModuleProcessorExtension
 					«IF gwtModuleModel.entryPoint»
 						<entry-point class="«gwtModuleModel.entryPointClassName»" />
 					«ENDIF»
-				
+					
+					«IF gwtModuleModel.collapseAllProperties»
+						<collapse-all-properties />
+					«ENDIF»
+					
 				</module>
 			'''
 

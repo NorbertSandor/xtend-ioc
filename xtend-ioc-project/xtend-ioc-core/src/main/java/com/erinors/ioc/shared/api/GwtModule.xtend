@@ -21,4 +21,6 @@ annotation GwtModule
 	String renameTo = "app"
 	
 	String[] inherits = #[]
+	
+	boolean collapseAllProperties = false
 }
