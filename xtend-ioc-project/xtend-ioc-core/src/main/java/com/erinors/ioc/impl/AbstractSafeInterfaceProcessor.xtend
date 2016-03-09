@@ -88,16 +88,15 @@ class AbstractSafeInterfaceProcessor implements RegisterGlobalsParticipant<Decla
 				if (annotationClass !== null)
 				{
 					problemSupport.addError(
-						it, '''@«annotationClass.simpleName» is supported only for interface declarations. [«errorCode»]''')
+						it, '''@«annotationClass.simpleName» is supported only for interface declarations.«IF errorCode != null» [«errorCode»]«ENDIF»''')
 				}
 				else
 				{
 					problemSupport.addError(
-						it, '''Annotation is supported only for interface declarations. [«errorCode»]''')
+						it, '''Annotation is supported only for interface declarations.«IF errorCode != null» [«errorCode»]«ENDIF»''')
 				}
 			}
 		]
 		return invalidDeclarations.empty
 	}
-
 }
