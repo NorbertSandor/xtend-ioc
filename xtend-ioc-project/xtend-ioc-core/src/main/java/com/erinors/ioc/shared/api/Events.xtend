@@ -27,3 +27,4 @@ annotation EventObserver
 	
 	boolean rejectSubtypes = false
 }
+// TODO @EventObserver method should have 1 parameter if eventType is not specified
