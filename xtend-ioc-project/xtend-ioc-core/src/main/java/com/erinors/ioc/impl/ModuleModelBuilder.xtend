@@ -114,9 +114,9 @@ class ModuleModelBuilder
 		]
 
 		moduleAnnotation.getClassArrayValue("componentImporters").forEach [ componentImporter |
-			// TODO check
 			val importComponentsAnnotation = (componentImporter.type as TypeDeclaration).findAnnotation(
 				ImportComponents.findTypeGlobally)
+			// TODO check NPE
 			importComponentsAnnotation.getClassArrayValue("value").forEach [
 				componentTypeReferences += it
 			]
