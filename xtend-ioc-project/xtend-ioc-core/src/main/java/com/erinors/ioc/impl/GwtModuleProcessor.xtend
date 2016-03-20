@@ -31,12 +31,14 @@ import static extension com.erinors.ioc.server.util.IterableUtils.*
 package class GwtModuleModel
 {
 	String renameTo
-	
+
 	String entryPointClassName
 
 	Iterable<String> inherits
-	
+
 	boolean collapseAllProperties
+
+	String superSource
 
 	def isEntryPoint()
 	{
@@ -79,20 +81,25 @@ package class GwtModuleModelBuilder
 		{
 			GwtModuleModel.build [
 				renameTo = currentGwtModuleAnnotation.getStringValue("renameTo")
-				
+
 				entryPointClassName = if (currentGwtModuleAnnotation.getBooleanValue("entryPoint"))
 					staticModuleModel.moduleInterfaceDeclaration.gwtEntryPointClassName
 				else
 					null
-					
+
 				// TODO include only directly inherited modules
 				inherits = (staticModuleModel.inheritedModules.map[type].castElements(InterfaceDeclaration).filter [
 					gwtModuleAnnotation !== null
 				].map [
 					gwtModuleName
 				] + currentGwtModuleAnnotation.getStringArrayValue("inherits")).toSet.immutableCopy
-				
+
 				collapseAllProperties = currentGwtModuleAnnotation.getBooleanValue("collapseAllProperties")
+
+				superSource = {
+					val definition = currentGwtModuleAnnotation.getStringValue("superSource")
+					if (definition.empty) null else definition
+				}
 			]
 		}
 	}
@@ -172,6 +179,10 @@ class GwtModuleProcessor implements ModuleProcessorExtension
 					
 					«IF gwtModuleModel.collapseAllProperties»
 						<collapse-all-properties />
+					«ENDIF»
+					
+					«IF gwtModuleModel.superSource != null»
+						<super-source path="«gwtModuleModel.superSource»" />
 					«ENDIF»
 					
 				</module>

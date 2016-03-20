@@ -17,10 +17,12 @@ import java.lang.annotation.Target
 annotation GwtModule
 {
 	boolean entryPoint = false
-	
+
 	String renameTo = "app"
-	
+
 	String[] inherits = #[]
-	
+
 	boolean collapseAllProperties = false
+
+	String superSource = ""
 }
