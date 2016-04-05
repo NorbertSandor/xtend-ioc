@@ -62,14 +62,7 @@ class ModuleEventBusImpl implements ModuleEventBus
 				dispatching = true
 				while (!taskQueue.empty)
 				{
-					try
-					{
-						taskQueue.poll.run
-					}
-					catch (Exception e)
-					{
-						// Catch exceptions
-					}
+					taskQueue.poll.run
 				}
 			}
 			finally
