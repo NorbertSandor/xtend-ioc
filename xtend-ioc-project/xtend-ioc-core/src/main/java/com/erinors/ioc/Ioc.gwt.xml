@@ -13,7 +13,6 @@
 
 <module>
 
-	<inherits name="com.google.gwt.user.User" />
 	<inherits name="org.eclipse.xtext.xbase.lib.Lib" />
 
 	<source path="shared" />
