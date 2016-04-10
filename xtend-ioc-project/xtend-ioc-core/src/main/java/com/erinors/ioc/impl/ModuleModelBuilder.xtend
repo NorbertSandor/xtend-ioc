@@ -185,7 +185,7 @@ class ModuleModelBuilder
 	{
 		allModuleInterfaces.map [
 			declaredResolvedMethods
-		].flatten.map [ interfaceMethod |
+		].flatten.filter[!declaration.static].map [ interfaceMethod |
 			IocUtils.createDeclaredComponentReference(interfaceMethod.declaration, interfaceMethod.resolvedReturnType,
 				context)
 		].toSet
