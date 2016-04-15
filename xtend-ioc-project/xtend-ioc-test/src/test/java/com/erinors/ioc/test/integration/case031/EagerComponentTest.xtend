@@ -83,6 +83,7 @@ interface TestModule
 	def Collector collector()
 }
 
+// TODO wha?
 class EagerComponentTest
 {
 	@Test

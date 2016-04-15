@@ -14,10 +14,12 @@ package com.erinors.ioc.impl
 import com.erinors.ioc.impl.ModuleModelBuilder.ModuleModelBuilderContext
 import com.erinors.ioc.shared.api.ImportComponents
 import com.erinors.ioc.shared.api.Module
+import com.erinors.ioc.shared.api.OrderConstants
 import com.erinors.ioc.shared.api.PriorityConstants
 import com.erinors.ioc.shared.api.Provider
 import java.util.Set
 import java.util.regex.Pattern
+import org.eclipse.xtend.lib.annotations.Data
 import org.eclipse.xtend.lib.macro.TransformationContext
 import org.eclipse.xtend.lib.macro.declaration.InterfaceDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
@@ -27,6 +29,7 @@ import org.eclipse.xtend.lib.macro.file.Path
 
 import static extension com.erinors.ioc.impl.IocUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
+import static extension com.erinors.ioc.shared.util.MapUtils.*
 
 // TODO module interface ne lehessen generikus
 class ModuleModelBuilder
@@ -181,11 +184,27 @@ class ModuleModelBuilder
 		]
 	}
 
+	@Data
+	private static class ModuleMethodSignature
+	{
+		val String name
+
+		val TypeReference returnType
+
+		val Iterable<? extends TypeReference> parameterTypes
+	}
+
 	def private collectModuleDependencies(Iterable<TypeReference> allModuleInterfaces)
 	{
 		allModuleInterfaces.map [
 			declaredResolvedMethods
-		].flatten.filter[!declaration.static].map [ interfaceMethod |
+		].flatten //
+		// Filter methods with same name and signature
+		.filter[!declaration.static].map [
+			new ModuleMethodSignature(declaration.simpleName, declaration.returnType,
+				declaration.parameters.map[type].toList) -> it
+		].pairsToMap.values //
+		.map [ interfaceMethod |
 			IocUtils.createDeclaredComponentReference(interfaceMethod.declaration, interfaceMethod.resolvedReturnType,
 				context)
 		].toSet
@@ -302,14 +321,15 @@ class ModuleModelBuilder
 					toSet
 			].toSet.immutableCopy
 
+			// TODO allow setting priority and order
 			finalQualifierLists.forEach [ qualifiers |
 				additionalComponentModels +=
 					#[
 						new ComponentProviderModel(
 							new ComponentTypeSignature(providerMethodDeclaration.returnType, qualifiers.toSet),
 							providerMethodDeclaration.getLifecycleManagerClass(context),
-							PriorityConstants.DEFAULT_PRIORITY, ownerComponentModel, providerMethodDeclaration,
-							providerParameterizedQualifiers.toSet)]
+							PriorityConstants.DEFAULT_PRIORITY, OrderConstants.DEFAULT_ORDER, ownerComponentModel,
+							providerMethodDeclaration, providerParameterizedQualifiers.toSet)]
 			]
 		}
 

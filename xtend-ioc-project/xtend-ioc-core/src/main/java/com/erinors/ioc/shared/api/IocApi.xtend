@@ -219,6 +219,7 @@ class PriorityConstants
 	val public static MAX_PRIORITY = Integer.MAX_VALUE
 }
 
+// TODO move to an attribute of @Eager
 @Documented
 @Target(TYPE)
 annotation Priority
@@ -288,4 +289,17 @@ annotation ModuleImporter {
 
 annotation ModuleImporters {
 	ModuleImporter[] value
+}
+
+class OrderConstants
+{
+	val public static DEFAULT_ORDER = 0
+
+	val public static MIN_ORDER = Integer.MIN_VALUE
+
+	val public static MAX_ORDER = Integer.MAX_VALUE
+}
+
+annotation Order {
+	int value
 }

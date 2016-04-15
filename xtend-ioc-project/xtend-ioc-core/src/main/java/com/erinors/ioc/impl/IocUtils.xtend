@@ -568,3 +568,13 @@ class IocUtils
 	def static String modulePeerClassName(String moduleQualifiedName)
 	'''«moduleQualifiedName».Peer'''
 }
+
+class OrderComparator<T extends HasOrder> implements Comparator<T>
+{
+	val public static INSTANCE = new OrderComparator
+	
+	override compare(T o1, T o2)
+	{
+		return Integer.compare(o2.order, o1.order)
+	}
+}

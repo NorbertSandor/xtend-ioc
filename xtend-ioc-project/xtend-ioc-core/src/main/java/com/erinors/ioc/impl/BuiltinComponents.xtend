@@ -14,6 +14,7 @@ package com.erinors.ioc.impl
 import com.erinors.ioc.impl.ModuleModelBuilder.ModuleModelBuilderContext
 import com.erinors.ioc.shared.api.Event
 import com.erinors.ioc.shared.api.InterceptorInvocationHandler
+import com.erinors.ioc.shared.api.OrderConstants
 import com.erinors.ioc.shared.api.PriorityConstants
 import com.erinors.ioc.shared.impl.ModuleInstance
 import com.erinors.ioc.shared.impl.SingletonComponentLifecycleManager
@@ -114,7 +115,7 @@ class ModuleInstanceComponentManager implements ComponentManager
 			context.addComponentModel(
 				new ModuleInstanceComponentModel(componentReference.signature.componentTypeSignature,
 					SingletonComponentLifecycleManager.findTypeGlobally as ClassDeclaration,
-					PriorityConstants.MAX_PRIORITY))
+					PriorityConstants.MAX_PRIORITY, OrderConstants.DEFAULT_ORDER))
 			}
 		}
 	}
@@ -176,7 +177,7 @@ class ModuleInstanceComponentManager implements ComponentManager
 				context.addComponentModel(
 					new EventComponentModel(componentReference.signature.componentTypeSignature,
 						SingletonComponentLifecycleManager.findTypeGlobally as ClassDeclaration,
-						PriorityConstants.MAX_PRIORITY))
+						PriorityConstants.MAX_PRIORITY, OrderConstants.DEFAULT_ORDER))
 				}
 			}
 		}

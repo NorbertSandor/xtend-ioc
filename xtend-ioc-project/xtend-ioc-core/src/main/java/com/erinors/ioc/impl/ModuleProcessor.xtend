@@ -70,7 +70,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 		val moduleModel = moduleModels.get(annotatedInterface.qualifiedName)
 		if (moduleModel !== null)
 		{
-			// TODO extension
+			// TODO refactor as an extension
 			if (moduleModel instanceof ResolvedModuleModel)
 			{
 				val targetFolder = annotatedInterface.compilationUnit.filePath.targetFolder
@@ -488,7 +488,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 					])
 				}
 
-				// TODO jobb nevet
+				// TODO better name
 				def private static generateConverter(ResolvedComponentReference resolvedComponentReference,
 					ResolvedModuleModel moduleModel, TransformationContext context,
 					(ComponentModel)=>String componentLookup)

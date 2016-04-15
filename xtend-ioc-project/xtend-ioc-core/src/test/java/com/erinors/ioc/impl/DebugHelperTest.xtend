@@ -66,40 +66,33 @@ import «Documented.name»
 import «Retention.name»
 import «ParameterizedQualifier.name»
 
-@Qualifier
-@Documented
-@Retention(RUNTIME)
-annotation ConfigurationValue
-{
-	String value
-}
-
 @Component
-class ServiceImpl
-{
-	@Inject
-	@ConfigurationValue("a")
-	public int configurationInt
-
-	@Inject
-	@ConfigurationValue("a")
-	public Integer configurationInteger
-}
-
-@Component
-class ConfigurationValueProvider
-{
-	@Provider(parameterizedQualifiers=@ParameterizedQualifier(qualifier=ConfigurationValue, attributeName="value", parameterName="name"))
-	def Integer provideConfigurationValue(String name)
-	{
-		name.charAt(0) - 'a'
+class ValueProvider {
+	@Provider
+	def String value() {
+		""
 	}
 }
 
-@Module(components=#[ConfigurationValueProvider, ServiceImpl])
-interface TestModule
-{
-	def ServiceImpl service()
+@Module(isAbstract=true)
+interface ModuleA {
+	def String value()
+}
+
+@Module(components=ValueProvider)
+interface ModuleB {
+	def String value()
+}
+
+@Module
+interface TestModule extends ModuleA, ModuleB {
+}
+
+class ModuleMethodConflictTest {	
+	@Test
+	def void test() {
+//		TestModule.Peer.initialize
+	}
 }
 
 '''.compile [

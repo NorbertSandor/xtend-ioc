@@ -28,6 +28,7 @@ import org.eclipse.xtend.lib.macro.services.Problem.Severity
 
 import static extension com.erinors.ioc.impl.IocUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
+import com.erinors.ioc.shared.api.Order
 
 @FinalFieldsConstructor
 class ComponentClassModelBuilder
@@ -92,7 +93,7 @@ class ComponentClassModelBuilder
 		else
 		{
 			throw new CancelOperationException
-		// TODO incorrect if the component is declared in the same file but after the module
+		// FIXME incorrect if the component is declared in the same file but after the module
 //			throw new IocProcessingException(new ProcessingMessage(
 //				Severity.ERROR,
 //				componentClassTypeReference,
@@ -228,6 +229,7 @@ class ComponentClassModelBuilder
 				componentClassDeclaration.findQualifiers(context)),
 			componentClassDeclaration.getLifecycleManagerClass(context),
 			componentClassDeclaration.getComponentClassPriority,
+			componentClassDeclaration.getComponentClassOrder,
 			componentClassDeclaration,
 			if (componentClassTypeReference.hasSuperclass)
 				buildSuperclassModel(componentClassTypeReference.superclass)
@@ -380,6 +382,7 @@ class ComponentClassModelBuilder
 				componentClassDeclaration.findQualifiers(context)),
 			lifecycleManagerClass,
 			componentClassDeclaration.getComponentClassPriority,
+			componentClassDeclaration.getComponentClassOrder,
 			componentClassDeclaration,
 			if (componentClassDeclaration.hasSuperclass)
 				buildSuperclassModel(componentClassDeclaration.extendedClass)
@@ -411,6 +414,12 @@ class ComponentClassModelBuilder
 	{
 		val priorityAnnotation = componentClassDeclaration.findAnnotation(Priority.findTypeGlobally)
 		return if (priorityAnnotation !== null) priorityAnnotation.getIntValue("value") else 0
+	}
+
+	def private getComponentClassOrder(ClassDeclaration componentClassDeclaration)
+	{
+		val orderAnnotation = componentClassDeclaration.findAnnotation(Order.findTypeGlobally)
+		return if (orderAnnotation !== null) orderAnnotation.getIntValue("value") else 0
 	}
 
 	def private findPostConstructMethods(ClassDeclaration componentClassDeclaration)

@@ -66,6 +66,11 @@ interface HasPriority
 	def int getPriority()
 }
 
+interface HasOrder
+{
+	def int getOrder()
+}
+
 @Data
 abstract class QualifierAttributeValue
 {
@@ -243,9 +248,11 @@ class ComponentReferenceSignature
 
 	def List<? extends ComponentModel> resolve(StaticModuleModel moduleModel)
 	{
-		moduleModel.components.filter [ componentModel |
+		val list = moduleModel.components.filter [ componentModel |
 			componentTypeSignature.isAssignableFrom(componentModel.typeSignature)
-		].toList.immutableCopy
+		].toList
+		list.sort(OrderComparator.INSTANCE)
+		list.immutableCopy
 	}
 }
 
@@ -388,13 +395,16 @@ class ComponentReferenceToOwnerComponent implements ComponentReference
 }
 
 @Data
-abstract class ComponentModel implements HasPriority
+abstract class ComponentModel implements HasPriority, HasOrder
 {
 	ComponentTypeSignature typeSignature
 
 	ClassDeclaration lifecycleManagerClass
 
+	// TODO rename eagerInitializationPriority
 	int priority
+
+	int order
 
 	/**
 	 * All component references.
