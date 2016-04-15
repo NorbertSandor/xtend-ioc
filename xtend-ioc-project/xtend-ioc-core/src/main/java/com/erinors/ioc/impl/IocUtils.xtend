@@ -575,6 +575,6 @@ class OrderComparator<T extends HasOrder> implements Comparator<T>
 	
 	override compare(T o1, T o2)
 	{
-		return Integer.compare(o2.order, o1.order)
+		return Integer.compare(o1.order, o2.order)
 	}
 }
