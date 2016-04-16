@@ -11,7 +11,10 @@
  */
 package com.erinors.ioc.shared.util
 
+import com.google.common.collect.ImmutableList
+import java.util.List
 import java.util.Map
+import com.google.common.collect.ImmutableMap
 
 class MapUtils
 {
@@ -20,8 +23,18 @@ class MapUtils
 	 */
 	def static <K, V> Map<K, V> pairsToMap(Iterable<Pair<K, V>> keyValuePairs)
 	{
-		val result = newLinkedHashMap
-		keyValuePairs.map[key -> value].forEach[result.put(key, value)]
-		result
+		val builder = ImmutableMap.builder
+		keyValuePairs.map[key -> value].forEach[builder.put(key, value)]
+		builder.build
+	}
+
+	/**
+	 * Convert a {@code Map} to an immutable list of key-value pairs.
+	 */
+	def static <K, V> List<Pair<K, V>> mapToPairs(Map<K, V> map)
+	{
+		val builder = ImmutableList.builder
+		map.forEach[builder.add(Pair.of($0, $1))]
+		builder.build
 	}
 }
