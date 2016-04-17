@@ -200,10 +200,10 @@ class ModuleModelBuilder
 			declaredResolvedMethods
 		].flatten //
 		// Filter methods with same name and signature
-		.filter[!declaration.static].map [
+		.filter[!declaration.static].groupBy [
 			new ModuleMethodSignature(declaration.simpleName, declaration.returnType,
-				declaration.parameters.map[type].toList) -> it
-		].pairsToMap.values //
+				declaration.parameters.map[type].toList)
+		].mapValues[head].values //
 		.map [ interfaceMethod |
 			IocUtils.createDeclaredComponentReference(interfaceMethod.declaration, interfaceMethod.resolvedReturnType,
 				context)
