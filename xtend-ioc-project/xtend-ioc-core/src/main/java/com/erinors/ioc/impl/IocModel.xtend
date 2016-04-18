@@ -267,6 +267,10 @@ interface ComponentReference
 	def TypeReference getTypeReference()
 
 	def ResolvedComponentReference resolve(StaticModuleModel moduleModel)
+	
+	def boolean isOptional()
+	
+	def String getDisplayName()
 }
 
 @Data
@@ -284,6 +288,7 @@ abstract class AbstractComponentDependencyReference implements ComponentReferenc
 
 	ProviderType providerType
 
+	// TODO constructor should fail if optional=false but providerType is implicitOptional
 	boolean optional
 
 	@Cached
@@ -321,6 +326,10 @@ abstract class AbstractComponentDependencyReference implements ComponentReferenc
 		}
 
 		new ResolvedComponentReference(this, resolvedComponents)
+	}
+	
+	override getDisplayName() {
+		'''Component reference to «signature.componentTypeSignature.typeReference»'''
 	}
 }
 
@@ -391,6 +400,15 @@ class ComponentReferenceToOwnerComponent implements ComponentReference
 	override ResolvedComponentReference resolve(StaticModuleModel moduleModel)
 	{
 		new ResolvedComponentReference(this, #[ownerComponent])
+	}
+	
+	override isOptional() {
+		false
+	}
+	
+	override getDisplayName() {
+		// TODO
+		'''Reference to owner component «ownerComponent» from «providerMethodDeclaration»'''
 	}
 }
 

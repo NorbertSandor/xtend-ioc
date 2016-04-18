@@ -82,7 +82,8 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 				addAnnotation(InjectedFieldsSignatureMethod.newAnnotationReference)
 				// TODO change filter() to better solution
 				componentModel.fieldComponentReferences.forEach [ fieldComponentReference, index |
-					addParameter(fieldComponentReference.declaration.simpleName, fieldComponentReference.declaredTypeReference)
+					addParameter(fieldComponentReference.declaration.simpleName,
+						fieldComponentReference.declaredTypeReference)
 				]
 
 				body = '''throw new «UnsupportedOperationException.newTypeReference»();'''
@@ -142,111 +143,124 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 		switch (componentReference.providerType)
 		{
 			case DIRECT:
-			'''((«componentReference.signature.componentTypeSignature.typeReference.name»)((«inputSourceCode»).get()))'''
+			{
+				val supplierCode = '''((«componentReference.signature.componentTypeSignature.typeReference.name»)((«inputSourceCode»).get()))'''
+				if (!componentReference.
+					optional)
+				{
+					'''«com.erinors.ioc.shared.impl.IocUtils.name».checkRequiredComponentReference(«supplierCode», "«componentReference.displayName»")'''
+				}
+				else
+				{
+					supplierCode
+				}
+			}
 			case GUAVA_OPTIONAL:
-			'''((«Optional.name»)(«inputSourceCode».isPresent() ? «Optional.name».of(«inputSourceCode».get()) : «Optional.name».absent()))'''
+			'''((«Optional.name»)(«inputSourceCode».isPresent() ? «Optional.name».fromNullable(«inputSourceCode».get()) : «Optional.name».absent()))'''
 			case GUAVA_SUPPLIER:
 			'''(«IocUtils.getProviderTypeReference(componentReference, context).name»)«inputSourceCode»'''
 		}
 	}
 
-	def private static generateMultipleProviderConverter(ComponentReference componentReference,
-		String inputSourceCode,
+	def private static generateMultipleProviderConverter(ComponentReference componentReference, String inputSourceCode,
 		extension TransformationContext context)
-		{
-			'''(«List.name»)«ImmutableList.name».copyOf(«Lists.name».transform(«inputSourceCode», new «Function.newTypeReference(componentReferenceSupplierTypeReference(componentReference.signature, context), IocUtils.getProviderTypeReference(componentReference, context)).name»() {
+	{
+		'''(«List.name»)«ImmutableList.name».copyOf(«Lists.name».transform(«inputSourceCode», new «Function.newTypeReference(componentReferenceSupplierTypeReference(componentReference.signature, context), IocUtils.getProviderTypeReference(componentReference, context)).name»() {
 						public «IocUtils.getProviderTypeReference(componentReference, context).name» apply(final «componentReferenceSupplierTypeReference(componentReference.signature, context).name» e) {
 							return «generateSingleProviderConverter(componentReference, "e", context)»;
 						}
 			}))'''
-		}
+	}
 
-		def static private componentReferenceSupplierTypeReference(
-			ComponentReferenceSignature componentReferenceSignature, extension TransformationContext context)
-		{
-			ComponentReferenceSupplier.newTypeReference(
-				componentReferenceSignature.componentTypeSignature.typeReference.wrapperIfPrimitive.newWildcardTypeReference)
-		}
+	def static private componentReferenceSupplierTypeReference(ComponentReferenceSignature componentReferenceSignature,
+		extension TransformationContext context)
+	{
+		ComponentReferenceSupplier.newTypeReference(
+			componentReferenceSignature.componentTypeSignature.typeReference.wrapperIfPrimitive.
+				newWildcardTypeReference)
+			}
 
-		def private generateConstructor(MutableClassDeclaration annotatedClass, ComponentClassModel componentModel,
-			extension TransformationContext context)
-		{
-			val declaredComponentConstructor = componentModel.componentConstructor
-
-			annotatedClass.addConstructor [
-				addAnnotation(GeneratedComponentConstructor.newAnnotationReference)
-
-				addParameter("moduleInstance", ModuleInstance.newTypeReference)
-
-				val dependencyParameterNames = newHashMap
-				componentModel.constructorParameters.forEach [ componentReferenceSignature, index |
-					val parameterName = '''p«index»'''
-					dependencyParameterNames.put(componentReferenceSignature, parameterName)
-
-					val baseTypeReference = componentReferenceSupplierTypeReference(componentReferenceSignature,
-						context)
-					addParameter(
-						parameterName,
-						if (componentReferenceSignature.cardinality == CardinalityType.SINGLE)
-							baseTypeReference
-						else
-							List.newTypeReference(baseTypeReference.wrapperIfPrimitive.newWildcardTypeReference)
-					)
-				]
-
-				val superclassGeneratedComponentConstructor = if (componentModel.superclassModel !== null)
-						findGeneratedComponentConstructor(componentModel.superclassModel.typeReference,
-							context)
-					else
-						null
-
-				body = '''
-					«IF declaredComponentConstructor !== null»
-						this(«FOR parameter : componentModel.constructorComponentReferences SEPARATOR ", "»«generateProviderConverter(parameter, dependencyParameterNames.get(parameter.signature), context)»«ENDFOR»);
-					«ELSEIF superclassGeneratedComponentConstructor !== null»
-						super(moduleInstance«IF !componentModel.superclassModel.componentReferences.empty», «ENDIF»«FOR parameter : componentModel.superclassModel.componentReferences SEPARATOR ", "»«dependencyParameterNames.get(parameter.signature)»«ENDFOR»);
-					«ENDIF»
-					this.«MODULE_IMPLEMENTOR_FIELD_NAME» = («ModuleImplementor.newTypeReference»)moduleInstance;
-					«FOR field : componentModel.fieldComponentReferences»
-						this.«field.declaration.simpleName» = «generateProviderConverter(field, dependencyParameterNames.get(field.signature), context)»;
-					«ENDFOR»
-					«FOR generatedComponentReference : componentModel.generatedComponentReferences»
-						this.«componentModel.getGeneratedComponentReferenceFieldName(generatedComponentReference)» = «generateProviderConverter(generatedComponentReference, dependencyParameterNames.get(generatedComponentReference.signature), context)»;
-					«ENDFOR»
-					
-					«FOR observerMethod : annotatedClass.declaredMethods.filter[findAnnotation(EventObserver.findTypeGlobally) !== null]»
-						«val eventTypeReference = if (observerMethod.parameters.empty) observerMethod.findAnnotation(EventObserver.findTypeGlobally).getClassValue("eventType") else observerMethod.parameters.get(0).type»
-						«val rejectSubtypes = observerMethod.findAnnotation(EventObserver.findTypeGlobally).getBooleanValue("rejectSubtypes")»
-						this.«MODULE_IMPLEMENTOR_FIELD_NAME».getModuleEventBus().registerListener(«generateEventMatcherSourceCode(eventTypeReference, rejectSubtypes, context)», («Procedure1.newTypeReference») new «Procedure1.newTypeReference(eventTypeReference)»() {
-							public void apply(«eventTypeReference.name» event) {
-								«annotatedClass.simpleName».this.«observerMethod.simpleName»(«IF !observerMethod.parameters.empty»event«ENDIF»);
-							}
-						});
-					«ENDFOR»
-				'''
-			// FIXME EventObserver validálás, pl. egy paraméter, void return type, stb. - ezt az egészet normálisan megírni
-			]
-		}
-
-		def private generateEventMatcherSourceCode(TypeReference reference, boolean rejectSubtypes,
-			extension TransformationContext context)
-		{
-			if (rejectSubtypes)
+			def private generateConstructor(MutableClassDeclaration annotatedClass, ComponentClassModel componentModel,
+				extension TransformationContext context)
 			{
-				'''new «EventMatcher.newTypeReference.name»() {
+				val declaredComponentConstructor = componentModel.componentConstructor
+
+				annotatedClass.addConstructor [
+					addAnnotation(GeneratedComponentConstructor.newAnnotationReference)
+
+					addParameter("moduleInstance", ModuleInstance.newTypeReference)
+
+					val dependencyParameterNames = newHashMap
+					componentModel.constructorParameters.forEach [ componentReferenceSignature, index |
+						val parameterName = '''p«index»'''
+						dependencyParameterNames.put(componentReferenceSignature, parameterName)
+
+						val baseTypeReference = componentReferenceSupplierTypeReference(componentReferenceSignature,
+							context)
+						addParameter(
+							parameterName,
+							if (componentReferenceSignature.cardinality == CardinalityType.SINGLE)
+								baseTypeReference
+							else
+								List.newTypeReference(baseTypeReference.wrapperIfPrimitive.newWildcardTypeReference)
+						)
+					]
+
+					val superclassGeneratedComponentConstructor = if (componentModel.superclassModel !== null)
+							findGeneratedComponentConstructor(componentModel.superclassModel.typeReference,
+								context)
+						else
+							null
+
+					body = '''
+						«IF declaredComponentConstructor !== null»
+							this(«FOR parameter : componentModel.constructorComponentReferences SEPARATOR ", "»«generateProviderConverter(parameter, dependencyParameterNames.get(parameter.signature), context)»«ENDFOR»);
+						«ELSEIF superclassGeneratedComponentConstructor !== null»
+							super(moduleInstance«IF !componentModel.superclassModel.componentReferences.empty», «ENDIF»«FOR parameter : componentModel.superclassModel.componentReferences SEPARATOR ", "»«dependencyParameterNames.get(parameter.signature)»«ENDFOR»);
+						«ENDIF»
+						this.«MODULE_IMPLEMENTOR_FIELD_NAME» = («ModuleImplementor.newTypeReference»)moduleInstance;
+						«FOR field : componentModel.fieldComponentReferences»
+							this.«field.declaration.simpleName» = «generateProviderConverter(field, dependencyParameterNames.get(field.signature), context)»;
+						«ENDFOR»
+						«FOR generatedComponentReference : componentModel.generatedComponentReferences»
+							this.«componentModel.getGeneratedComponentReferenceFieldName(generatedComponentReference)» = «generateProviderConverter(generatedComponentReference, dependencyParameterNames.get(generatedComponentReference.signature), context)»;
+						«ENDFOR»
+						
+						«FOR observerMethod : annotatedClass.declaredMethods.filter[findAnnotation(EventObserver.findTypeGlobally) !== null]»
+							«val eventTypeReference = if (observerMethod.parameters.empty) observerMethod.findAnnotation(EventObserver.findTypeGlobally).getClassValue("eventType") else observerMethod.parameters.get(0).type»
+							«val rejectSubtypes = observerMethod.findAnnotation(EventObserver.findTypeGlobally).getBooleanValue("rejectSubtypes")»
+							this.«MODULE_IMPLEMENTOR_FIELD_NAME».getModuleEventBus().registerListener(«generateEventMatcherSourceCode(eventTypeReference, rejectSubtypes, context)», («Procedure1.newTypeReference») new «Procedure1.newTypeReference(eventTypeReference)»() {
+								public void apply(«eventTypeReference.name» event) {
+									«annotatedClass.simpleName».this.«observerMethod.simpleName»(«IF !observerMethod.parameters.empty»event«ENDIF»);
+								}
+							});
+						«ENDFOR»
+					'''
+				// FIXME EventObserver validálás, pl. egy paraméter, void return type, stb. - ezt az egészet normálisan megírni
+				]
+			}
+
+			def private generateEventMatcherSourceCode(TypeReference reference, boolean rejectSubtypes,
+				extension TransformationContext context)
+			{
+				if (rejectSubtypes)
+				{
+					'''new «EventMatcher.newTypeReference.name»() {
 					public boolean matches(Object event) {
 						return event != null && event.getClass() == «reference.type.qualifiedName».class;
 					}
 				}'''
-			}
-			else
-			{
-				'''new «EventMatcher.newTypeReference.name»() {
+				}
+				else
+				{
+					'''new «EventMatcher.newTypeReference.name»() {
 					public boolean matches(Object event) {
 						return event instanceof «reference.name»;
 					}
 				}'''
+				}
 			}
 		}
-	}
 // TODO ha nincs toString, akkor generálni egyet
+// FIXME handle if provider returns null in case of component reference cardinality "multiple"
+		

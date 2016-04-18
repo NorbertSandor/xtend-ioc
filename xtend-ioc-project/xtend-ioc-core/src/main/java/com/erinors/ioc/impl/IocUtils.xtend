@@ -449,6 +449,7 @@ class IocUtils
 			}
 
 		// TODO warning when @NotRequired on collection, it is redundant
+		// TODO warning when @NotRequired on Optional, it is redundant
 		val optional = cardinalityType == CardinalityType.MULTIPLE ||
 			dependencyReferenceDeclaration.hasAnnotation(NotRequired.findTypeGlobally) || providerType.implicitOptional
 

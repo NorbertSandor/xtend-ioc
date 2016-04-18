@@ -20,8 +20,6 @@ import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
 // TODO nem létező típus kezelése pl. module öröklődésnél
 // TODO @Provider-t lehessen field-re is tenni
 // TODO predesotry, postconstruct metódusok lehessenek private-ek
-
-
 interface ModuleInstance
 {
 }
@@ -59,7 +57,7 @@ class AbsentComponentReferenceSupplier<T> implements ComponentReferenceSupplier<
 class PresentComponentReferenceSupplier<T> implements ComponentReferenceSupplier<T>
 {
 	val Supplier<T> supplier
-	
+
 	override isPresent()
 	{
 		true
@@ -106,7 +104,9 @@ abstract class SingletonComponentLifecycleManager<T> extends AbstractComponentLi
 	enum State
 	{
 		UNINITIALIZED,
+
 		INITIALIZING,
+
 		READY
 	}
 
@@ -142,5 +142,18 @@ abstract class PrototypeComponentLifecycleManager<T> extends AbstractComponentLi
 	override get()
 	{
 		createInstance
+	}
+}
+
+class IocUtils
+{
+	def static <T> T checkRequiredComponentReference(T componentInstance, String description)
+	{
+		if (componentInstance === null)
+		{
+			throw new IllegalStateException('''Component reference does not exists at runtime, consider using an optional reference: «description»''')
+		}
+
+		componentInstance
 	}
 }
