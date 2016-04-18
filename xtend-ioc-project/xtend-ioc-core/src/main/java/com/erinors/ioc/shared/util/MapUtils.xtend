@@ -34,7 +34,8 @@ class MapUtils
 	def static <K, V> List<Pair<K, V>> mapToPairs(Map<K, V> map)
 	{
 		val builder = ImmutableList.builder
-		map.forEach[builder.add(Pair.of($0, $1))]
+		// TODO replace with Map.forEach() when GWT supports it
+		map.entrySet.forEach[builder.add(Pair.of(key, value))]
 		builder.build
 	}
 }
