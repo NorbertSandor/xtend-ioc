@@ -535,7 +535,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 								case GUAVA_SUPPLIER:
 								'''(«Supplier.name»)«componentFieldName»'''
 								case GUAVA_OPTIONAL:
-								'''(«Optional.name»)«Optional.name».of(«componentFieldName».get())'''
+								'''(«Optional.name»)«Optional.name».fromNullable(«componentFieldName».get())'''
 							}
 						}
 
