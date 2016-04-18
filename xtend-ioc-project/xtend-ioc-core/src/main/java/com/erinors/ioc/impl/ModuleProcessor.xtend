@@ -317,7 +317,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 		StaticModuleModel moduleModel, ComponentModel componentModel,
 		(ComponentModel)=>String componentLookup)
 		{
-			'''«PresentComponentReferenceSupplier.findTypeGlobally.qualifiedName».of(«componentLookup.apply(componentModel)»)'''
+			'''new «PresentComponentReferenceSupplier.findTypeGlobally.qualifiedName»(«componentLookup.apply(componentModel)»)'''
 		}
 
 		def private static generateAbsentComponentSupplierSourceCode(

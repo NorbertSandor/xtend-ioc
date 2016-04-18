@@ -58,13 +58,8 @@ class AbsentComponentReferenceSupplier<T> implements ComponentReferenceSupplier<
 @FinalFieldsConstructor
 class PresentComponentReferenceSupplier<T> implements ComponentReferenceSupplier<T>
 {
-	def static <T> PresentComponentReferenceSupplier<T> of(Supplier<T> supplier)
-	{
-		new PresentComponentReferenceSupplier<T>(supplier)
-	}
-
 	val Supplier<T> supplier
-
+	
 	override isPresent()
 	{
 		true
