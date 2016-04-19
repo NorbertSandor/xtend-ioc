@@ -293,11 +293,13 @@ annotation ModuleImporters {
 
 class OrderConstants
 {
-	val public static DEFAULT_ORDER = 0
-
 	val public static MIN_ORDER = Integer.MIN_VALUE
 
-	val public static MAX_ORDER = Integer.MAX_VALUE
+	val public static DEFAULT_ORDER = 0
+
+	val public static MAX_ORDER = Integer.MAX_VALUE - 1
+
+	val public static VALIDATION_ONLY = Integer.MAX_VALUE
 }
 
 annotation Order {
