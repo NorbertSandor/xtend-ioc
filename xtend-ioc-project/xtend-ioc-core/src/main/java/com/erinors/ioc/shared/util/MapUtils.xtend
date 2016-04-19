@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableMap
 class MapUtils
 {
 	/**
-	 * Convert the iterable of pairs to a {@code Map}.
+	 * Convert the iterable of pairs to an immutable {@code Map}.
 	 */
 	def static <K, V> Map<K, V> pairsToMap(Iterable<Pair<K, V>> keyValuePairs)
 	{
