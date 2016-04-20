@@ -461,7 +461,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 					//
 					// Generate explicit dependency methods 
 					//
-					moduleModel.staticModuleModel.explicitModuleDependencies.forEach [ componentReference |
+					moduleModel.staticModuleModel.getModuleComponentReferences.forEach [ componentReference |
 						val interfaceMethodDeclaration = componentReference.declaration
 						val returnType = componentReference.declaredTypeReference
 

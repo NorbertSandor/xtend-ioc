@@ -585,7 +585,7 @@ class StaticModuleModel implements ModuleModel
 
 	Set<? extends ComponentModel> components
 
-	Set<? extends DeclaredComponentReference<MethodDeclaration>> explicitModuleDependencies
+	Set<? extends DeclaredComponentReference<MethodDeclaration>> moduleComponentReferences
 
 	/**
 	 * Module resolution involves the resolution of all component references.
@@ -600,7 +600,7 @@ class StaticModuleModel implements ModuleModel
 		}
 
 		val errorMessages = <ProcessingMessage>newArrayList()
-		(explicitModuleDependencies + components.map[componentReferences].flatten).forEach [
+		(moduleComponentReferences + components.map[componentReferences].flatten).forEach [
 			try
 			{
 				resolve(this)

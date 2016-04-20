@@ -92,7 +92,7 @@ package class InjectableClassModelBuilder
 		TypeReference typeReference)
 	{
 		// TODO berendezni, hogy a "legközelebbit" adja eredményül (amihez a legkevesebb konverzió kell)
-		val componentReference = moduleModel.explicitModuleDependencies.filter [ moduleComponentReference |
+		val componentReference = moduleModel.moduleComponentReferences.filter [ moduleComponentReference |
 			createDeclaredComponentReference(declaration, typeReference, context).signature.isAssignableFrom(
 				moduleComponentReference.signature)
 		].head

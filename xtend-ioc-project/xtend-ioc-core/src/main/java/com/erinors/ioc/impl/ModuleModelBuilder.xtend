@@ -29,7 +29,6 @@ import org.eclipse.xtend.lib.macro.file.Path
 
 import static extension com.erinors.ioc.impl.IocUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
-import static extension com.erinors.ioc.shared.util.MapUtils.*
 
 // TODO module interface ne lehessen generikus
 class ModuleModelBuilder
@@ -66,10 +65,10 @@ class ModuleModelBuilder
 			componentClassModels
 		)
 
-		// TODO rename: moduleComponentReferences
-		val moduleDependencies = collectModuleDependencies(inheritedModules + #[moduleInterface.newTypeReference])
+		val moduleComponentReferences = collectModuleDependencies(inheritedModules +
+			#[moduleInterface.newTypeReference])
 
-		val allComponentModels = processModule(moduleInterface, componentClassModels, moduleDependencies)
+		val allComponentModels = processModule(moduleInterface, componentClassModels, moduleComponentReferences)
 
 		val moduleAnnotation = moduleInterface.findAnnotation(Module.findTypeGlobally)
 		val abstract = moduleAnnotation.getBooleanValue("isAbstract")
@@ -77,7 +76,7 @@ class ModuleModelBuilder
 		val singleton = moduleInterface.isSingletonModule(context)
 
 		new StaticModuleModel(moduleInterface, abstract, singleton, inheritedModules, allComponentModels,
-			moduleDependencies)
+			moduleComponentReferences)
 	}
 
 	def private void preprocessModule(
@@ -199,7 +198,7 @@ class ModuleModelBuilder
 		allModuleInterfaces.map [
 			declaredResolvedMethods
 		].flatten //
-		// Filter methods with same name and signature
+		// Filter methods with same name and signature in different inherited module interfaces
 		.filter[!declaration.static].groupBy [
 			new ModuleMethodSignature(declaration.simpleName, declaration.returnType,
 				declaration.parameters.map[type].toList)
@@ -215,10 +214,10 @@ class ModuleModelBuilder
 	 */
 	def private processModule(InterfaceDeclaration moduleInterface,
 		Set<? extends ComponentClassModel> componentClassModels, // TODO rename
-		Set<? extends DeclaredComponentReference<MethodDeclaration>> moduleDependencies)
+		Set<? extends DeclaredComponentReference<MethodDeclaration>> moduleComponentReferences)
 	{
-		val allDependencies = (componentClassModels.map[componentReferences].flatten + moduleDependencies).toSet.
-			immutableCopy
+		val allDependencies = (componentClassModels.map[componentReferences].flatten + moduleComponentReferences ).
+			toSet.immutableCopy
 
 		val Set<ComponentModel> additionalComponentModels = newLinkedHashSet
 
