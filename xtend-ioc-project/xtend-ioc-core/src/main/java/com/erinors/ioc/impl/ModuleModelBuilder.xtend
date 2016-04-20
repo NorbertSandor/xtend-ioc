@@ -216,8 +216,8 @@ class ModuleModelBuilder
 		Set<? extends ComponentClassModel> componentClassModels, // TODO rename
 		Set<? extends DeclaredComponentReference<MethodDeclaration>> moduleComponentReferences)
 	{
-		val allDependencies = (componentClassModels.map[componentReferences].flatten + moduleComponentReferences ).
-			toSet.immutableCopy
+		val allDependencies = (componentClassModels.map[componentReferences].flatten + moduleComponentReferences).toSet.
+			immutableCopy
 
 		val Set<ComponentModel> additionalComponentModels = newLinkedHashSet
 
@@ -254,14 +254,13 @@ class ModuleModelBuilder
 			}
 		}
 
+		builtinComponentManagers.componentManagers.forEach [
+			apply(moduleBuilderContext, moduleComponentReferences)
+		]
+
 		componentClassModels.forEach [ ownerComponentModel |
-			allDependencies.forEach [ componentReference |
-				val componentManager = builtinComponentManagers.findFor(moduleBuilderContext, componentReference)
-				if (componentManager !== null)
-				{
-					componentManager.processComponentReference(moduleBuilderContext, ownerComponentModel,
-						componentReference)
-				}
+			builtinComponentManagers.componentManagers.forEach [
+				apply(moduleBuilderContext, ownerComponentModel)
 			]
 		]
 

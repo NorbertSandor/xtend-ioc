@@ -18,10 +18,13 @@ import com.erinors.ioc.shared.api.OrderConstants
 import com.erinors.ioc.shared.api.PriorityConstants
 import com.erinors.ioc.shared.impl.ModuleInstance
 import com.erinors.ioc.shared.impl.SingletonComponentLifecycleManager
+import java.util.Set
+import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.Data
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
 import org.eclipse.xtend.lib.macro.TransformationContext
 import org.eclipse.xtend.lib.macro.declaration.ClassDeclaration
+import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 import org.eclipse.xtend.lib.macro.services.Problem.Severity
 
 class BuiltinComponentManagers
@@ -31,6 +34,7 @@ class BuiltinComponentManagers
 		new BuiltinComponentManagers(context)
 	}
 
+	@Accessors
 	val Iterable<? extends ComponentManager> componentManagers
 
 	private new(TransformationContext context)
@@ -38,48 +42,42 @@ class BuiltinComponentManagers
 		componentManagers = #[new ModuleInstanceComponentManager(context), new EventComponentManager(context),
 			new InterceptorHandlerComponentManager(context)]
 	}
-
-	def findFor(ModuleModelBuilderContext context, ComponentReference componentReference)
-	{
-		val filteredComponentManagers = componentManagers.filter[supports(context, componentReference)]
-		switch (filteredComponentManagers.size)
-		{
-			case 0:
-				null
-			case 1:
-				filteredComponentManagers.
-					head
-			default:
-				throw new IllegalStateException('''Multiple component managers found for «componentReference»: «filteredComponentManagers»''')
-		}
-	}
-
 }
 
 interface ComponentManager
 {
-	def boolean supports(ModuleModelBuilderContext context, ComponentReference componentReference)
+	def void apply(ModuleModelBuilderContext context, ComponentClassModel componentModel)
 
-	def void processComponentReference(ModuleModelBuilderContext context, ComponentClassModel componentModel,
-		ComponentReference componentReference)
+	def void apply(ModuleModelBuilderContext context,
+		Set<? extends DeclaredComponentReference<MethodDeclaration>> moduleComponentReferences)
+}
+
+abstract class AbstractComponentManager implements ComponentManager
+{
+	override apply(ModuleModelBuilderContext context, ComponentClassModel componentModel)
+	{
+		componentModel.componentReferences.forEach[apply(context, it)]
+	}
+
+	override apply(ModuleModelBuilderContext context,
+		Set<? extends DeclaredComponentReference<MethodDeclaration>> moduleComponentReferences)
+	{
+		moduleComponentReferences.forEach[apply(context, it)]
+	}
+
+	def void apply(ModuleModelBuilderContext context, ComponentReference componentReference)
 }
 
 @FinalFieldsConstructor
-class InterceptorHandlerComponentManager implements ComponentManager
+class InterceptorHandlerComponentManager extends AbstractComponentManager
 {
 	val extension TransformationContext context
 
-	override supports(ModuleModelBuilderContext moduleModelBuilderContext, ComponentReference componentReference)
+	override apply(ModuleModelBuilderContext context, ComponentReference componentReference)
 	{
-		// TODO correct?
-		InterceptorInvocationHandler.findTypeGlobally.isAssignableFrom(componentReference.signature.componentTypeSignature.typeReference.type)
-	}
-
-	override processComponentReference(ModuleModelBuilderContext context, ComponentClassModel componentModel,
-		ComponentReference componentReference)
-	{
-		// TODO correct?
-		if (!context.exists(componentReference.signature.componentTypeSignature))
+		if (InterceptorInvocationHandler.findTypeGlobally.isAssignableFrom(
+			componentReference.signature.componentTypeSignature.typeReference.type) &&
+			!context.exists(componentReference.signature.componentTypeSignature))
 		{
 			context.addComponentClass(componentReference.signature.componentTypeSignature.typeReference)
 		}
@@ -96,89 +94,72 @@ class ModuleInstanceComponentModel extends ComponentModel
 }
 
 @FinalFieldsConstructor
-class ModuleInstanceComponentManager implements ComponentManager
+class ModuleInstanceComponentManager extends AbstractComponentManager
 {
 	val extension TransformationContext context
 
-	override supports(ModuleModelBuilderContext context, ComponentReference componentReference)
-	{
-		ModuleInstance.newTypeReference.isAssignableFrom(
-			componentReference.signature.componentTypeSignature.typeReference)
-	}
-
-	override processComponentReference(ModuleModelBuilderContext context, ComponentClassModel componentModel,
-		ComponentReference componentReference)
+	override apply(ModuleModelBuilderContext context, ComponentReference componentReference)
 	{
 		// TODO ellenőrzés: components should not implement ModuleInstance
-		if (!context.exists(componentReference.signature.componentTypeSignature))
+		if (ModuleInstance.newTypeReference.isAssignableFrom(
+			componentReference.signature.componentTypeSignature.typeReference) &&
+			!context.exists(componentReference.signature.componentTypeSignature))
 		{
 			context.addComponentModel(
 				new ModuleInstanceComponentModel(componentReference.signature.componentTypeSignature,
 					SingletonComponentLifecycleManager.findTypeGlobally as ClassDeclaration,
 					PriorityConstants.MAX_PRIORITY, OrderConstants.DEFAULT_ORDER))
-			}
 		}
 	}
+}
 
-	@Data
-	class EventComponentModel extends ComponentModel
+@Data
+class EventComponentModel extends ComponentModel
+{
+	override getComponentReferences()
 	{
-		override getComponentReferences()
-		{
-			#[]
-		}
-
-		def getEventTypeReference()
-		{
-			typeSignature.typeReference.actualTypeArguments.get(0)
-		}
+		#[]
 	}
 
-	@FinalFieldsConstructor
-	class EventComponentManager implements ComponentManager
+	def getEventTypeReference()
 	{
-		val extension TransformationContext context
+		typeSignature.typeReference.actualTypeArguments.get(0)
+	}
+}
 
-		override supports(ModuleModelBuilderContext context, ComponentReference componentReference)
-		{
-			// TODO ne lehessen megadni scope-ot
-			// TODO ne lehessen wildcard
-			val signature = componentReference.signature
-			if (Event.newTypeReference.isAssignableFrom(signature.componentTypeSignature.typeReference))
-			{
-				if (signature.cardinality != CardinalityType.SINGLE)
-				{
-					throw new IocProcessingException(
-						new ProcessingMessage(Severity.ERROR,
-							componentReference.compilationProblemTarget, '''Collections of «Event.simpleName»s is not supported.'''))
-				}
-				else if (componentReference.providerType != ProviderType.DIRECT)
-				{
-					throw new IocProcessingException(
-						new ProcessingMessage(Severity.ERROR, componentReference.
-							compilationProblemTarget, '''Indirect «Event.simpleName» reference is not supported.'''))
-				}
-				else
-				{
-					true
-				}
-			}
-			else
-			{
-				false
-			}
-		}
+@FinalFieldsConstructor
+class EventComponentManager extends AbstractComponentManager
+{
+	val extension TransformationContext context
 
-		override processComponentReference(ModuleModelBuilderContext context, ComponentClassModel componentModel,
-			ComponentReference componentReference)
+	override apply(ModuleModelBuilderContext context, ComponentReference componentReference)
+	{
+		// TODO ne lehessen megadni scope-ot
+		// TODO ne lehessen wildcard
+		val signature = componentReference.signature
+		if (Event.newTypeReference.isAssignableFrom(signature.componentTypeSignature.typeReference))
 		{
+			if (signature.cardinality != CardinalityType.SINGLE)
+			{
+				throw new IocProcessingException(
+					new ProcessingMessage(Severity.ERROR, componentReference.
+						compilationProblemTarget, '''Collections of «Event.simpleName»s is not supported.'''))
+			}
+			else if (componentReference.providerType != ProviderType.DIRECT)
+			{
+				throw new IocProcessingException(
+					new ProcessingMessage(Severity.ERROR, componentReference.
+						compilationProblemTarget, '''Indirect «Event.simpleName» reference is not supported.'''))
+			}
+
 			if (!context.exists(componentReference.signature.componentTypeSignature))
 			{
 				context.addComponentModel(
 					new EventComponentModel(componentReference.signature.componentTypeSignature,
 						SingletonComponentLifecycleManager.findTypeGlobally as ClassDeclaration,
 						PriorityConstants.MAX_PRIORITY, OrderConstants.DEFAULT_ORDER))
-				}
 			}
 		}
+	}
+}
 // TODO warning, ha Event típusú mező vagy constructor paraméter @Inject nélkül van
