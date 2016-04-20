@@ -136,6 +136,7 @@ class EventComponentManager extends AbstractComponentManager
 	{
 		// TODO ne lehessen megadni scope-ot
 		// TODO ne lehessen wildcard
+		// TODO if the event exists with qualifiers then do not allow an event without qualifiers
 		val signature = componentReference.signature
 		if (Event.newTypeReference.isAssignableFrom(signature.componentTypeSignature.typeReference))
 		{

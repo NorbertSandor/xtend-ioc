@@ -371,7 +371,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						'''
 							return new «componentModel.typeSignature.typeReference.name»() {
 								public void fire(«componentModel.eventTypeReference.name» event) {
-									«moduleImplementationClass.simpleName».this.getModuleEventBus().fire(event);
+									«moduleImplementationClass.simpleName».this.getModuleEventBus().fire(event, «componentModel.typeSignature.qualifiers.hashCode»);
 								}
 							};
 						'''
@@ -620,7 +620,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 												«inheritedModule.modulePeerClassName».initialize(«peerClass.qualifiedName».moduleInstance);
 											«ENDFOR»
 											
-											«peerClass.qualifiedName».moduleInstance.getModuleEventBus().fire(new «ModuleInitializedEvent.name»());
+											«peerClass.qualifiedName».moduleInstance.getModuleEventBus().fire(new «ModuleInitializedEvent.name»(), 0);
 											
 											return «peerClass.qualifiedName».moduleInstance;
 										'''
@@ -647,7 +647,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 												«inheritedModule.modulePeerClassName».initialize(instance);
 											«ENDFOR»
 											
-											instance.getModuleEventBus().fire(new «ModuleInitializedEvent.name»());
+											instance.getModuleEventBus().fire(new «ModuleInitializedEvent.name»(), 0);
 											return instance;
 										'''
 										else

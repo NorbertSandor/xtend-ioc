@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
 import java.lang.annotation.Target
 import java.util.List
+import java.util.Set
 import org.eclipse.xtend.lib.macro.AbstractClassProcessor
 import org.eclipse.xtend.lib.macro.TransformationContext
 import org.eclipse.xtend.lib.macro.declaration.MutableClassDeclaration
@@ -229,7 +230,8 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 						«FOR observerMethod : annotatedClass.declaredMethods.filter[findAnnotation(EventObserver.findTypeGlobally) !== null]»
 							«val eventTypeReference = if (observerMethod.parameters.empty) observerMethod.findAnnotation(EventObserver.findTypeGlobally).getClassValue("eventType") else observerMethod.parameters.get(0).type»
 							«val rejectSubtypes = observerMethod.findAnnotation(EventObserver.findTypeGlobally).getBooleanValue("rejectSubtypes")»
-							this.«MODULE_IMPLEMENTOR_FIELD_NAME».getModuleEventBus().registerListener(«generateEventMatcherSourceCode(eventTypeReference, rejectSubtypes, context)», («Procedure1.newTypeReference») new «Procedure1.newTypeReference(eventTypeReference)»() {
+							«val qualifierId = IocUtils.findQualifiers(observerMethod, context).hashCode»
+							this.«MODULE_IMPLEMENTOR_FIELD_NAME».getModuleEventBus().registerListener(«generateEventMatcherSourceCode(eventTypeReference, qualifierId, rejectSubtypes, context)», («Procedure1.newTypeReference») new «Procedure1.newTypeReference(eventTypeReference)»() {
 								public void apply(«eventTypeReference.name» event) {
 									«annotatedClass.simpleName».this.«observerMethod.simpleName»(«IF !observerMethod.parameters.empty»event«ENDIF»);
 								}
@@ -240,22 +242,22 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 				]
 			}
 
-			def private generateEventMatcherSourceCode(TypeReference reference, boolean rejectSubtypes,
+			def private generateEventMatcherSourceCode(TypeReference reference, int qualifierId, boolean rejectSubtypes,
 				extension TransformationContext context)
 			{
 				if (rejectSubtypes)
 				{
 					'''new «EventMatcher.newTypeReference.name»() {
-					public boolean matches(Object event) {
-						return event != null && event.getClass() == «reference.type.qualifiedName».class;
+					public boolean matches(Object event, int qualifierId) {
+						return qualifierId == «qualifierId» && event != null && event.getClass() == «reference.type.qualifiedName».class;
 					}
 				}'''
 				}
 				else
 				{
 					'''new «EventMatcher.newTypeReference.name»() {
-					public boolean matches(Object event) {
-						return event instanceof «reference.name»;
+					public boolean matches(Object event, int qualifierId) {
+						return qualifierId == «qualifierId» && event instanceof «reference.name»;
 					}
 				}'''
 				}

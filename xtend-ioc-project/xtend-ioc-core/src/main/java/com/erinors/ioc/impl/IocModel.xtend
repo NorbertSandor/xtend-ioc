@@ -178,6 +178,7 @@ class QualifierAttributeAnnotationValue extends QualifierAttributeValue
 	}
 }
 
+// TODO why inherited?
 @Data
 class QualifierModel extends QualifierAttributeAnnotationValue
 {
