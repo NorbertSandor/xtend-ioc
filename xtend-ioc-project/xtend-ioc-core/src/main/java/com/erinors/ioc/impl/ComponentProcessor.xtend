@@ -36,6 +36,7 @@ import static com.erinors.ioc.impl.InterceptorUtils.*
 import static com.erinors.ioc.impl.IocUtils.*
 
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
+import com.google.common.primitives.Ints
 
 class ComponentProcessor extends AbstractSafeClassProcessor
 {
@@ -228,7 +229,7 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 						«ENDFOR»
 						
 						«FOR eventObserverModel : componentModel.eventObservers»
-							this.«MODULE_IMPLEMENTOR_FIELD_NAME».getModuleEventBus().registerListener(«generateEventMatcherSourceCode(eventObserverModel.eventType, 0, eventObserverModel.ignoreSubtypes, context)», («Procedure1.newTypeReference») new «Procedure1.newTypeReference(eventObserverModel.eventType)»() {
+							this.«MODULE_IMPLEMENTOR_FIELD_NAME».getModuleEventBus().registerListener(«generateEventMatcherSourceCode(eventObserverModel.eventType, eventObserverModel.qualifiers.hashCode, eventObserverModel.ignoreSubtypes, context)», («Procedure1.newTypeReference») new «Procedure1.newTypeReference(eventObserverModel.eventType)»() {
 								public void apply(«eventObserverModel.eventType.name» event) {
 									«annotatedClass.simpleName».this.«eventObserverModel.observerMethod.simpleName»(«IF !eventObserverModel.observerMethod.parameters.empty»event«ENDIF»);
 								}
@@ -245,16 +246,16 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 				if (rejectSubtypes)
 				{
 					'''new «EventMatcher.newTypeReference.name»() {
-					public boolean matches(Object event, int qualifierId) {
-						return qualifierId == «qualifierId» && event != null && event.getClass() == «reference.type.qualifiedName».class;
+					public boolean matches(Object event, int[] qualifierIds) {
+						return (qualifierIds == null || «Ints.name».indexOf(qualifierIds, «qualifierId») != -1) && event != null && event.getClass() == «reference.type.qualifiedName».class;
 					}
 				}'''
 				}
 				else
 				{
 					'''new «EventMatcher.newTypeReference.name»() {
-					public boolean matches(Object event, int qualifierId) {
-						return qualifierId == «qualifierId» && event instanceof «reference.name»;
+					public boolean matches(Object event, int[] qualifierIds) {
+						return (qualifierIds == null || «Ints.name».indexOf(qualifierIds, «qualifierId») != -1) && event instanceof «reference.name»;
 					}
 				}'''
 				}

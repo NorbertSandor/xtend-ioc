@@ -18,7 +18,7 @@ import static extension com.erinors.ioc.shared.util.IterableUtils.*
 
 interface EventMatcher
 {
-	def boolean matches(Object eventObject, int qualifierId)
+	def boolean matches(Object eventObject, int[] qualifierIds)
 }
 
 interface EventListenerRegistration
@@ -30,7 +30,7 @@ interface ModuleEventBus
 {
 	def EventListenerRegistration registerListener(EventMatcher eventMatcher, (Object)=>void listener)
 
-	def void fire(Object event, int qualifierId)
+	def void fire(Object event, int... qualifierIds)
 }
 
 class ModuleEventBusImpl implements ModuleEventBus
@@ -79,9 +79,9 @@ class ModuleEventBusImpl implements ModuleEventBus
 		return [eventListeners.remove(listenerId)]
 	}
 
-	override fire(Object event, int qualifierId)
+	override fire(Object event, int[] qualifierIds)
 	{
-		eventListeners.values.filter[eventMatcher.matches(event, qualifierId)].foreach [
+		eventListeners.values.filter[eventMatcher.matches(event, qualifierIds)].foreach [
 			taskQueue.offerLast([
 				if (eventListeners.containsKey(id))
 				{

@@ -205,7 +205,7 @@ class ComponentTypeSignature
 	def isAssignableFrom(ComponentTypeSignature otherComponentSignature)
 	{
 		val typesCompatible = typeReference.isAssignableFrom(otherComponentSignature.typeReference)
-		val qualifiersCompatible = otherComponentSignature.qualifiers.containsAll(qualifiers)
+		val qualifiersCompatible = IocUtils.isAssignableFrom(qualifiers, otherComponentSignature.qualifiers)
 		typesCompatible && qualifiersCompatible
 	}
 

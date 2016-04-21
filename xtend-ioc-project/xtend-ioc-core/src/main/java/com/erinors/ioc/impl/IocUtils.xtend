@@ -14,6 +14,7 @@ package com.erinors.ioc.impl
 
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.ComponentLifecycleManager
+import com.erinors.ioc.shared.api.EventObserver
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Interceptor
 import com.erinors.ioc.shared.api.Module
@@ -53,6 +54,7 @@ import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
 import static extension com.erinors.ioc.shared.util.MapUtils.*
+import java.util.Set
 
 @FinalFieldsConstructor
 class IocProcessingContext
@@ -568,6 +570,10 @@ class IocUtils
 
 	def static String modulePeerClassName(String moduleQualifiedName)
 	'''«moduleQualifiedName».Peer'''
+	
+	def static isAssignableFrom(Set<? extends QualifierModel> qualifiers, Set<? extends QualifierModel> otherQualifiers) {
+		otherQualifiers.containsAll(qualifiers)
+	}
 }
 
 class OrderComparator<T extends HasOrder> implements Comparator<T>

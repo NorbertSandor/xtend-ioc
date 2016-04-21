@@ -42,6 +42,7 @@ import org.jgrapht.graph.DefaultEdge
 import static com.erinors.ioc.impl.ProcessorUtils.*
 
 import static extension com.erinors.ioc.impl.IocUtils.*
+import java.util.Set
 
 class ModuleProcessor extends AbstractSafeInterfaceProcessor
 {
@@ -351,7 +352,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						{
 							'''
 								«componentModel.classDeclaration.qualifiedName» o = new «componentModel.classDeclaration.qualifiedName»(«moduleImplementationClass.simpleName».this«FOR componentReferenceSignature : componentModel.constructorParameters BEFORE ", " SEPARATOR ", "»
-																																																																												«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
+																																																																														«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
 								«ENDFOR»);
 								«FOR postConstructMethod : componentModel.postConstructMethods»
 									o.«postConstructMethod.simpleName»();
@@ -371,13 +372,23 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						'''
 							return new «componentModel.typeSignature.typeReference.name»() {
 								public void fire(«componentModel.eventTypeReference.name» event) {
-									«moduleImplementationClass.simpleName».this.getModuleEventBus().fire(event, «componentModel.typeSignature.qualifiers.hashCode»);
+									«moduleImplementationClass.simpleName».this.getModuleEventBus().fire(event, «FOR value : findCompatibleEventObservers(componentModel.typeSignature.qualifiers, moduleModel) SEPARATOR ", "»«value»«ENDFOR»);
 								}
 							};
 						'''
 						default:
 							throw new IllegalStateException
 					}
+				}
+
+				def Iterable<Integer> findCompatibleEventObservers(Set<? extends QualifierModel> qualifiers,
+					ResolvedModuleModel moduleModel)
+				{
+					moduleModel.staticModuleModel.components.filter(ComponentClassModel).map[eventObservers].map [
+						qualifiers
+					].filter [
+						IocUtils.isAssignableFrom(qualifiers, it)
+					].map[hashCode] + #[0]
 				}
 
 				def private generateQualifierAttributeValueSourceCode(ComponentProviderModel componentModel,
@@ -620,7 +631,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 												«inheritedModule.modulePeerClassName».initialize(«peerClass.qualifiedName».moduleInstance);
 											«ENDFOR»
 											
-											«peerClass.qualifiedName».moduleInstance.getModuleEventBus().fire(new «ModuleInitializedEvent.name»(), 0);
+											«peerClass.qualifiedName».moduleInstance.getModuleEventBus().fire(new «ModuleInitializedEvent.name»(), null);
 											
 											return «peerClass.qualifiedName».moduleInstance;
 										'''
@@ -647,7 +658,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 												«inheritedModule.modulePeerClassName».initialize(instance);
 											«ENDFOR»
 											
-											instance.getModuleEventBus().fire(new «ModuleInitializedEvent.name»(), 0);
+											instance.getModuleEventBus().fire(new «ModuleInitializedEvent.name»(), null);
 											return instance;
 										'''
 										else
