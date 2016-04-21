@@ -25,6 +25,6 @@ annotation EventObserver
 {
 	Class<?> eventType = Object
 	
-	boolean rejectSubtypes = false
+	boolean rejectSubtypes = false // TODO rename to ignore*
 }
 // TODO @EventObserver method should have 1 parameter if eventType is not specified

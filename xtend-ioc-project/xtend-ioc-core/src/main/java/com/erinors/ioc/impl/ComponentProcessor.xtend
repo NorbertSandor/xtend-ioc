@@ -227,13 +227,10 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 							this.«componentModel.getGeneratedComponentReferenceFieldName(generatedComponentReference)» = «generateProviderConverter(generatedComponentReference, dependencyParameterNames.get(generatedComponentReference.signature), context)»;
 						«ENDFOR»
 						
-						«FOR observerMethod : annotatedClass.declaredMethods.filter[findAnnotation(EventObserver.findTypeGlobally) !== null]»
-							«val eventTypeReference = if (observerMethod.parameters.empty) observerMethod.findAnnotation(EventObserver.findTypeGlobally).getClassValue("eventType") else observerMethod.parameters.get(0).type»
-							«val rejectSubtypes = observerMethod.findAnnotation(EventObserver.findTypeGlobally).getBooleanValue("rejectSubtypes")»
-							«val qualifierId = IocUtils.findQualifiers(observerMethod, context).hashCode»
-							this.«MODULE_IMPLEMENTOR_FIELD_NAME».getModuleEventBus().registerListener(«generateEventMatcherSourceCode(eventTypeReference, qualifierId, rejectSubtypes, context)», («Procedure1.newTypeReference») new «Procedure1.newTypeReference(eventTypeReference)»() {
-								public void apply(«eventTypeReference.name» event) {
-									«annotatedClass.simpleName».this.«observerMethod.simpleName»(«IF !observerMethod.parameters.empty»event«ENDIF»);
+						«FOR eventObserverModel : componentModel.eventObservers»
+							this.«MODULE_IMPLEMENTOR_FIELD_NAME».getModuleEventBus().registerListener(«generateEventMatcherSourceCode(eventObserverModel.eventType, 0, eventObserverModel.ignoreSubtypes, context)», («Procedure1.newTypeReference») new «Procedure1.newTypeReference(eventObserverModel.eventType)»() {
+								public void apply(«eventObserverModel.eventType.name» event) {
+									«annotatedClass.simpleName».this.«eventObserverModel.observerMethod.simpleName»(«IF !eventObserverModel.observerMethod.parameters.empty»event«ENDIF»);
 								}
 							});
 						«ENDFOR»

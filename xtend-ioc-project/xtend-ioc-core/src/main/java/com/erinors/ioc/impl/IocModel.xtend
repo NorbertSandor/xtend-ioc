@@ -36,6 +36,7 @@ import org.jgrapht.graph.DefaultDirectedGraph
 import org.jgrapht.graph.DefaultEdge
 
 import static extension com.erinors.ioc.shared.util.MapUtils.*
+import de.oehme.xtend.contrib.Buildable
 
 // TODO @Optional az Option<>-ön legyen warning, mivel redundáns
 // FIXME @Component nem működik class szintű @Accessors-sal!!!! com.erinors.ioc.examples.docs.events.EventObserver nem fordul, ha @Accessors van a class-on
@@ -513,6 +514,18 @@ class ComponentSuperclassModel
 }
 
 @Data
+@Buildable
+class EventObserverModel {
+	MethodDeclaration observerMethod
+	
+	TypeReference eventType // TODO rename eventTypeReference
+	
+	boolean ignoreSubtypes
+	
+	Set<QualifierModel> qualifiers
+}
+
+@Data
 class ComponentClassModel extends ComponentModel
 {
 	ClassDeclaration classDeclaration
@@ -534,6 +547,8 @@ class ComponentClassModel extends ComponentModel
 	boolean eager
 
 	List<? extends InterceptedMethod> interceptedMethods
+	
+	List<? extends EventObserverModel> eventObservers
 
 	def getDeclaredComponentReferences()
 	{

@@ -13,9 +13,11 @@ package com.erinors.ioc.impl
 
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.Eager
+import com.erinors.ioc.shared.api.Order
 import com.erinors.ioc.shared.api.Priority
 import com.erinors.ioc.shared.api.Provider
 import com.erinors.ioc.shared.api.SupportsPredestroyCallbacks
+import java.util.List
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
@@ -28,7 +30,7 @@ import org.eclipse.xtend.lib.macro.services.Problem.Severity
 
 import static extension com.erinors.ioc.impl.IocUtils.*
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
-import com.erinors.ioc.shared.api.Order
+import com.erinors.ioc.shared.api.EventObserver
 
 @FinalFieldsConstructor
 class ComponentClassModelBuilder
@@ -42,6 +44,46 @@ class ComponentClassModelBuilder
 			!declaration.annotations.filter[isInterceptorAnnotation].empty
 		].map [ resolvedMethod |
 			resolvedMethod.declaration -> resolvedMethod.declaration.annotations.filter[isInterceptorAnnotation]
+		]
+	}
+
+	def private findInterceptedMethods(ClassDeclaration componentClassDeclaration)
+	{
+		// TODO skip provider methods
+		componentClassDeclaration.declaredMethods.filter [
+			!annotations.filter[isInterceptorAnnotation].empty
+		].map [ declaredMethod |
+			declaredMethod -> declaredMethod.annotations.filter[isInterceptorAnnotation]
+		]
+	}
+
+	def List<? extends EventObserverModel> findEventObservers(TypeReference componentClassTypeReference, TransformationContext context)
+	{
+		// TODO skip provider methods
+		componentClassTypeReference.declaredResolvedMethods.filter [
+			declaration.hasAnnotation(EventObserver)
+		].map [ resolvedMethod |
+			buildEventObserverModel(resolvedMethod.declaration, context)
+		].toList.immutableCopy
+	}
+
+	def List<? extends EventObserverModel> findEventObservers(ClassDeclaration componentClassDeclaration, TransformationContext context)
+	{
+		// TODO skip provider methods
+		componentClassDeclaration.declaredMethods.filter [
+			hasAnnotation(EventObserver)
+		].map [ declaredMethod |
+			buildEventObserverModel(declaredMethod, context)
+		].toList.immutableCopy
+	}
+
+	def buildEventObserverModel(MethodDeclaration methodDeclaration, TransformationContext context)
+	{
+		EventObserverModel.build[
+			observerMethod = methodDeclaration
+			eventType = if (methodDeclaration.parameters.empty) methodDeclaration.findAnnotation(EventObserver.findTypeGlobally).getClassValue("eventType") else methodDeclaration.parameters.get(0).type
+			ignoreSubtypes = methodDeclaration.findAnnotation(EventObserver.findTypeGlobally).getBooleanValue("rejectSubtypes")
+			qualifiers = findQualifiers(methodDeclaration, context) // TODO support qualifiers on parameter
 		]
 	}
 
@@ -185,16 +227,6 @@ class ComponentClassModelBuilder
 		].toList.immutableCopy
 	}
 
-	def private findInterceptedMethods(ClassDeclaration componentClassDeclaration)
-	{
-		// TODO skip provider methods
-		componentClassDeclaration.declaredMethods.filter [
-			!annotations.filter[isInterceptorAnnotation].empty
-		].map [ declaredMethod |
-			declaredMethod -> declaredMethod.annotations.filter[isInterceptorAnnotation]
-		]
-	}
-
 	def private findGeneratedComponentReferences(ClassDeclaration componentClassDeclaration)
 	{
 		// TODO skip provider methods
@@ -244,7 +276,8 @@ class ComponentClassModelBuilder
 			componentClassDeclaration.hasAnnotation(Eager.findTypeGlobally),
 			componentClassTypeReference.findInterceptedMethods.map [
 				createInterceptedMethod(key, value)
-			].toList.immutableCopy
+			].toList.immutableCopy,
+			componentClassTypeReference.findEventObservers(context)
 		)
 	}
 
@@ -397,7 +430,8 @@ class ComponentClassModelBuilder
 			componentClassDeclaration.hasAnnotation(Eager.findTypeGlobally),
 			componentClassDeclaration.findInterceptedMethods.map [
 				createInterceptedMethod(key, value)
-			].toList.immutableCopy
+			].toList.immutableCopy,
+			componentClassDeclaration.findEventObservers(context)
 		)
 	}
 
