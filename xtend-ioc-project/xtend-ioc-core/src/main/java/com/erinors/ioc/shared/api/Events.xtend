@@ -23,7 +23,7 @@ interface Event<T>
 @Target(#[METHOD])
 annotation EventObserver
 {
-	Class<?> eventType = Object
+	Class<?> eventType = Object // TODO rename to value
 	
 	boolean rejectSubtypes = false // TODO rename to ignore*
 }
