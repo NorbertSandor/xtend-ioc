@@ -144,7 +144,7 @@ class EventComponentManager extends AbstractComponentManager
 			{
 				throw new IocProcessingException(
 					new ProcessingMessage(Severity.ERROR, componentReference.
-						compilationProblemTarget, '''Collections of «Event.simpleName»s is not supported.'''))
+						compilationProblemTarget, '''Collections of «Event.simpleName» is not supported.'''))
 			}
 			else if (componentReference.providerType != ProviderType.DIRECT)
 			{
