@@ -55,6 +55,7 @@ import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
 import static extension com.erinors.ioc.shared.util.MapUtils.*
 import java.util.Set
+import com.erinors.ioc.shared.api.Any
 
 @FinalFieldsConstructor
 class IocProcessingContext
@@ -457,10 +458,12 @@ class IocUtils
 
 		val qualifiers = findQualifiers(dependencyReferenceDeclaration, context)
 
+		val any = dependencyReferenceDeclaration.hasAnnotation(Any)
+
 		new DeclaredComponentReference(new ComponentReferenceSignature(
 			new ComponentTypeSignature(typeReference.wrapperIfPrimitive, qualifiers),
 			cardinalityType
-		), providerType, optional, dependencyReferenceDeclaration, targetTypeReference)
+		), providerType, optional, any, dependencyReferenceDeclaration, targetTypeReference)
 	}
 
 	@Data
@@ -570,8 +573,9 @@ class IocUtils
 
 	def static String modulePeerClassName(String moduleQualifiedName)
 	'''«moduleQualifiedName».Peer'''
-	
-	def static isAssignableFrom(Set<? extends QualifierModel> qualifiers, Set<? extends QualifierModel> otherQualifiers) {
+
+	def static isAssignableFrom(Set<? extends QualifierModel> qualifiers, Set<? extends QualifierModel> otherQualifiers)
+	{
 		otherQualifiers.containsAll(qualifiers)
 	}
 }
@@ -579,7 +583,7 @@ class IocUtils
 class OrderComparator<T extends HasOrder> implements Comparator<T>
 {
 	val public static INSTANCE = new OrderComparator
-	
+
 	override compare(T o1, T o2)
 	{
 		return Integer.compare(o1.order, o2.order)

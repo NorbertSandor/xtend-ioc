@@ -1,15 +1,16 @@
 package com.erinors.ioc.test.integration.case040
 
-import org.junit.Test
-import com.erinors.ioc.shared.api.Module
 import com.erinors.ioc.shared.api.Component
-import com.erinors.ioc.shared.api.Qualifier
-import com.erinors.ioc.shared.api.Provider
-import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
-import com.erinors.ioc.shared.api.ParameterizedQualifier
-import static org.junit.Assert.*
-import com.erinors.ioc.shared.api.InjectionPoint
 import com.erinors.ioc.shared.api.DeclaredInjectionPoint
+import com.erinors.ioc.shared.api.InjectionPoint
+import com.erinors.ioc.shared.api.Module
+import com.erinors.ioc.shared.api.ParameterizedQualifier
+import com.erinors.ioc.shared.api.Provider
+import com.erinors.ioc.shared.api.Qualifier
+import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
+import org.junit.Test
+
+import static org.junit.Assert.*
 
 @Qualifier
 annotation LoggerByClass
@@ -44,6 +45,18 @@ class LoggerProvider
 			throw new IllegalStateException()
 		}
 	}
+	
+	@Provider
+	def Logger logger(InjectionPoint injectionPoint) {
+		if (injectionPoint instanceof DeclaredInjectionPoint)
+		{
+			new Logger(injectionPoint.declaringClass.simpleName)
+		}
+		else
+		{
+			throw new IllegalStateException()
+		}
+	}
 }
 
 @Module(components=#[LoggerProvider])
@@ -54,6 +67,8 @@ interface TestModule
 
 	@LoggerByClass(Integer)
 	def Logger explicitLogger()
+
+	// TODO use @Default def Logger loggerWithoutQualifiers()
 }
 
 class ProviderWithInjectionPointReferenceTest

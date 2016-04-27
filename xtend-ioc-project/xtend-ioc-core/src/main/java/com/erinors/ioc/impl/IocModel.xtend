@@ -269,9 +269,9 @@ interface ComponentReference
 	def TypeReference getTypeReference()
 
 	def ResolvedComponentReference resolve(StaticModuleModel moduleModel)
-	
+
 	def boolean isOptional()
-	
+
 	def String getDisplayName()
 }
 
@@ -293,6 +293,8 @@ abstract class AbstractComponentDependencyReference implements ComponentReferenc
 	// TODO constructor should fail if optional=false but providerType is implicitOptional
 	boolean optional
 
+	boolean any
+
 	@Cached
 	override ResolvedComponentReference resolve(StaticModuleModel moduleModel)
 	{
@@ -312,25 +314,40 @@ abstract class AbstractComponentDependencyReference implements ComponentReferenc
 					'''
 				))
 			}
+			else
+			{
+				new ResolvedComponentReference(this, #[])
+			}
 		}
-		else if (signature.cardinality == CardinalityType.SINGLE && resolvedComponents.size > 1)
+		else
 		{
-			throw new IocProcessingException(new ProcessingMessage(
-				Severity.ERROR,
-				compilationProblemTarget,
-				'''
-					Component reference resolution error in module: «moduleModel»
-					Multiple components are compatible with «signature.componentTypeSignature» but expected only one. 
-					Compatible components: «resolvedComponents»
-					[E007]
-				''' // TODO test if the output is readable
-			))
-		}
+			if (signature.cardinality == CardinalityType.SINGLE)
+			{
+				if (resolvedComponents.size > 1 && !any)
+				{
+					throw new IocProcessingException(new ProcessingMessage(
+						Severity.ERROR,
+						compilationProblemTarget,
+						'''
+							Component reference resolution error in module: «moduleModel»
+							Multiple components are compatible with «signature.componentTypeSignature» but expected only one. 
+							Compatible components: «resolvedComponents»
+							[E007]
+						''' // TODO test if the output is readable
+					))
+				}
 
-		new ResolvedComponentReference(this, resolvedComponents)
+				new ResolvedComponentReference(this, #[resolvedComponents.head])
+			}
+			else
+			{
+				new ResolvedComponentReference(this, resolvedComponents)
+			}
+		}
 	}
-	
-	override getDisplayName() {
+
+	override getDisplayName()
+	{
 		'''Component reference to «signature.componentTypeSignature.typeReference»'''
 	}
 }
@@ -343,7 +360,7 @@ class GeneratedComponentReference extends AbstractComponentDependencyReference
 	new(TypeReference targetTypeReference, Element compilationProblemTarget)
 	{
 		super(new ComponentReferenceSignature(new ComponentTypeSignature(targetTypeReference.wrapperIfPrimitive, #{}),
-			CardinalityType.SINGLE), ProviderType.DIRECT, false)
+			CardinalityType.SINGLE), ProviderType.DIRECT, false, false)
 		this.compilationProblemTarget = compilationProblemTarget
 	}
 
@@ -403,12 +420,14 @@ class ComponentReferenceToOwnerComponent implements ComponentReference
 	{
 		new ResolvedComponentReference(this, #[ownerComponent])
 	}
-	
-	override isOptional() {
+
+	override isOptional()
+	{
 		false
 	}
-	
-	override getDisplayName() {
+
+	override getDisplayName()
+	{
 		// TODO
 		'''Reference to owner component «ownerComponent» from «providerMethodDeclaration»'''
 	}
@@ -515,13 +534,14 @@ class ComponentSuperclassModel
 
 @Data
 @Buildable
-class EventObserverModel {
+class EventObserverModel
+{
 	MethodDeclaration observerMethod
-	
+
 	TypeReference eventType // TODO rename eventTypeReference
-	
+
 	boolean ignoreSubtypes
-	
+
 	Set<QualifierModel> qualifiers
 }
 
@@ -547,7 +567,7 @@ class ComponentClassModel extends ComponentModel
 	boolean eager
 
 	List<? extends InterceptedMethod> interceptedMethods
-	
+
 	List<? extends EventObserverModel> eventObservers
 
 	def getDeclaredComponentReferences()
