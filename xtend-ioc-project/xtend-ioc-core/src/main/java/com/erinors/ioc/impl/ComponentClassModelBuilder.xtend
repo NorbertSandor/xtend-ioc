@@ -258,7 +258,7 @@ class ComponentClassModelBuilder
 		val componentClassDeclaration = componentClassTypeReference.type as ClassDeclaration
 		return new ComponentClassModel(
 			new ComponentTypeSignature(getComponentClassType(componentClassDeclaration),
-				componentClassDeclaration.findQualifiers(context)),
+				componentClassDeclaration.findComponentQualifiers(context)),
 			componentClassDeclaration.getLifecycleManagerClass(context),
 			componentClassDeclaration.getComponentClassPriority,
 			componentClassDeclaration.getComponentClassOrder,
@@ -412,7 +412,7 @@ class ComponentClassModelBuilder
 
 		return new ComponentClassModel(
 			new ComponentTypeSignature(getComponentClassType(componentClassDeclaration),
-				componentClassDeclaration.findQualifiers(context)),
+				componentClassDeclaration.findComponentQualifiers(context)),
 			lifecycleManagerClass,
 			componentClassDeclaration.getComponentClassPriority,
 			componentClassDeclaration.getComponentClassOrder,

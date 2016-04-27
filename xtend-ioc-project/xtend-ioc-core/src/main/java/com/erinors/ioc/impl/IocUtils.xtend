@@ -12,9 +12,9 @@
 
 package com.erinors.ioc.impl
 
+import com.erinors.ioc.shared.api.Any
 import com.erinors.ioc.shared.api.Component
 import com.erinors.ioc.shared.api.ComponentLifecycleManager
-import com.erinors.ioc.shared.api.EventObserver
 import com.erinors.ioc.shared.api.Inject
 import com.erinors.ioc.shared.api.Interceptor
 import com.erinors.ioc.shared.api.Module
@@ -28,12 +28,14 @@ import com.erinors.ioc.spi.ModuleProcessorExtension
 import com.google.common.base.Optional
 import com.google.common.base.Supplier
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import java.lang.reflect.Array
 import java.util.Collection
 import java.util.Comparator
 import java.util.List
 import java.util.Map
 import java.util.ServiceLoader
+import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.Data
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
@@ -54,8 +56,6 @@ import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
 import static extension com.erinors.ioc.shared.util.MapUtils.*
-import java.util.Set
-import com.erinors.ioc.shared.api.Any
 
 @FinalFieldsConstructor
 class IocProcessingContext
@@ -187,12 +187,21 @@ class IocUtils
 //	}
 	def static findQualifiers(AnnotationTarget annotationTarget, extension TransformationContext context)
 	{
-		val v = annotationTarget.annotations.filter [
+		annotationTarget.annotations.filter [
 			annotationTypeDeclaration.hasAnnotation(Qualifier.findTypeGlobally)
 		].map [
 			buildQualifierModel(context)
 		].toSet.immutableCopy
-		return v
+	}
+
+	def static findComponentQualifiers(AnnotationTarget annotationTarget, extension TransformationContext context)
+	{
+		val qualifiers = findQualifiers(annotationTarget, context)
+
+		if (qualifiers.empty)
+			#{new QualifierModel(Default.name, ImmutableMap.of)}
+		else
+			qualifiers
 	}
 
 	def private static buildQualifierModel(AnnotationReference qualifierAnnotationReference,

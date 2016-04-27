@@ -281,7 +281,7 @@ class ModuleModelBuilder
 		Set<ComponentReference> allDependencies, Set<ComponentModel> additionalComponentModels,
 		ComponentClassModel ownerComponentModel)
 		{
-			val providerSimpleQualifiers = providerMethodDeclaration.findQualifiers(context)
+			val providerSimpleQualifiers = providerMethodDeclaration.findComponentQualifiers(context)
 
 			val providerAnnotation = providerMethodDeclaration.findAnnotation(Provider.findTypeGlobally)
 			val providerParameterizedQualifiers = providerAnnotation.collectParameterizedQualifiers

@@ -37,6 +37,7 @@ import org.jgrapht.graph.DefaultEdge
 
 import static extension com.erinors.ioc.shared.util.MapUtils.*
 import de.oehme.xtend.contrib.Buildable
+import com.erinors.ioc.shared.api.Qualifier
 
 // TODO @Optional az Option<>-ön legyen warning, mivel redundáns
 // FIXME @Component nem működik class szintű @Accessors-sal!!!! com.erinors.ioc.examples.docs.events.EventObserver nem fordul, ha @Accessors van a class-on
@@ -919,5 +920,10 @@ class MethodReferenceInterceptorParameterType implements InterceptorParameterTyp
 		MethodDeclaration methodDeclaration
 
 		List<? extends InterceptorInvocationModel> interceptorInvocations
+	}
+
+	@Qualifier
+	annotation Default
+	{
 	}
 	
