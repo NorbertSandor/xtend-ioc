@@ -83,7 +83,6 @@ class GenericDependencyTest
 		Assert.assertEquals(module.aPrinter, module.printers.filter(APrinter).head)
 		Assert.assertEquals(module.bPrinter, module.printers.filter(BPrinter).head)
 
-		Assert.assertTrue(module.aPrinterSupplier == module.aPrinterSupplier2)
 		Assert.assertEquals(module.aPrinter, module.aPrinterSupplier.get)
 	}
 }

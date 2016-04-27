@@ -16,6 +16,7 @@ import com.erinors.ioc.shared.api.SupportsPredestroyCallbacks
 import com.google.common.base.Supplier
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
+import com.erinors.ioc.shared.api.InjectionPoint
 
 // TODO nem létező típus kezelése pl. module öröklődésnél
 // TODO @Provider-t lehessen field-re is tenni
@@ -24,8 +25,10 @@ interface ModuleInstance
 {
 }
 
-interface ComponentReferenceSupplier<T> extends Supplier<T>
+interface ComponentReferenceSupplier<T>
 {
+	def T get(InjectionPoint injectionPoint)
+	
 	def boolean isPresent()
 }
 
@@ -47,7 +50,7 @@ class AbsentComponentReferenceSupplier<T> implements ComponentReferenceSupplier<
 		false
 	}
 
-	override get()
+	override get(InjectionPoint injectionPoint)
 	{
 		null
 	}
@@ -56,16 +59,16 @@ class AbsentComponentReferenceSupplier<T> implements ComponentReferenceSupplier<
 @FinalFieldsConstructor
 class PresentComponentReferenceSupplier<T> implements ComponentReferenceSupplier<T>
 {
-	val Supplier<T> supplier
+	val ComponentLifecycleManager<T> supplier
 
 	override isPresent()
 	{
 		true
 	}
 
-	override get()
+	override get(InjectionPoint injectionPoint)
 	{
-		supplier.get
+		supplier.get(injectionPoint)
 	}
 }
 
@@ -95,7 +98,7 @@ abstract class AbstractModuleImplementor implements ModuleImplementor
 
 abstract class AbstractComponentLifecycleManager<T> implements ComponentLifecycleManager<T>
 {
-	protected def T createInstance()
+	protected def T createInstance(InjectionPoint injectionPoint)
 }
 
 @SupportsPredestroyCallbacks
@@ -114,14 +117,14 @@ abstract class SingletonComponentLifecycleManager<T> extends AbstractComponentLi
 
 	T instance
 
-	override get()
+	override get(InjectionPoint injectionPoint)
 	{
 		switch (state)
 		{
 			case UNINITIALIZED:
 			{
 				state = State.INITIALIZING
-				instance = createInstance
+				instance = createInstance(injectionPoint)
 				state = State.READY
 			}
 			case INITIALIZING:
@@ -139,9 +142,9 @@ abstract class SingletonComponentLifecycleManager<T> extends AbstractComponentLi
 
 abstract class PrototypeComponentLifecycleManager<T> extends AbstractComponentLifecycleManager<T>
 {
-	override get()
+	override get(InjectionPoint injectionPoint)
 	{
-		createInstance
+		createInstance(injectionPoint)
 	}
 }
 

@@ -190,8 +190,9 @@ annotation Qualifier
 	// TODO support javax.inject.Qualifier
 }
 
-interface ComponentLifecycleManager<T> extends Supplier<T>
+interface ComponentLifecycleManager<T>
 {
+	def T get(InjectionPoint injectionPoint)
 }
 
 // TODO support ANNOTATION_TYPE

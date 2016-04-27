@@ -12,8 +12,11 @@
 package com.erinors.ioc.impl
 
 import com.erinors.ioc.shared.api.ComponentLifecycleManager
+import com.erinors.ioc.shared.api.ExecutableInjectionPoint
+import com.erinors.ioc.shared.api.InjectionPoint
 import com.erinors.ioc.shared.api.Module
 import com.erinors.ioc.shared.api.ModuleInitializedEvent
+import com.erinors.ioc.shared.api.NoInjectionPoint
 import com.erinors.ioc.shared.impl.AbsentComponentReferenceSupplier
 import com.erinors.ioc.shared.impl.AbstractModuleImplementor
 import com.erinors.ioc.shared.impl.ModuleImplementor
@@ -25,6 +28,7 @@ import com.google.common.collect.ImmutableList
 import java.io.StringWriter
 import java.util.List
 import java.util.Map
+import java.util.Set
 import org.eclipse.xtend.lib.macro.AbstractInterfaceProcessor
 import org.eclipse.xtend.lib.macro.CodeGenerationContext
 import org.eclipse.xtend.lib.macro.RegisterGlobalsContext
@@ -35,6 +39,7 @@ import org.eclipse.xtend.lib.macro.declaration.MethodDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableInterfaceDeclaration
 import org.eclipse.xtend.lib.macro.declaration.TypeReference
 import org.eclipse.xtend.lib.macro.declaration.Visibility
+import org.eclipse.xtend.lib.macro.services.Problem.Severity
 import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 import org.jgrapht.ext.DOTExporter
 import org.jgrapht.graph.DefaultEdge
@@ -42,7 +47,6 @@ import org.jgrapht.graph.DefaultEdge
 import static com.erinors.ioc.impl.ProcessorUtils.*
 
 import static extension com.erinors.ioc.impl.IocUtils.*
-import java.util.Set
 
 class ModuleProcessor extends AbstractSafeInterfaceProcessor
 {
@@ -334,7 +338,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 				{
 					'''
 						«moduleModel.componentSupplierFieldNames.get(componentModel)» = new «componentModel.lifecycleManagerClass.qualifiedName»<«componentModel.getTypeSignature.typeReference.name»>() {
-						protected «componentModel.typeSignature.typeReference.name» createInstance() {
+						protected «componentModel.typeSignature.typeReference.name» createInstance(«InjectionPoint.name» injectionPoint) {
 							«generateComponentInstantiatorSourceCode(moduleImplementationClass, moduleModel, componentModel, context, [moduleModel.componentSupplierFieldNames.get(it)])»
 						}
 						};
@@ -352,7 +356,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						{
 							'''
 								«componentModel.classDeclaration.qualifiedName» o = new «componentModel.classDeclaration.qualifiedName»(«moduleImplementationClass.simpleName».this«FOR componentReferenceSignature : componentModel.constructorParameters BEFORE ", " SEPARATOR ", "»
-																																																																														«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
+																																																																																	«generateResolvedComponentReferenceSourceCode(moduleModel, componentReferenceSignature, context, componentLookup)»
 								«ENDFOR»);
 								«FOR postConstructMethod : componentModel.postConstructMethods»
 									o.«postConstructMethod.simpleName»();
@@ -362,7 +366,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						}
 						ComponentProviderModel:
 						'''
-							return «moduleModel.componentSupplierFieldNames.get(componentModel.getEnclosingComponentModel)».get().«componentModel.providerMethodDeclaration.simpleName»(«componentModel.providerMethodDeclaration.parameters.toList.indexed.map[generateQualifierAttributeValueSourceCode(componentModel, key)].join(", ")»);
+							return «moduleModel.componentSupplierFieldNames.get(componentModel.getEnclosingComponentModel)».get(injectionPoint).«componentModel.providerMethodDeclaration.simpleName»(«generateProviderArgumentList(componentModel)»);
 						'''
 						ModuleInstanceComponentModel:
 						'''
@@ -381,6 +385,30 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 					}
 				}
 
+				def generateProviderArgumentList(ComponentProviderModel componentModel)
+				{
+					componentModel.providerMethodDeclaration.parameters.toList.indexed.map [
+						val parameterizedQualifierAttributeValue = componentModel.
+							getParameterizedQualifierAttributeValue(key)
+
+						if (parameterizedQualifierAttributeValue == null)
+						{
+							if (value.type.type.qualifiedName == InjectionPoint.name)
+							{
+								"injectionPoint"
+							}
+							else
+							{
+								throw new IocProcessingException(new ProcessingMessage(Severity.ERROR, componentModel.providerMethodDeclaration, '''Invalid parameter index: «key»'''))
+							}
+						}
+						else
+						{
+							parameterizedQualifierAttributeValue.toSourceCode
+						}
+					].join(", ")
+				}
+
 				def Iterable<Integer> findCompatibleEventObservers(Set<? extends QualifierModel> qualifiers,
 					ResolvedModuleModel moduleModel)
 				{
@@ -389,20 +417,6 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 					].filter [
 						IocUtils.isAssignableFrom(qualifiers, it)
 					].map[hashCode] + #[0]
-				}
-
-				def private generateQualifierAttributeValueSourceCode(ComponentProviderModel componentModel,
-					int parameterIndex)
-				{
-					val parameterizedQualifierAttributeValue = componentModel.
-						getParameterizedQualifierAttributeValue(parameterIndex)
-
-					if (parameterizedQualifierAttributeValue == null)
-					{
-						throw new IllegalStateException("" + componentModel + ", " + parameterIndex) // TODO
-					}
-
-					parameterizedQualifierAttributeValue.toSourceCode
 				}
 
 				def private TypeReference getLifecycleManagerTypeReference(
@@ -446,7 +460,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 								
 								// Initialize eager components
 								«FOR componentModel : eagerComponents.sortWith(new PriorityComparator)»
-									«moduleModel.componentSupplierFieldNames.get(componentModel)».get();
+									«moduleModel.componentSupplierFieldNames.get(componentModel)».get(«NoInjectionPoint.newTypeReference».INSTANCE);
 								«ENDFOR»
 							«ENDIF»
 						'''
@@ -463,7 +477,7 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 						body = '''
 							«FOR componentModel : componentsWithPredestroyCallback»
 								«FOR predestroyMethod : componentModel.preDestroyMethods»
-									«moduleModel.componentSupplierFieldNames.get(componentModel)».get().«predestroyMethod.simpleName»();
+									«moduleModel.componentSupplierFieldNames.get(componentModel)».get(«NoInjectionPoint.newTypeReference».INSTANCE).«predestroyMethod.simpleName»();
 								«ENDFOR»
 							«ENDFOR»
 						'''
@@ -538,15 +552,17 @@ class ModuleProcessorImplementation extends AbstractInterfaceProcessor
 							ComponentModel componentModel, ResolvedModuleModel moduleModel,
 							TransformationContext context, (ComponentModel)=>String componentLookup)
 						{
-							val componentFieldName = componentLookup.apply(componentModel)
+							val injectionPoint = '''new «ExecutableInjectionPoint.name»(«moduleModel.staticModuleModel.moduleInterfaceDeclaration.qualifiedName».class)'''
+							val componentFieldName = componentLookup.apply(
+								componentModel)
 							switch (componentReference.providerType)
 							{
 								case DIRECT:
-								'''«componentFieldName».get()'''
+								'''«componentFieldName».get(«injectionPoint»)'''
 								case GUAVA_SUPPLIER:
-								'''(«Supplier.name»)«componentFieldName»'''
+								'''(«Supplier.name»)(() -> «componentFieldName».get(«injectionPoint»))'''
 								case GUAVA_OPTIONAL:
-								'''(«Optional.name»)«Optional.name».fromNullable(«componentFieldName».get())'''
+								'''(«Optional.name»)«Optional.name».fromNullable(«componentFieldName».get(«injectionPoint»))'''
 							}
 						}
 

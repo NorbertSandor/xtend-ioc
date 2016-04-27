@@ -12,7 +12,9 @@
 package com.erinors.ioc.impl
 
 import com.erinors.ioc.shared.api.Component
-import com.erinors.ioc.shared.api.EventObserver
+import com.erinors.ioc.shared.api.ExecutableInjectionPoint
+import com.erinors.ioc.shared.api.FieldInjectionPoint
+import com.erinors.ioc.shared.api.ParameterInjectionPoint
 import com.erinors.ioc.shared.impl.ComponentReferenceSupplier
 import com.erinors.ioc.shared.impl.EventMatcher
 import com.erinors.ioc.shared.impl.ModuleImplementor
@@ -21,22 +23,26 @@ import com.google.common.base.Function
 import com.google.common.base.Optional
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
+import com.google.common.primitives.Ints
 import java.lang.annotation.Target
 import java.util.List
-import java.util.Set
 import org.eclipse.xtend.lib.macro.AbstractClassProcessor
 import org.eclipse.xtend.lib.macro.TransformationContext
+import org.eclipse.xtend.lib.macro.declaration.ExecutableDeclaration
+import org.eclipse.xtend.lib.macro.declaration.FieldDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableClassDeclaration
 import org.eclipse.xtend.lib.macro.declaration.MutableConstructorDeclaration
+import org.eclipse.xtend.lib.macro.declaration.ParameterDeclaration
 import org.eclipse.xtend.lib.macro.declaration.TypeReference
 import org.eclipse.xtend.lib.macro.declaration.Visibility
+import org.eclipse.xtend.lib.macro.services.Problem.Severity
 import org.eclipse.xtext.xbase.lib.Procedures.Procedure1
 
 import static com.erinors.ioc.impl.InterceptorUtils.*
 import static com.erinors.ioc.impl.IocUtils.*
 
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
-import com.google.common.primitives.Ints
+import com.erinors.ioc.shared.api.NoInjectionPoint
 
 class ComponentProcessor extends AbstractSafeClassProcessor
 {
@@ -142,11 +148,34 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 	def private static generateSingleProviderConverter(ComponentReference componentReference, String inputSourceCode,
 		TransformationContext context)
 	{
+		val injectionPoint = if (componentReference instanceof DeclaredComponentReference<?>)
+			{
+				val declaration = componentReference.
+					declaration
+				switch (declaration)
+				{
+					FieldDeclaration:
+					'''new «FieldInjectionPoint.name»(«declaration.declaringType.qualifiedName».class, "«declaration.simpleName»", «declaration.type.type.qualifiedName».class)'''
+					ExecutableDeclaration:
+					'''new «ExecutableInjectionPoint.name»(«declaration.declaringType.qualifiedName».class)'''
+					ParameterDeclaration:
+					'''new «ParameterInjectionPoint.name»(«declaration.declaringExecutable.declaringType.qualifiedName».class)'''
+					default:
+						// TODO should be detected at model build time
+						throw new IocProcessingException(
+							new ProcessingMessage(Severity.ERROR, declaration, '''Unsupported injection point.'''))
+				}
+			}
+			else
+			{
+				'''«NoInjectionPoint.name».INSTANCE'''
+			}
+
 		switch (componentReference.providerType)
 		{
 			case DIRECT:
 			{
-				val supplierCode = '''((«componentReference.signature.componentTypeSignature.typeReference.name»)((«inputSourceCode»).get()))'''
+				val supplierCode = '''((«componentReference.signature.componentTypeSignature.typeReference.name»)((«inputSourceCode»).get(«injectionPoint»)))'''
 				if (!componentReference.
 					optional)
 				{
@@ -158,9 +187,9 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 				}
 			}
 			case GUAVA_OPTIONAL:
-			'''((«Optional.name»)(«inputSourceCode».isPresent() ? «Optional.name».fromNullable(«inputSourceCode».get()) : «Optional.name».absent()))'''
+			'''((«Optional.name»)(«inputSourceCode».isPresent() ? «Optional.name».fromNullable(«inputSourceCode».get(«injectionPoint»)) : «Optional.name».absent()))'''
 			case GUAVA_SUPPLIER:
-			'''(«IocUtils.getProviderTypeReference(componentReference, context).name»)«inputSourceCode»'''
+			'''(«IocUtils.getProviderTypeReference(componentReference, context).name»)(() -> «inputSourceCode».get(«injectionPoint»))'''
 		}
 	}
 
@@ -209,8 +238,7 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 					]
 
 					val superclassGeneratedComponentConstructor = if (componentModel.superclassModel !== null)
-							findGeneratedComponentConstructor(componentModel.superclassModel.typeReference,
-								context)
+							findGeneratedComponentConstructor(componentModel.superclassModel.typeReference, context)
 						else
 							null
 
