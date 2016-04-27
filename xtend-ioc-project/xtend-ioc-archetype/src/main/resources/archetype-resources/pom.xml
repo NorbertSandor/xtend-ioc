@@ -1,0 +1,75 @@
+<!--
+  #%L
+  xtend-ioc-core
+  %%
+  Copyright (C) 2015 Norbert Sándor
+  %%
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #L%
+  -->
+  <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>${groupId}</groupId>
+	<artifactId>${rootArtifactId}</artifactId>
+	<version>${version}</version>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+
+		<dependency.xtend-ioc.version>0.5.0-SNAPSHOT</dependency.xtend-ioc.version>
+		<dependency.xtend.version>2.9.2</dependency.xtend.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.eclipse.xtend</groupId>
+			<artifactId>org.eclipse.xtend.lib</artifactId>
+			<version>${dependency.xtend.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.erinors</groupId>
+			<artifactId>xtend-ioc-core</artifactId>
+			<version>${dependency.xtend-ioc.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.xtend</groupId>
+				<artifactId>xtend-maven-plugin</artifactId>
+				<version>${dependency.xtend.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compile</goal>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/generated-sources/xtend</outputDirectory>
+							<testOutputDirectory>${project.build.directory}/generated-test-sources/xtend</testOutputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.5.1</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.source}</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

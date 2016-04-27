@@ -321,6 +321,7 @@
 		<module>xtend-ioc-examples</module>
 		<module>xtend-ioc-test</module>
 		<module>xtend-ioc-website</module>
+		<module>xtend-ioc-archetype</module>
 	</modules>
 
 </project>

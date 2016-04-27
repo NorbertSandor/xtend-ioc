@@ -1,4 +1,4 @@
-= xtend-ioc
+= xtend-ioc documentation
 :toc: right
 :toclevels: 5
 :sectnums:
