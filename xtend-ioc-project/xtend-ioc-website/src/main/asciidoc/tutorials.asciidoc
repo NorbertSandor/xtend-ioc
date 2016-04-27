@@ -1,0 +1,20 @@
+= xtend-ioc tutorials
+:toc: right
+:toclevels: 5
+:sectnums:
+:icons: font
+:revnumber: {docVersion}
+
+== Installing requirements
+
+Before creating an xtend-ioc project you would need the following prerequisites:
+
+* Install Java. +
+Although a JRE is sufficient, for development it is better to have a http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html[JDK] installed.
+* Install Eclipse. +
+I recommend using the http://www.eclipse.org/downloads/[Eclipse Installer].
+* Start Eclipse and install the http://www.eclipse.org/xtend/download.html[Xtend plugin]. +
+Use the http://download.eclipse.org/modeling/tmf/xtext/updates/composite/milestones/[Milestones update site] for installing the plugin.
+* Optionally, you need http://maven.apache.org/[Maven] if you plan to build your project from the command line as well.
+
+== Creating an xtend-ioc project
