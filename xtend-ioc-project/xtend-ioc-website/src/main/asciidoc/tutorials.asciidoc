@@ -16,5 +16,3 @@ I recommend using the http://www.eclipse.org/downloads/[Eclipse Installer].
 * Start Eclipse and install the http://www.eclipse.org/xtend/download.html[Xtend plugin]. +
 Use the http://download.eclipse.org/modeling/tmf/xtext/updates/composite/milestones/[Milestones update site] for installing the plugin.
 * Optionally, you need http://maven.apache.org/[Maven] if you plan to build your project from the command line as well.
-
-== Creating an xtend-ioc project
