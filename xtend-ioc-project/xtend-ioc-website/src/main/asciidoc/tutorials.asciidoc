@@ -9,7 +9,7 @@
 
 Before creating an xtend-ioc project you would need the following prerequisites:
 
-* Install Java. +
+* Install Java 8. +
 Although a JRE is sufficient, for development it is better to have a http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html[JDK] installed.
 * Install Eclipse. +
 I recommend using the http://www.eclipse.org/downloads/[Eclipse Installer].

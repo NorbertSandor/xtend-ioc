@@ -196,6 +196,9 @@ annotation Language {
 class SomeComponent {}
 ----
 
+If a _component_ has no explicit qualifiers declared it will have the implicit qualifier `@Default`.
+To inject the _component_ that does not have any qualifiers, the injection point should have the `@Default` qualifier.
+
 [[component-typesignature]]
 ==== Type signature of components
 
@@ -244,7 +247,9 @@ In case of _optional_ dependencies the _injection point_ should be annotated wit
 TIP: To ensure null-safety it is recommended to use <<indirect-component-references, indirect component references>> instead of directly injected __component instance__s.
 
 TIP: In this documentation `@Inject` refers to `@com.erinors.ioc.shared.api.Inject`. +
-But `@javax.inject.Inject` is supported as well and their behaviour is currently identical.
+But `@javax.inject.Inject` is supported as well and their behavior is currently identical.
+
+TIP: To inject any _component_ compatible with the signature of an _injection point_, use the `@Any` annotation.
 
 ===== Field injection
 
