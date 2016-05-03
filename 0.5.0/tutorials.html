@@ -5,7 +5,7 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.2">
-<title>xtend-ioc</title>
+<title>xtend-ioc tutorials</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400">
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
@@ -410,187 +410,51 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
 </head>
-<body class="article">
+<body class="article toc2 toc-right">
 <div id="header">
-<h1>xtend-ioc</h1>
+<h1>xtend-ioc tutorials</h1>
+<div class="details">
+<span id="revnumber">version 0.5.0</span>
+</div>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_installing_requirements">1. Installing requirements</a></li>
+</ul>
+</div>
 </div>
 <div id="content">
 <div class="sect1">
-<h2 id="_introduction">Introduction</h2>
+<h2 id="_installing_requirements">1. Installing requirements</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><em>xtend-ioc</em> is a compile-time inversion of control framework for <a href="http://www.eclipse.org/xtend/">Xtend</a>.<br>
-Its main features are</p>
+<p>Before creating an xtend-ioc project you would need the following prerequisites:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>component instantiation and lifecycle management,</p>
+<p>Install Java 8.<br>
+Although a JRE is sufficient, for development it is better to have a <a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html">JDK</a> installed.</p>
 </li>
 <li>
-<p>dependency injection, and</p>
+<p>Install Eclipse.<br>
+I recommend using the <a href="http://www.eclipse.org/downloads/">Eclipse Installer</a>.</p>
 </li>
 <li>
-<p>event dispatching between component instances and</p>
+<p>Start Eclipse and install the <a href="http://www.eclipse.org/xtend/download.html">Xtend plugin</a>.<br>
+Use the <a href="http://download.eclipse.org/modeling/tmf/xtext/updates/composite/milestones/">Milestones update site</a> for installing the plugin.</p>
 </li>
 <li>
-<p>aspect-oriented programming using method interceptors.</p>
+<p>Optionally, you need <a href="http://maven.apache.org/">Maven</a> if you plan to build your project from the command line as well.</p>
 </li>
 </ul>
-</div>
-<div class="paragraph">
-<p>For more information see</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>the <a href="latest/index.html">latest documentation</a> or</p>
-</li>
-<li>
-<p>the <a href="https://github.com/NorbertSandor/xtend-ioc">GitHub page</a>.</p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_history">History</h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="_0_6_0_snapshot">0.6.0-SNAPSHOT</h3>
-<div class="paragraph">
-<p>Current development version.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_0_5_0">0.5.0</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>Upgrade xtend-contrib to 1.0.0</p>
-</li>
-<li>
-<p>Upgrade xtend to 2.9.2</p>
-</li>
-<li>
-<p>Added archetype</p>
-</li>
-<li>
-<p>Better GWT support</p>
-</li>
-<li>
-<p>Support @Any</p>
-</li>
-<li>
-<p>Support @Default</p>
-</li>
-<li>
-<p>Support events with qualifiers</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Documentation: <a href="0.5.0/index.html">0.5.0</a></p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_0_4_0">0.4.0</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>Code cleanup, improvements and bug fixes in the framework code</p>
-</li>
-<li>
-<p>Build system improvements</p>
-</li>
-<li>
-<p>Documentation improvements, new example (logger injection with parameterized component provider)</p>
-</li>
-<li>
-<p>Upgrade xtend to 2.9.1</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Documentation: <a href="0.4.0/index.html">0.4.0</a></p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_0_3_0">0.3.0</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>Upgrade to xtend-2.9.0</p>
-</li>
-<li>
-<p>Upgrade to Java 8</p>
-</li>
-<li>
-<p>Code cleanup, improvements and bug fixes in the framework code</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Documentation: <a href="0.3.0/index.html">0.3.0</a></p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_0_2_1_2015_11_15">0.2.1 (2015-11-15)</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>Build system improvements</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Documentation: <a href="0.2.1/index.html">0.2.1</a></p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_0_2_0_2015_11_15">0.2.0 (2015-11-15)</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>First implementation of interceptors</p>
-</li>
-<li>
-<p>Upgrade xtend to 2.9.0.rc1</p>
-</li>
-<li>
-<p>Many bug fixes</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Documentation: <a href="0.2.0/index.html">0.2.0</a></p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_0_1_0_2015_11_09">0.1.0 (2015-11-09)</h3>
-<div class="paragraph">
-<p>Initial release<br>
-(Development was started on 2015-09-02.)</p>
-</div>
-<div class="paragraph">
-<p>Documentation: <a href="0.1.0/index.html">0.1.0</a></p>
-</div>
-<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-69896656-1', 'auto');
-  ga('send', 'pageview');
-
-</script>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
+Version 0.5.0<br>
 Last updated 2016-05-03 18:49:28 +02:00
 </div>
 </div>
