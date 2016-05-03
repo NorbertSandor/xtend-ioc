@@ -53,6 +53,16 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.eclipse.xtend</groupId>
+				<artifactId>xtend-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<artifactId>maven-toolchains-plugin</artifactId>
+			</plugin>
 		</plugins>
 	</build>
 

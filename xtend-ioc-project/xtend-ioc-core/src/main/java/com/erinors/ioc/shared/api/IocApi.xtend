@@ -18,7 +18,6 @@ import com.erinors.ioc.impl.ModuleProcessor
 import com.erinors.ioc.shared.impl.ModuleImplementor
 import com.erinors.ioc.shared.impl.PrototypeComponentLifecycleManager
 import com.erinors.ioc.shared.impl.SingletonComponentLifecycleManager
-import com.google.common.base.Supplier
 import java.lang.annotation.Annotation
 import java.lang.annotation.Documented
 import java.lang.annotation.Target
