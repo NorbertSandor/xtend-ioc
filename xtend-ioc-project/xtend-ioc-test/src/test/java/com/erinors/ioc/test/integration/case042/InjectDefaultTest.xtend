@@ -1,12 +1,13 @@
 package com.erinors.ioc.test.integration.case042
 
-import org.junit.Test
-import com.erinors.ioc.shared.api.Module
-import com.erinors.ioc.shared.api.Component
+import com.erinors.ioc.shared.api.Default
 import com.erinors.ioc.shared.api.Any
-import static org.junit.Assert.*
+import com.erinors.ioc.shared.api.Component
+import com.erinors.ioc.shared.api.Module
 import com.erinors.ioc.shared.api.Qualifier
-import com.erinors.ioc.impl.Default
+import org.junit.Test
+
+import static org.junit.Assert.*
 
 @Qualifier
 annotation Transactional
