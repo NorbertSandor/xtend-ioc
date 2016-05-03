@@ -18,46 +18,56 @@ For more information see
 
 == History
 
-=== 0.5.0-SNAPSHOT
+=== 0.6.0-SNAPSHOT
 
 Current development version.
 
-* Upgrade xtend-contrib to 1.0.0.
+=== 0.5.0
+
+* Upgrade xtend-contrib to 1.0.0
+* Upgrade xtend to 2.9.2
+* Added archetype
+* Better GWT support
+* Support @Any
+* Support @Default
+* Support events with qualifiers
+
+Documentation: link:0.5.0/index.html[0.5.0]
 
 === 0.4.0
 
-* Code cleanup, improvements and bug fixes in the framework code.
-* Build system improvements.
-* Documentation improvements, new example (logger injection with parameterized component provider).
-* Upgrade xtend to 2.9.1.
+* Code cleanup, improvements and bug fixes in the framework code
+* Build system improvements
+* Documentation improvements, new example (logger injection with parameterized component provider)
+* Upgrade xtend to 2.9.1
 
 Documentation: link:0.4.0/index.html[0.4.0]
 
 === 0.3.0
 
-* Upgrade to xtend-2.9.0.
-* Upgrade to Java 8.
-* Code cleanup, improvements and bug fixes in the framework code.
+* Upgrade to xtend-2.9.0
+* Upgrade to Java 8
+* Code cleanup, improvements and bug fixes in the framework code
 
 Documentation: link:0.3.0/index.html[0.3.0]
 
 === 0.2.1 (2015-11-15)
 
-* Build system improvements.
+* Build system improvements
 
 Documentation: link:0.2.1/index.html[0.2.1]
 
 === 0.2.0 (2015-11-15)
 
-* First implementation of interceptors.
-* Upgrade xtend to 2.9.0.rc1.
-* Many bug fixes.
+* First implementation of interceptors
+* Upgrade xtend to 2.9.0.rc1
+* Many bug fixes
 
 Documentation: link:0.2.0/index.html[0.2.0]
 
 === 0.1.0 (2015-11-09)
 
-Initial release. +
+Initial release +
 (Development was started on 2015-09-02.)
 
 Documentation: link:0.1.0/index.html[0.1.0]
