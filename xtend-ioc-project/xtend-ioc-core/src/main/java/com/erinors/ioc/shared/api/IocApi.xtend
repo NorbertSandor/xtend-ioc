@@ -305,3 +305,8 @@ class OrderConstants
 annotation Order {
 	int value
 }
+
+@Qualifier
+annotation Default
+{
+}

@@ -56,6 +56,7 @@ import org.eclipse.xtend.lib.macro.services.TypeReferenceProvider
 
 import static extension com.erinors.ioc.impl.ProcessorUtils.*
 import static extension com.erinors.ioc.shared.util.MapUtils.*
+import com.erinors.ioc.shared.api.Default
 
 @FinalFieldsConstructor
 class IocProcessingContext
