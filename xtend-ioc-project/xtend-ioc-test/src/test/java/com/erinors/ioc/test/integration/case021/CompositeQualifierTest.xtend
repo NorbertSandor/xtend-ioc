@@ -2,7 +2,7 @@
  * #%L
  * xtend-ioc-test
  * %%
- * Copyright (C) 2015 Norbert Sándor
+ * Copyright (C) 2015-2016 Norbert Sándor
  * %%
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this

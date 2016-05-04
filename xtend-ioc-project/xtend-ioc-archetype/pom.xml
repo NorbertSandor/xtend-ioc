@@ -1,3 +1,14 @@
+<!--
+  #%L
+  xtend-ioc
+  %%
+  Copyright (C) 2015-2016 Norbert Sándor
+  %%
+  This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  #L%
+  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -36,6 +47,13 @@
 				<artifactId>maven-resources-plugin</artifactId>
 				<configuration>
 					<escapeString>\</escapeString>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<configuration>
+					<skipCheckLicense>true</skipCheckLicense>
 				</configuration>
 			</plugin>
 		</plugins>
