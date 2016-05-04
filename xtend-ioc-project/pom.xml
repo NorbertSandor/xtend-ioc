@@ -14,7 +14,7 @@
 
 	<groupId>com.erinors</groupId>
 	<artifactId>xtend-ioc-project</artifactId>
-	<version>0.5.2-SNAPSHOT</version>
+	<version>0.5.2</version>
 
 	<packaging>pom</packaging>
 
@@ -44,7 +44,7 @@
 		<connection>scm:git:https://github.com/NorbertSandor/xtend-ioc.git</connection>
 		<developerConnection>scm:git:https://github.com/NorbertSandor/xtend-ioc.git</developerConnection>
 		<url>https://github.com/NorbertSandor/xtend-ioc.git</url>
-		<tag>HEAD</tag>
+		<tag>v0.5.2</tag>
 	</scm>
 
 	<distributionManagement>
