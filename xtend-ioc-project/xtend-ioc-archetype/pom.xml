@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>com.erinors</groupId>
 		<artifactId>xtend-ioc-project</artifactId>
-		<version>0.6.0-SNAPSHOT</version>
+		<version>0.5.3-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
