@@ -11,6 +11,8 @@
  */
 package com.erinors.ioc.shared.api
 
+import com.google.common.base.MoreObjects
+import com.google.common.base.MoreObjects.ToStringHelper
 import org.eclipse.xtend.lib.annotations.Data
 
 interface InjectionPoint
@@ -26,6 +28,16 @@ class NoInjectionPoint implements InjectionPoint
 class DeclaredInjectionPoint implements InjectionPoint
 {
 	Class<?> declaringClass
+
+	override String toString()
+	{
+		createToStringHelper().toString
+	}
+
+	protected def ToStringHelper createToStringHelper()
+	{
+		MoreObjects.toStringHelper(this).add("declaringClass", declaringClass)
+	}
 }
 
 @Data
@@ -34,14 +46,29 @@ class FieldInjectionPoint extends DeclaredInjectionPoint
 	String fieldName
 
 	Class<?> fieldType
+
+	override toString()
+	{
+		createToStringHelper().add("fieldName", fieldName).add("fieldType", fieldType).toString
+	}
 }
 
 @Data
 class ExecutableInjectionPoint extends DeclaredInjectionPoint
 {
+	// Workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=458720
+	override toString()
+	{
+		super.toString
+	}
 }
 
 @Data
 class ParameterInjectionPoint extends DeclaredInjectionPoint
 {
+	// Workaround for https://bugs.eclipse.org/bugs/show_bug.cgi?id=458720
+	override toString()
+	{
+		super.toString
+	}
 }
