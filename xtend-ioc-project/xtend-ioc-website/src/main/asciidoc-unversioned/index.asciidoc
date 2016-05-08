@@ -22,6 +22,18 @@ For more information see
 
 Current development version.
 
+=== 0.5.3 (2016-05-04)
+
+* Fix: problems with Maven Central deploy
+
+Documentation: link:0.5.3/index.html[0.5.3]
+
+=== 0.5.2 (2016-05-04)
+
+* Fix: problems with Maven Central deploy
+
+Documentation: link:0.5.2/index.html[0.5.2]
+
 === 0.5.1 (2016-05-04)
 
 * Fix: project generated from archetype uses incorrect xtend-ioc version.
