@@ -187,7 +187,7 @@ class ComponentProcessorImplementation extends AbstractClassProcessor
 				}
 			}
 			case GUAVA_OPTIONAL:
-			'''((«Optional.name»)(«inputSourceCode».isPresent() ? «Optional.name».fromNullable(«inputSourceCode».get(«injectionPoint»)) : «Optional.name».absent()))'''
+			'''(«Optional.name»)(«Optional.name».fromNullable(«inputSourceCode».get(«injectionPoint»)))'''
 			case GUAVA_SUPPLIER:
 			'''(«IocUtils.getProviderTypeReference(componentReference, context).name»)(() -> «inputSourceCode».get(«injectionPoint»))'''
 		}
