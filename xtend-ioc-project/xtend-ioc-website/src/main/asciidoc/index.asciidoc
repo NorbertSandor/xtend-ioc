@@ -842,6 +842,7 @@ All documentation is licensed under image:https://i.creativecommons.org/l/by-nc-
 Is Java supported?::
 No, only Xtend is supported. +
 Altough it would be possible to implement most _xtend-ioc_ features using https://docs.oracle.com/javase/8/docs/api/javax/annotation/processing/package-summary.html[Java Annotation Processing], it is not planned currently.
+http://google.github.io/dagger/[Dagger 2 by Google, formerly Square] is a similar framework for Java.
 
 Is Google Web Toolkit supported?::
 Yes, the generated code is http://gwtproject.org/[GWT] compatible.
