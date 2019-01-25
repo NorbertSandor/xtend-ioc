@@ -1,3 +1,5 @@
+!!! Please note that this project is not actively maintained !!!
+
 # xtend-ioc
 
 IOC framework implemented in Xtend language.
